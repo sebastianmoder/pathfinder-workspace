@@ -40,6 +40,8 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
         shown: t.summary.shown,
         selfAssessed: t.summary.selfAssessed,
         review: t.summary.review,
+        calibration: t.summary.calibration,
+        calibrationText: t.audit.calibration,
         before: t.summary.before,
         after: t.summary.after,
         notFinished: t.summary.notFinished,
@@ -96,6 +98,9 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
                 )}
                 {m.after && (
                   <div><dt className="font-semibold">{t.summary.after}</dt><dd>{m.after.label}{confidence(m.after.confidence)}</dd></div>
+                )}
+                {m.calibration && (
+                  <div><dt className="font-semibold">{t.summary.calibration}</dt><dd>{t.audit.calibration(m.calibration)}</dd></div>
                 )}
                 {m.takeaway && (
                   <div><dt className="font-semibold">{t.summary.takeaway}</dt><dd>{m.takeaway}</dd></div>

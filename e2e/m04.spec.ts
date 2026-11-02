@@ -1,19 +1,18 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { auditClaim, narrow } from "./helpers";
+import { auditClaim, cont, firstRead, markAndCheck, narrow } from "./helpers";
 
-
-test("M04 is completable, with claim-level feedback and a real before/after", async ({ page }) => {
+test("M04: first read, claim feedback, a learner-made briefing, and a decision with consequences", async ({ page }) => {
   await page.goto("/missions/m04-evidence");
-  const cont = () => page.getByRole("button", { name: "Continue", exact: true }).click();
-  await cont();
-  await cont();
+  await cont(page);
+  await cont(page);
 
-  await page.getByLabel(/Quite far/).check();
-  await page.getByLabel("Very", { exact: true }).check();
-  await page.getByRole("button", { name: "Record my judgment" }).click();
-  await expect(page.getByText("Weaker fit")).toHaveCount(0);
-  await cont();
+  // No source is open yet, and starting needs a first read of every claim.
+  await expect(page.getByRole("heading", { name: "Source pack" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Start checking" })).toBeDisabled();
+  await expect(page.getByText(/Evidence here means/)).toHaveCount(0); // no coaching before the first read
+  await firstRead(page, "I would rely on it");
+  await expect(page.getByText(/Evidence here means/)).toBeVisible();
 
   // Wrong on the first try: a real citation that does not support its claim.
   await auditClaim(page, /Research shows/, { passage: "survey-scope", status: "Supported", action: "Retain" });
@@ -22,66 +21,97 @@ test("M04 is completable, with claim-level feedback and a real before/after", as
   await expect(page.getByText(/A citation is a place to look/)).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
-  // Retry on the same claim, then see it accepted.
-  await auditClaim(page, /Research shows/, { passage: "review-finding", status: "Unsupported", action: "Correct" });
-  await expect(page.getByText(/Evidence: Fits/)).toBeVisible();
+  // A fix has to be written: checking waits for the blanks, and a wrong one is called out.
+  await auditClaim(page, /Research shows/, { passage: "review-finding", status: "Unsupported", action: "Correct", repair: ["higher grades", "grades"] });
+  await expect(page.getByText(/Your fix: Look again/)).toBeVisible();
+  await page.getByRole("radio", { name: /^Correct/ }).check();
+  await page.getByLabel("Blank 1", { exact: true }).selectOption("time spent on homework");
+  await page.getByRole("button", { name: "Check this claim" }).click();
+  await expect(page.getByText(/Your fix: Fits/)).toBeVisible();
 
-  // Defensible judgment is not marked as an error.
-  await auditClaim(page, /Three-quarters/, { passage: "survey-result", status: "Misleading", action: "Correct" });
+  // A defensible judgment is not marked as an error.
+  await auditClaim(page, /Three-quarters/, { passage: "survey-result", status: "Misleading", action: "Correct", repair: ["63", "210", "48"] });
   await expect(page.getByText(/Decision: Defensible/)).toBeVisible();
 
-  await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", status: "Supported", action: "Retain" });
-  await auditClaim(page, /about 30% higher/, { passage: "attendance-avg", status: "Supported", action: "Retain" });
-  await auditClaim(page, /funds the programme/, { passage: "trust-2026-amount", status: "Outdated", action: "Correct" });
+  // The figure has to be worked out, and a wrong one is called out.
+  await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", calc: "50", status: "Supported", action: "Retain" });
+  await expect(page.getByText(/Your figure: Look again/)).toBeVisible();
+
+  // Left in as written, so it should have a consequence later.
+  await auditClaim(page, /funds the programme/, { passage: "trust-2026-amount", status: "Supported", action: "Retain" });
   await auditClaim(page, /repeatedly asked/, { status: "Unsupported", action: "Remove" });
-  await auditClaim(page, /can staff a second/, { passage: "volunteers-capacity", status: "Incorrect", action: "Correct" });
+  await auditClaim(page, /can staff a second/, { passage: "volunteers-capacity", status: "Incorrect", action: "Correct", repair: ["Five", "month"] });
   await expect(page.getByRole("button", { name: "See the final briefing" })).toHaveCount(0); // one claim left
   await auditClaim(page, /Tuesday trial/, { passage: "attendance-tuesday", status: "Supported", action: "Retain" });
 
   await page.getByRole("button", { name: "See the final briefing" }).click();
-  await expect(page.getByRole("heading", { name: "The final briefing" })).toBeFocused();
-  await expect(page.getByText("€12,000 for 2026–27")).toBeVisible();
-  await cont();
+  await expect(page.getByRole("heading", { name: "Your finished text" })).toBeFocused();
+  await expect(page.getByText(/€12,000 for 2026–27/)).toBeVisible(); // the reviewed version
+  await expect(page.getByText(/funds the programme with €18,000/).first()).toBeVisible(); // the learner's own error is still there
+  await expect(page.getByText(/You would have relied on 7 claims, and 5 of those did not hold up/)).toBeVisible();
 
-  // The first answer is still on record, unchanged by anything since.
-  await expect(page.getByText(/Your first answer:.*Quite far.*\(Very\)/)).toBeVisible();
-  await page.getByLabel(/It tells me where to look/).check();
-  await page.getByLabel("Fairly", { exact: true }).check();
+  await page.getByRole("button", { name: "Make the decision" }).click();
+  await expect(page.getByRole("heading", { name: "Use your briefing" })).toBeFocused();
+  await expect(page.getByText(/The board budgeted on €18,000/)).toBeVisible();
+  await expect(page.getByText(/explain that nobody had agreed/)).toHaveCount(0); // that one was fixed
+  await page.getByLabel(/Add a weekly Tuesday session/).check();
   await page.getByRole("button", { name: "Check my answer" }).click();
-  await expect(page.getByText(/Very at the start, Fairly now/)).toBeVisible();
-  await cont();
+  await expect(page.getByText(/the rota runs out within weeks/)).toBeVisible();
+  await page.getByLabel(/Run one extra session a month/).check();
+  await page.getByRole("button", { name: "Check my answer" }).click();
+  await cont(page);
 
-  // Transfer: no hints, different case; the wrong "doubled" passage is a plausible trap.
+  // Independent: find the claims, no hints, and no feedback until the whole audit goes in.
   await expect(page.getByRole("button", { name: "Need a hint?" })).toHaveCount(0);
-  // The reason comes before any feedback, and the explanation step shows it back unchanged.
-  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", status: "Incorrect", action: "Correct", reason: "Written before feedback." });
-  await expect(page.getByLabel(/Before you check/)).not.toBeEditable();
-  await cont();
+  await markAndCheck(page, [/Repair café visits doubled/, /repair volunteers doubled/, /largest repair café/], "Audit the claims");
+  await expect(page.getByRole("button", { name: "Submit the audit" })).toHaveCount(0);
+  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", calc: "41", status: "Incorrect", action: "Correct", repair: ["290", "410", "41"], reason: "Written before feedback.", independent: true });
+  await expect(page.getByText(/Evidence: Fits/)).toHaveCount(0);
+  await auditClaim(page, /repair volunteers doubled/, { passage: "report-volunteers", status: "Supported", action: "Retain", independent: true });
+  await auditClaim(page, /largest repair café/, { status: "Unsupported", action: "Remove", independent: true });
+  await page.getByRole("button", { name: "Submit the audit" }).click();
+  await expect(page.getByText(/Evidence: Fits/)).toBeVisible();
+  await page.getByRole("button", { name: "See the final briefing" }).click();
+  await cont(page);
+
+  // The reason from before the feedback comes back unchanged.
+  await page.getByRole("button", { name: "Skip the practice" }).click();
   await expect(page.getByText("Written before feedback.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Skip writing and see the criteria" })).toHaveCount(0);
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await page.getByLabel(/Says what an accurate version would state/).check();
-  await cont();
+  await page.getByLabel(/Says what an accurate version would state/).selectOption({ index: 1 });
+  await cont(page);
 
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your own assessment" })).toBeVisible();
-  await expect(page.getByText("you ticked 1 of 3 criteria")).toBeVisible();
+  await expect(page.getByText("you pointed to a sentence for 1 of 3 criteria")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Worth another look" }).locator("..").getByText("Working out a figure instead of trusting it")).toBeVisible();
+});
+
+test("finding claims does not depend on being right, and every claim is still available to audit", async ({ page }) => {
+  await page.goto("/missions/t01-transfer");
+  await cont(page);
+  await cont(page);
+  await page.getByRole("button", { name: /Everyone at the Commons can be proud/ }).click();
+  await page.getByRole("button", { name: "Check my answer" }).click();
+  await expect(page.getByText("You marked 0 of 6, and 1 that does not belong.")).toBeVisible();
+  await page.getByRole("button", { name: "Audit the claims" }).click();
+  await firstRead(page, "I would check it first");
+  await expect(page.getByRole("button", { name: /enrolled 48 people/ })).toBeAttached();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
 test("claims and sources work by keyboard", async ({ page }) => {
   await page.goto("/missions/m04-evidence");
-  const cont = () => page.getByRole("button", { name: "Continue", exact: true }).click();
-  await cont();
-  await cont();
-  await page.getByLabel(/It tells me where to look/).check();
-  await page.getByLabel("Fairly", { exact: true }).check();
-  await page.getByRole("button", { name: "Record my judgment" }).click();
-  await cont();
+  await cont(page);
+  await cont(page);
+  await firstRead(page, "Not sure");
 
+  if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();
   const claim = page.getByRole("button", { name: /Attendance averaged/ });
   await claim.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByText("Selected claim")).toBeVisible();
+  await expect(page.getByText("Selected claim")).toBeAttached();
   if (narrow(page)) {
     // The claim's view has gone, so focus must land on the judgment panel rather than be lost.
     await expect(page.getByRole("region", { name: "Your judgment" })).toBeFocused();
@@ -92,18 +122,14 @@ test("claims and sources work by keyboard", async ({ page }) => {
 
 test("selections survive switching views, and the audit survives leaving the page", async ({ page }) => {
   await page.goto("/missions/m04-evidence");
-  const cont = () => page.getByRole("button", { name: "Continue", exact: true }).click();
-  await cont();
-  await cont();
-  await page.getByLabel(/It tells me where to look/).check();
-  await page.getByLabel("Fairly", { exact: true }).check();
-  await page.getByRole("button", { name: "Record my judgment" }).click();
-  await cont();
+  await cont(page);
+  await cont(page);
+  await firstRead(page, "Not sure");
 
-  await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", status: "Supported", action: "Retain" });
+  await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", calc: "31", status: "Supported", action: "Retain" });
   await page.getByRole("link", { name: "Mission map" }).click();
   await page.getByRole("link", { name: /Open mission.*The Evidence Bureau/ }).click();
-  await expect(page.getByText("Claims checked: 1 of 8")).toBeAttached();
+  await expect(page.getByText("Claims checked: 1 of 7")).toBeAttached();
   if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();
-  await expect(page.getByText("Claims checked: 1 of 8")).toBeVisible();
+  await expect(page.getByText("Claims checked: 1 of 7")).toBeVisible();
 });

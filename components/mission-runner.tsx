@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef } from "react";
 import Link from "next/link";
 import type { Mission, Step } from "@/content/types";
-import type { EvidenceResult } from "@/lib/evidence";
+import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { ChoiceQuestion } from "./choice-question";
@@ -16,6 +16,7 @@ import { ClaimAudit } from "./activities/claim-audit";
 import { OpenResponse } from "./activities/open-response";
 import { DialogueActivity, DialogueReplay } from "./activities/dialogue";
 import { ArgumentMap } from "./activities/argument-map";
+import { MarkText } from "./activities/mark-text";
 
 interface Props {
   mission: Mission;
@@ -184,6 +185,15 @@ function StepView({
               <p className="mb-4">{step.prompt}</p>
               <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onEvidence={record} onContinue={onContinue} />
             </>
+          ) : "mark" in step ? (
+            <>
+              <p className="mb-4">{step.prompt}</p>
+              <MarkText
+                paragraphs={step.mark}
+                onResult={(id, right) => record(itemKey(step.id, id), { right })}
+                onContinue={onContinue}
+              />
+            </>
           ) : (
             <ChoiceQuestion name={step.id} prompt={step.prompt} choices={step.choices} hints={step.hints} onCommit={onAnswer} onEvidence={recordStep} onContinue={onContinue} />
           )}
@@ -194,8 +204,7 @@ function StepView({
       return (
         <>
           <h2 className="text-2xl">{step.title}</h2>
-          <p className="mb-4 mt-1">{step.intro}</p>
-          <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal onEvidence={record} onContinue={onContinue} />
+          <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} intro={step.intro} showFinal onEvidence={record} onContinue={onContinue} />
         </>
       );
 
@@ -250,7 +259,7 @@ function StepView({
       );
 
     case "argumentMap":
-      return <ArgumentMap missionId={mission.id} step={step} onEvidence={record} onContinue={onContinue} />;
+      return <ArgumentMap mission={mission} step={step} onEvidence={record} onContinue={onContinue} />;
 
     case "sort":
       return <SortActivity step={step} onEvidence={record} onContinue={onContinue} />;

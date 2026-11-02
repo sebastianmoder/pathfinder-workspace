@@ -1,4 +1,6 @@
 import type { DebriefSkill, Step } from "@/content/types";
+import { auditItems } from "./audit";
+import { segmentsOf } from "./mark";
 
 /**
  * What a learner actually did, step by step, for the active visit only (PRD §11).
@@ -71,17 +73,30 @@ export function evidenceItems(step: Step): string[] {
     case "openResponse":
       return [step.id];
     case "transfer":
-      return "audit" in step
-        ? step.audit.claims.flatMap((c) => ["evidence", "status", "action"].map((f) => itemKey(step.id, c.id, f)))
-        : [step.id];
+      if ("audit" in step) return auditItems(step.id, step.audit);
+      if ("mark" in step) return segmentsOf(step.mark).filter((s) => !s.optional).map((s) => itemKey(step.id, s.id));
+      return [step.id];
     case "claimAudit":
-      return step.audit.claims.flatMap((c) => ["evidence", "status", "action"].map((f) => itemKey(step.id, c.id, f)));
+      return auditItems(step.id, step.audit);
     case "sort":
       return step.items.map((i) => itemKey(step.id, i.id));
     case "argumentMap":
-      return step.cards.map((c) => itemKey(step.id, c.id));
+      return [
+        ...step.cards.map((c) => itemKey(step.id, c.id)),
+        ...step.links.map((l) => itemKey(step.id, "link", l.cardId)),
+      ];
     case "dialogue":
-      return step.dialogue.discoveries.map((d) => itemKey(step.id, d.id));
+      return [
+        ...step.dialogue.discoveries.map((d) => itemKey(step.id, d.id)),
+        ...[
+          ...new Set(
+            step.dialogue.nodes.flatMap((n) => [
+              ...n.choices.flatMap((c) => (c.scored ? [c.scored.item] : [])),
+              ...(n.cite ? [...n.cite.responses, n.cite.otherwise].flatMap((r) => (r.scored ? [r.scored.item] : [])) : []),
+            ]),
+          ),
+        ].map((item) => itemKey(step.id, item)),
+      ];
     case "faultTrace":
       return step.cases.map((c) => itemKey(step.id, c.id));
     case "sandbox":

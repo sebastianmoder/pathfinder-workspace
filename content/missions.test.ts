@@ -3,18 +3,14 @@ import { missions } from "./missions";
 import { modules } from "./journey";
 import { passwords } from "./passwords";
 import { hasCycle, reachableNodes } from "@/lib/dialogue";
+import { fillRepair } from "@/lib/audit";
+import { citeChoiceId, walk } from "@/lib/dialogue";
 import { evidenceItems } from "@/lib/evidence";
+import { segmentsOf } from "@/lib/mark";
 import { askMachine, goalMet } from "@/lib/sandbox";
-import type { AuditSpec, Choice, Step } from "./types";
+import { PROPOSAL, type AuditSpec, type Choice, type Step } from "./types";
 
-const REQUIRED_KINDS: Step["kind"][] = [
-  "brief",
-  "refresher",
-  "initialJudgment",
-  "revision",
-  "transfer",
-  "debrief",
-];
+const REQUIRED_KINDS: Step["kind"][] = ["brief", "refresher", "transfer", "debrief"];
 
 const choicesOf = (s: Step): Choice[] =>
   "choices" in s ? s.choices : [];
@@ -25,6 +21,9 @@ describe.each(missions)("mission $id", (mission) => {
   it("contains every required step kind (PRD §6)", () => {
     const kinds = mission.steps.map((s) => s.kind);
     for (const k of REQUIRED_KINDS) expect(kinds).toContain(k);
+    // The initial judgment and its revision can be a position re-asked, or trust compared with the evidence.
+    const trustFirst = mission.steps.some((s) => auditOf(s)?.trustFirst);
+    expect(trustFirst || (kinds.includes("initialJudgment") && kinds.includes("revision")), "judgment and revision").toBe(true);
     expect(kinds.some((k) => k === "quiz" || k === "openResponse")).toBe(true);
   });
 
@@ -63,7 +62,9 @@ describe.each(missions)("mission $id", (mission) => {
       const audit = auditOf(s);
       if (!audit) continue;
       const passages = new Set(audit.sources.flatMap((src) => src.passages.map((p) => p.id)));
-      const refs = audit.briefing.flat().flatMap((seg) => (typeof seg === "string" ? [] : [seg.claimId]));
+      const refs = audit.briefing.flat().flatMap((seg) => (typeof seg !== "string" && "claimId" in seg ? [seg.claimId] : []));
+      const decoyRefs = audit.briefing.flat().flatMap((seg) => (typeof seg !== "string" && "decoyId" in seg ? [seg.decoyId] : []));
+      expect([...decoyRefs].sort()).toEqual((audit.decoys ?? []).map((d) => d.id).sort());
       expect([...refs].sort()).toEqual(audit.claims.map((c) => c.id).sort()); // each claim appears exactly once
       for (const c of audit.claims) {
         for (const p of c.passageIds) expect(passages, `${c.id}/${p}`).toContain(p);
@@ -74,6 +75,64 @@ describe.each(missions)("mission $id", (mission) => {
         if (c.status === "supported") expect(c.bestAction, c.id).toBe("retain");
         if (c.citationMismatch) expect(c.passageIds.length, c.id).toBeGreaterThan(0);
       }
+    }
+  });
+
+  it("a repair, filled in with its first accepted values, is the reviewed wording", () => {
+    for (const s of mission.steps) {
+      for (const c of auditOf(s)?.claims ?? []) {
+        if (!c.repair) continue;
+        const entries = Object.fromEntries(c.repair.flatMap((p) => (typeof p === "string" ? [] : [[p.id, p.accept[0]]])));
+        expect(fillRepair(c, entries), c.id).toBe(c.finalText);
+        expect(["qualify", "correct"], c.id).toContain(c.bestAction);
+        for (const p of c.repair) if (typeof p !== "string" && p.options) expect(p.options, c.id).toContain(p.accept[0]);
+      }
+    }
+  });
+
+  it("every claim that should change has a repair, and a calculation accepts its own answer", () => {
+    for (const s of mission.steps) {
+      for (const c of auditOf(s)?.claims ?? []) {
+        if (c.bestAction === "qualify" || c.bestAction === "correct") expect(c.repair, c.id).toBeDefined();
+        if (c.calculation) expect(c.calculation.min, c.id).toBeLessThan(c.calculation.max);
+      }
+    }
+  });
+
+  it("every claim has an outcome to follow from it", () => {
+    for (const s of mission.steps) {
+      for (const c of auditOf(s)?.claims ?? []) {
+        if (c.status === "supported") expect(c.ifLost, c.id).toBeTruthy();
+        else expect(c.ifKept, c.id).toBeTruthy();
+      }
+    }
+  });
+
+  it("marking tasks have something to find and something to leave", () => {
+    for (const s of mission.steps) {
+      if (!("mark" in s)) continue;
+      const segments = segmentsOf(s.mark);
+      expect(segments.some((x) => x.target && !x.optional), s.id).toBe(true);
+      expect(segments.some((x) => !x.target && !x.optional), s.id).toBe(true);
+      for (const x of segments) expect(x.explanation.trim(), x.id).not.toBe("");
+    }
+  });
+
+  it("independent audits have decoys, because finding claims needs something to leave out", () => {
+    for (const s of mission.steps) {
+      const audit = auditOf(s);
+      if (audit?.support === "independent") expect(audit.decoys?.length, s.id).toBeGreaterThan(0);
+      if (audit?.support === "independent") expect(audit.claims.some((c) => c.status === "supported"), s.id).toBe(true);
+    }
+  });
+
+  it("rubric samples are rated against real criteria, with one strong and one weak answer", () => {
+    for (const s of mission.steps) {
+      if (s.kind !== "openResponse" || !s.rubric.samples) continue;
+      const criteria = s.rubric.criteria.map((c) => c.id);
+      for (const sample of s.rubric.samples) for (const m of sample.met) expect(criteria, sample.id).toContain(m);
+      expect(s.rubric.samples.some((x) => x.met.length === criteria.length), s.id).toBe(true);
+      expect(s.rubric.samples.some((x) => x.met.length < criteria.length), s.id).toBe(true);
     }
   });
 
@@ -101,6 +160,15 @@ describe.each(missions)("mission $id", (mission) => {
       const discoveries = new Set(spec.discoveries.map((d) => d.id));
       expect(hasCycle(spec)).toBe(false);
       expect(reachableNodes(spec)).toEqual(ids);
+      const passages = new Set(s.sources.flatMap((src) => src.passages.map((p) => p.id)));
+      for (const n of spec.nodes) {
+        for (const r of n.cite?.responses ?? []) {
+          expect(ids.has(r.next), n.id).toBe(true);
+          for (const p of r.passageIds) expect(passages, n.id).toContain(p);
+        }
+        if (n.cite) expect(ids.has(n.cite.otherwise.next), n.id).toBe(true);
+      }
+      for (const q of spec.boardQuestions ?? []) expect(discoveries, q.question).toContain(q.discoveryId);
       expect(ids.has(spec.start)).toBe(true);
       for (const start of Object.values(spec.starts)) expect(ids.has(start), start).toBe(true);
       expect(spec.nodes.some((n) => n.choices.length === 0)).toBe(true);
@@ -125,6 +193,20 @@ describe.each(missions)("mission $id", (mission) => {
       const initial = mission.steps.find((x) => x.id === s.initialStepId);
       for (const c of initial ? choicesOf(initial) : []) expect(spec.starts[c.id], c.id).toBeDefined();
     }
+  });
+
+  it("argument maps connect real cards to real targets", () => {
+    for (const s of mission.steps)
+      if (s.kind === "argumentMap") {
+        const cards = s.cards.map((c) => c.id);
+        const reasons = s.cards.filter((c) => c.slotId === "reason").map((c) => c.id);
+        for (const l of s.links) {
+          expect(cards, l.cardId).toContain(l.cardId);
+          for (const target of [l.targetId, ...(l.defensibleTargetIds ?? [])]) expect([...reasons, PROPOSAL], l.cardId).toContain(target);
+        }
+        expect(mission.steps.map((x) => x.id)).toContain(s.initialStepId);
+        expect(mission.steps.find((x) => x.id === s.dialogueStepId)?.kind).toBe("dialogue");
+      }
   });
 
   it("argument maps place every card somewhere that exists, with an explanation", () => {
@@ -200,6 +282,74 @@ describe("M04 required case types (PRD §7)", () => {
 
   it("has a real citation that does not support its claim", () => {
     expect(claims.some((c) => c.citationMismatch)).toBe(true);
+  });
+});
+
+describe("M05 conversation", () => {
+  const m05 = missions.find((m) => m.id === "m05-argument")!;
+  const step = m05.steps.find((s) => s.kind === "dialogue");
+  if (step?.kind !== "dialogue") throw new Error("no dialogue");
+  const spec = step.dialogue;
+
+  /** Every path, from every opening, following the moves actually on offer. */
+  function allPaths(): string[][] {
+    const out: string[][] = [];
+    for (const start of Object.values(spec.starts)) {
+      const go = (choices: string[]) => {
+        const path = walk(spec, start, choices);
+        if (path.ended) out.push(choices);
+        for (const c of path.options) go([...choices, c.id]);
+      };
+      go([]);
+    }
+    return out;
+  }
+  const finish = (choices: string[], start = spec.start) => walk(spec, start, choices);
+
+  it("every path finishes, and passes both of Rafael's closing claims", () => {
+    const paths = allPaths();
+    expect(paths.length).toBeGreaterThan(10);
+    for (const choices of paths) {
+      for (const start of Object.values(spec.starts)) {
+        const path = finish(choices, start);
+        if (!path.ended) continue;
+        const scored = path.turns.flatMap((t) => (t.choice?.scored ? [t.choice.scored.item] : []));
+        expect(scored, choices.join(">")).toEqual(["misquote", "concede"]);
+      }
+    }
+  });
+
+  it("the budget forces a trade-off, while leaving the debrief's threshold reachable from every opening", () => {
+    const best = (start: string) => {
+      const counts: number[] = [];
+      const go = (choices: string[]) => {
+        const path = walk(spec, start, choices);
+        if (path.ended) counts.push(path.discovered.length);
+        for (const c of path.options) go([...choices, c.id]);
+      };
+      go([]);
+      return Math.max(...counts);
+    };
+    for (const start of Object.values(spec.starts)) expect(best(start), start).toBeGreaterThanOrEqual(3);
+    // Rafael gives an "adopt" learner the error finding in his opening. Anyone else has to choose.
+    expect(best(spec.starts.pilot)).toBeLessThan(spec.discoveries.length);
+    expect(best(spec.starts.reject)).toBeLessThan(spec.discoveries.length);
+  });
+
+  it("only the right passage catches the misquote", () => {
+    const toMisquote = ["concede", "condition"];
+    const right = finish([...toMisquote, citeChoiceId("eastfield-result")]);
+    const wrong = finish([...toMisquote, citeChoiceId("brochure-claim")]);
+    expect(right.turns.at(-2)?.choice?.scored).toEqual({ item: "misquote", right: true });
+    expect(wrong.turns.at(-2)?.choice?.scored).toEqual({ item: "misquote", right: false });
+  });
+
+  it("Rafael's claims say what the sources do and don't support", () => {
+    const passage = (id: string) => step.sources.flatMap((s) => s.passages).find((p) => p.id === id)!.text;
+    expect(passage("eastfield-result")).not.toContain("40%");
+    expect(passage("brochure-claim")).toContain("40%");
+    expect(passage("brochure-price")).toContain("€6,000");
+    expect(passage("budget-amount")).toContain("€12,000");
   });
 });
 
@@ -325,6 +475,13 @@ describe("the pilot journey (PRD §10)", () => {
         .steps.flatMap((s) => ("audit" in s ? s.audit.sources.flatMap((src) => src.passages.map((p) => p.text)) : []));
     const m04 = new Set(passagesOf("m04-evidence"));
     expect(passagesOf("t01-transfer").filter((p) => m04.has(p))).toEqual([]);
+  });
+
+  it("support fades: M04 is guided, and T01 is independent", () => {
+    const main = missions.find((m) => m.id === "m04-evidence")!.steps.find((s) => s.kind === "claimAudit");
+    const t01 = missions.find((m) => m.id === "t01-transfer")!.steps.find((s) => "audit" in s);
+    expect(main && "audit" in main ? main.audit.support : "x").toBeUndefined();
+    expect(t01 && "audit" in t01 ? t01.audit.support : "x").toBe("independent");
   });
 
   it("T01 covers supported, unsupported, misleading and incorrect claims", () => {

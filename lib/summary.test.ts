@@ -57,6 +57,20 @@ describe("summarizeMission", () => {
   });
 });
 
+describe("calibration", () => {
+  const claim = { id: "c", text: "x", status: "misleading" as const, passageIds: [], bestAction: "qualify" as const, evidenceExplanation: "e", statusExplanation: "s", actionExplanation: "a", finalText: "y" };
+  const audited: Mission = {
+    ...mission,
+    steps: [{ kind: "claimAudit", id: "a", title: "t", intro: "i", audit: { trustFirst: true, sources: [], briefing: [], claims: [claim] } }, ...mission.steps],
+  };
+  const input = (phase: string) => ({ stepIndex: 2, answers: {}, evidence: {}, stepState: { a: { phase, trust: { c: "rely" } } } });
+
+  it("appears only once the audit is finished, so a half-done audit claims nothing", () => {
+    expect(summarizeMission(audited, input("audit"), false)!.calibration).toBeNull();
+    expect(summarizeMission(audited, input("final"), false)!.calibration).toEqual({ relied: 1, reliedThatFailed: 1, doubtedThatHeld: 0 });
+  });
+});
+
 describe("summaryToText", () => {
   it("includes judgments and passwords, with no score", () => {
     const text = summaryToText({
@@ -65,7 +79,7 @@ describe("summaryToText", () => {
       startingPoint: [],
       startingPointLabel: "Start",
       missions: [summarizeMission(mission, { stepIndex: 2, answers: { i: { choiceId: "a", confidence: 0 } }, evidence: {} }, true)!],
-      labels: { takeaway: "T", shown: "Shown", selfAssessed: "Self", review: "Review", before: "Before", after: "After", notFinished: "NF", passwords: "P" },
+      labels: { takeaway: "T", shown: "Shown", selfAssessed: "Self", review: "Review", calibration: "C", calibrationText: () => "", before: "Before", after: "After", notFinished: "NF", passwords: "P" },
       confidenceLabels: ["Low"],
       passwords: [{ title: "Mission", code: "A-B-22" }],
     } satisfies SummaryText);

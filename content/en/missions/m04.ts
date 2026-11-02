@@ -1,19 +1,21 @@
-import type { AuditSpec, Choice, Mission } from "../../types";
+import type { AuditSpec, Mission } from "../../types";
 
 /**
  * M04 — The Evidence Bureau.
  * All organisations, documents and figures are fictional.
- * Arithmetic to re-check on review: 26→34 is +30.8%; 48/63 is 76%; 63/210 is 30%; 290→410 is +41.4%.
+ * Arithmetic to re-check on review: 26→34 is +30.8%; 48/63 is 76%; 63/210 is 30%; 290→410 is +41.4%; €18,000−€12,000 is €6,000.
  */
 
-const trustQuestion = "A claim in an AI-written briefing has a citation attached. How far should that make you trust it?";
-const trustChoices: Choice[] = [
-  { id: "a", label: "Quite far, if the source is real and on topic.", verdict: "weaker", explanation: "A citation only tells you where to look. In this briefing, a real source on the right topic was attached to a claim it does not support." },
-  { id: "b", label: "It tells me where to look. I still need to read the passage.", verdict: "correct", explanation: "This matches what the audit showed: some cited claims held up exactly and others did not. The passage decides, not the citation." },
-  { id: "c", label: "Not at all. AI-written briefings should be rewritten from scratch using the sources.", verdict: "weaker", explanation: "Several claims in this briefing were accurate and were worth keeping. Justified trust matters as much as justified doubt." },
-];
-
 const audit: AuditSpec = {
+  trustFirst: true,
+  decision: {
+    prompt: "The board has read your briefing and asks what you recommend about the Tuesday session.",
+    choices: [
+      { id: "weekly", label: "Add a weekly Tuesday session from January.", verdict: "weaker", explanation: "No volunteer has offered weekly cover, funding has fallen, and the last Tuesday trial drew 11 learners. In this fictional case, the rota runs out within weeks and the session stops." },
+      { id: "monthly", label: "Run one extra session a month, within what volunteers can cover, and review it.", verdict: "defensible", explanation: "This fits what five volunteers offered and tests demand cheaply. It gives families less than a weekly session, and it needs a clear point at which to review it." },
+      { id: "hold", label: "Hold off until demand and funding are clearer.", verdict: "defensible", explanation: "Nothing in the pack shows demand for a weekday session, and funding has fallen. The cost is that any families who do need it wait longer." },
+    ],
+  },
   sources: [
     {
       id: "attendance",
@@ -66,7 +68,7 @@ const audit: AuditSpec = {
     },
   ],
   briefing: [
-    ["Briefing for the board: the Saturday Homework Club. ", { claimId: "attendance" }, " ", { claimId: "growth" }],
+    ["Briefing for the board: the Saturday Homework Club. ", { claimId: "attendance" }],
     [{ claimId: "families" }, " ", { claimId: "research" }],
     [{ claimId: "funding" }, " ", { claimId: "demand" }, " ", { claimId: "staffing" }, " ", { claimId: "tuesday" }],
     ["The board is asked to decide whether to add a second weekly session on Tuesdays."],
@@ -74,27 +76,17 @@ const audit: AuditSpec = {
   claims: [
     {
       id: "attendance",
-      text: "Attendance averaged 34 learners per session in the first half of 2026 [Attendance summary, Sept 2026].",
+      text: "Attendance averaged 34 learners per session in the first half of 2026, about 30% higher than in the same months of 2025 [Attendance summary, Sept 2026].",
       status: "supported",
       passageIds: ["attendance-avg"],
       bestAction: "retain",
-      evidenceExplanation: "The attendance passage gives this figure for January to June 2026.",
-      statusExplanation: "The claim says what the record says. Keeping a claim that checks out is good judgment, not a lack of skepticism.",
+      evidenceExplanation: "The attendance passage gives both figures: 34 per session in 2026 and 26 in 2025.",
+      statusExplanation: "The claim says what the record says, and the comparison is like for like. Keeping a claim that checks out is good judgment, not a lack of skepticism.",
       actionExplanation: "Nothing needs to change.",
-      finalText: "Attendance averaged 34 learners per session in the first half of 2026 [Attendance summary, Sept 2026].",
-      hint: "Look for the source that records attendance.",
-    },
-    {
-      id: "growth",
-      text: "That is about 30% higher than in the same months of 2025 [Attendance summary, Sept 2026].",
-      status: "supported",
-      passageIds: ["attendance-avg"],
-      bestAction: "retain",
-      evidenceExplanation: "The same passage gives both numbers: 26 per session in 2025 and 34 in 2026.",
-      statusExplanation: "The rise is 8 on a base of 26, which is about 31%. “About 30%” is a fair summary, so this calculation holds.",
-      actionExplanation: "The rounding is fair and the comparison is like for like.",
-      finalText: "That is about 30% higher than in the same months of 2025 [Attendance summary, Sept 2026].",
-      hint: "Work out the change from the two figures, then compare it with the claim.",
+      finalText: "Attendance averaged 34 learners per session in the first half of 2026, about 30% higher than in the same months of 2025 [Attendance summary, Sept 2026].",
+      hint: "Look for the source that records attendance, then work out the change from its two figures.",
+      calculation: { prompt: "Work it out: by what percentage did attendance rise?", min: 29, max: 32, explanation: "The rise is 8 on a base of 26, which is about 31%, so “about 30%” is a fair summary." },
+      ifLost: "The board had no attendance figures, so it could not see that the club had grown.",
     },
     {
       id: "families",
@@ -107,6 +99,8 @@ const audit: AuditSpec = {
       statusExplanation: "The 76% is real, but only among the 30% of families who answered. “Three-quarters of families” suggests all families, and those who answered may differ from those who did not.",
       actionExplanation: "Keep the finding and state who it describes. Rewording it as a correction is also defensible.",
       finalText: "Of the 63 families who answered the March 2026 survey, out of 210 asked, 48 said the club helped their child complete homework [Family survey, March 2026].",
+      repair: ["Of the ", { id: "answered", accept: ["63"] }, " families who answered the March 2026 survey, out of ", { id: "asked", accept: ["210"] }, " asked, ", { id: "helped", accept: ["48"] }, " said the club helped their child complete homework [Family survey, March 2026]."],
+      ifKept: "A board member repeated “three-quarters of families” in a funding bid. The funder asked to see the survey, and found that only 63 of 210 had answered.",
       hint: "Three-quarters of whom?",
     },
     {
@@ -121,6 +115,8 @@ const audit: AuditSpec = {
       statusExplanation: "The source exists and is on topic, but it does not back this claim. The survey does not help either: it did not measure grades.",
       actionExplanation: "Say what the study did find. Removing the sentence is also defensible, because the briefing does not depend on it.",
       finalText: "A 2025 regional study linked weekly club attendance with more time spent on homework, but did not establish an effect on grades [Regional Education Review, 2025].",
+      repair: ["A 2025 regional study linked weekly club attendance with more ", { id: "found", accept: ["time spent on homework"], options: ["higher grades", "time spent on homework", "better attendance"] }, ", but did not establish an effect on ", { id: "notfound", accept: ["grades"], options: ["attendance", "grades", "homework time"] }, " [Regional Education Review, 2025]."],
+      ifKept: "The minutes recorded that the club raises grades. A parent who had read the Review pointed out that it says no such thing.",
       hint: "Read what the cited source says about grades.",
     },
     {
@@ -133,6 +129,9 @@ const audit: AuditSpec = {
       statusExplanation: "The figure was true for the year it covered. A newer letter replaces it, so it no longer describes the funding.",
       actionExplanation: "A board deciding on expansion needs the current figure, so qualifying or removing it would leave out something important.",
       finalText: "The Riverside Community Trust will provide €12,000 for 2026–27 [Trust letter, April 2026].",
+      repair: ["The Riverside Community Trust will provide €", { id: "amount", accept: ["12,000", "12000"] }, " for ", { id: "year", accept: ["2026–27"], options: ["2024–25", "2025–26", "2026–27"] }, " [Trust letter, April 2026]."],
+      ifKept: "The board budgeted on €18,000. The Trust's current letter says €12,000, which left a €6,000 gap in the plan.",
+      ifLost: "The board decided without knowing that funding had fallen to €12,000.",
       hint: "Compare the dates on the sources.",
     },
     {
@@ -146,6 +145,7 @@ const audit: AuditSpec = {
       statusExplanation: "It may or may not be true. Nothing provided shows it, which is different from showing that it is false.",
       actionExplanation: "Remove it unless someone can supply evidence. Keeping it marked as unverified is also defensible, if the board is told so.",
       finalText: null,
+      ifKept: "The board treated the requests as settled demand. When asked, nobody could say which families had made them.",
       hint: "Check whether any source mentions what families asked for.",
     },
     {
@@ -159,6 +159,9 @@ const audit: AuditSpec = {
       statusExplanation: "The note says the opposite of the claim: five could cover one extra session a month, and none has offered weekly cover.",
       actionExplanation: "The board needs the true staffing position, so correcting it is more useful than deleting it.",
       finalText: "Five of the nine volunteers could cover one extra session a month, and none has offered to cover a weekly one [Volunteer rota note, Oct 2026].",
+      repair: [{ id: "who", accept: ["Five", "5"] }, " of the nine volunteers could cover one extra session a ", { id: "often", accept: ["month"], options: ["week", "fortnight", "month"] }, ", and none has offered to cover a weekly one [Volunteer rota note, Oct 2026]."],
+      ifKept: "The board approved extra sessions on the strength of confirmed volunteers. The coordinator then had to explain that nobody had agreed to weekly cover.",
+      ifLost: "The board never heard that no volunteer had offered weekly cover, which is the fact its decision most depended on.",
       hint: "Compare “weekly” in the claim with the wording in the note.",
     },
     {
@@ -171,12 +174,18 @@ const audit: AuditSpec = {
       statusExplanation: "The claim matches the record, including the number of sessions.",
       actionExplanation: "Nothing needs to change, and the board will want this figure.",
       finalText: "A Tuesday trial in autumn 2025 drew an average of 11 learners across six sessions [Attendance summary, Sept 2026].",
+      ifLost: "The board did not see that the last Tuesday trial drew only 11 learners.",
       hint: "Attendance records may cover more than Saturdays.",
     },
   ],
 };
 
 const transferAudit: AuditSpec = {
+  support: "independent",
+  reasonPrompt: "In a sentence or two, why does what you found decide this claim?",
+  decoys: [
+    { id: "valued", text: "The workshop is a wonderful part of Northgate life.", explanation: "This is an opinion. It may be widely shared, but no record could confirm or contradict it." },
+  ],
   sources: [
     {
       id: "annual-report",
@@ -189,8 +198,9 @@ const transferAudit: AuditSpec = {
       ],
     },
   ],
-  briefing: [["Summary for the Northgate grant application: ", { claimId: "doubled" }]],
-  reasonPrompt: "In a sentence or two, why does the passage you chose decide this, and what should the application say?",
+  briefing: [
+    ["Summary for the Northgate grant application: ", { decoyId: "valued" }, " ", { claimId: "doubled" }, " ", { claimId: "volunteers" }, " ", { claimId: "largest" }],
+  ],
   claims: [
     {
       id: "doubled",
@@ -202,6 +212,34 @@ const transferAudit: AuditSpec = {
       statusExplanation: "Visits rose from 290 to 410, about 41%. That is growth, but not a doubling.",
       actionExplanation: "The real figures still make a good case, so state them.",
       finalText: "Repair café visits rose from 290 in 2024 to 410 in 2025, an increase of about 41% [Annual report, Feb 2026].",
+      calculation: { prompt: "Work it out: by what percentage did visits rise?", min: 40, max: 42, explanation: "The rise is 120 on a base of 290, which is about 41%." },
+      repair: ["Repair café visits rose from ", { id: "from", accept: ["290"] }, " in 2024 to ", { id: "to", accept: ["410"] }, " in 2025, an increase of about ", { id: "pct", accept: ["41", "40", "41.4"] }, "% [Annual report, Feb 2026]."],
+      ifKept: "The funder compared the application with the annual report and asked the workshop to explain the difference.",
+    },
+    {
+      id: "volunteers",
+      text: "The number of trained repair volunteers doubled during 2025 [Annual report, Feb 2026].",
+      status: "supported",
+      passageIds: ["report-volunteers"],
+      bestAction: "retain",
+      evidenceExplanation: "The volunteers passage says exactly this: from 6 to 12.",
+      statusExplanation: "This “doubled” is correct. Having just found one that is wrong doesn't make this one wrong too.",
+      actionExplanation: "Nothing needs to change, and it strengthens the application.",
+      finalText: "The number of trained repair volunteers doubled during 2025 [Annual report, Feb 2026].",
+      ifLost: "The application left out one of its strongest facts.",
+    },
+    {
+      id: "largest",
+      text: "It is the largest repair café in the county.",
+      status: "unsupported",
+      passageIds: [],
+      bestAction: "remove",
+      defensibleActions: ["qualify"],
+      evidenceExplanation: "Nothing in the report compares the café with any other.",
+      statusExplanation: "It may or may not be true. Nothing provided shows it, which is different from showing that it is false.",
+      actionExplanation: "Remove it unless someone can supply evidence. Keeping it marked as unverified is also defensible.",
+      finalText: null,
+      ifKept: "A funder who knew the county's other repair cafés asked where the claim came from, and the workshop could not say.",
     },
   ],
 };
@@ -212,9 +250,9 @@ export const m04: Mission = {
   outcome: "Identify checkable claims, assess whether sources support them, and decide what to keep, qualify, correct or remove.",
   scenario:
     "You are the researcher at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted a briefing for tomorrow's board meeting on the Saturday Homework Club. You have the source pack, and your job is to audit the draft.",
-  approxMinutes: 14,
+  approxMinutes: 16,
   meta: {
-    version: "1.1",
+    version: "1.2",
     reviewedOn: "2026-11-02",
     reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
     sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
@@ -224,7 +262,7 @@ export const m04: Mission = {
       kind: "brief",
       id: "brief",
       title: "Your task",
-      body: "Audit the briefing claim by claim. For each one, find the passage that bears on it, say what you found, and decide what should happen to the claim. Some claims are sound, and keeping those is part of the job.",
+      body: "Start by saying which claims you would rely on. Then audit them one by one: find the passage that bears on each, say what you found, and fix or remove what needs it. Your finished briefing then goes to the board.",
     },
     {
       kind: "refresher",
@@ -232,7 +270,6 @@ export const m04: Mission = {
       title: "A quick refresher",
       body: "AI systems produce text that fits patterns in what they learned, and that text reads fluently whether or not it is right. A claim is a statement that could be checked. Evidence is what lets you check it.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: trustQuestion, choices: trustChoices },
     {
       kind: "claimAudit",
       id: "audit",
@@ -241,18 +278,10 @@ export const m04: Mission = {
       audit,
     },
     {
-      kind: "revision",
-      id: "revision",
-      initialStepId: "initial",
-      prompt: `Now that you have audited the briefing, answer the first question again. ${trustQuestion}`,
-      choices: trustChoices,
-      withConfidence: true,
-    },
-    {
       kind: "transfer",
       id: "transfer",
       title: "A new case, with no hints",
-      prompt: "A different organisation, the Northgate Community Workshop, is applying for a grant. An AI assistant summarised its annual report. Check the claim using the same method.",
+      prompt: "A different organisation, the Northgate Community Workshop, is applying for a grant. An AI assistant summarised its annual report. This time, you find the claims yourself, and feedback comes at the end.",
       audit: transferAudit,
     },
     {
@@ -261,6 +290,10 @@ export const m04: Mission = {
       prompt: "Why does the passage you chose decide the Northgate claim, and what should the application say instead?",
       priorReason: { stepId: "transfer", claimId: "doubled" },
       rubric: {
+        samples: [
+          { id: "vague", text: "The report says visits went up, but not by that much, so I'd reword it.", met: ["passage"], note: "It points at visits, but it gives no figures and doesn't say what the application should say." },
+          { id: "full", text: "The visits line says 290 to 410, which isn't double. The application should say visits rose by about 40%.", met: ["passage", "compare", "fix"], note: "It names the passage, compares the figures and gives a replacement." },
+        ],
         criteria: [
           { id: "passage", text: "Refers to the specific passage about visits, not just to the report as a whole." },
           { id: "compare", text: "Compares the claim with the figures: 290 to 410 is not a doubling." },
@@ -295,7 +328,7 @@ export const m04: Mission = {
           id: "justified-trust",
           label: "Keeping claims that the evidence supports",
           kind: "action",
-          items: ["attendance", "growth", "tuesday"].map((id) => `audit/${id}/action`),
+          items: ["attendance", "tuesday"].map((id) => `audit/${id}/action`),
           practice: {
             prompt: "An AI draft says “membership grew by about 20%”. The source says membership rose from 500 to 604. What should you do with the claim?",
             choices: [
@@ -323,7 +356,7 @@ export const m04: Mission = {
           id: "new-case",
           label: "Applying the method to a new case without hints",
           kind: "transfer",
-          items: ["transfer/doubled/evidence", "transfer/doubled/status"],
+          items: transferAudit.claims.flatMap((c) => [`transfer/${c.id}/evidence`, `transfer/${c.id}/status`]),
           practice: {
             prompt: "A summary says “Bookings tripled in 2025”. The annual report says bookings rose from 300 to 450, and that the number of rooms tripled, from 2 to 6. What is the status of the claim?",
             choices: [
@@ -332,6 +365,46 @@ export const m04: Mission = {
               { id: "c", label: "Outdated, since newer figures are likely to exist.", verdict: "weaker", explanation: "The claim is about 2025, and nothing newer replaces the report. The problem is the number." },
             ],
           },
+        },
+        {
+          id: "find-claims",
+          label: "Finding the checkable claims in a draft",
+          kind: "transfer",
+          items: ["doubled", "volunteers", "largest", "valued"].map((id) => `transfer/spot/${id}`),
+          practice: {
+            prompt: "Which of these can be checked against a record?",
+            choices: [
+              { id: "a", label: "Our café is the friendliest place in town.", verdict: "weaker", explanation: "This is an opinion, however sincerely it is held. No record could settle it." },
+              { id: "b", label: "The café served 3,000 meals last year.", verdict: "correct", explanation: "A specific number for a specific year can be compared with the café's records." },
+              { id: "c", label: "Everyone deserves a good meal.", verdict: "weaker", explanation: "This is a value. People can argue for it, but no record could confirm it." },
+            ],
+          },
+        },
+        {
+          id: "write-fix",
+          label: "Writing an accurate fix from the passage",
+          kind: "action",
+          items: ["families", "research", "funding", "staffing"].map((id) => `audit/${id}/repair`),
+        },
+        {
+          id: "work-it-out",
+          label: "Working out a figure instead of trusting it",
+          kind: "action",
+          items: ["audit/attendance/calc", "transfer/doubled/calc"],
+          practice: {
+            prompt: "A draft says “sales rose by about 25%”. The source says sales went from 400 to 500. What should you conclude?",
+            choices: [
+              { id: "a", label: "The claim holds: 100 on a base of 400 is 25%.", verdict: "correct", explanation: "Work out the change against the starting figure, then compare it with the claim." },
+              { id: "b", label: "The claim is wrong, because 100 on a base of 500 is 20%.", verdict: "weaker", explanation: "That uses the later figure as the base. A rise is measured from where it started." },
+              { id: "c", label: "It can't be judged.", verdict: "weaker", explanation: "Both figures are in the source, so it can be worked out." },
+            ],
+          },
+        },
+        {
+          id: "use-briefing",
+          label: "Making a decision that fits the evidence",
+          kind: "action",
+          items: ["audit/decision"],
         },
         {
           id: "explain-reason",

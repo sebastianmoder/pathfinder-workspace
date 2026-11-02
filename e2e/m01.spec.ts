@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { cont, check, nextTask, setBoard, trainAndAsk, traceFaults } from "./helpers";
+import { cont, check, markAndCheck, nextTask, setBoard, trainAndAsk, traceFaults } from "./helpers";
 
 test("M01 is completable end to end, keyboard-reachable, and refresh restarts cleanly", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
@@ -92,14 +92,31 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await expect(page.getByText(/Fairly at the start, Somewhat now/)).toBeVisible();
   await cont(page);
 
+  // Marking reports how many were found, not which, until the learner asks.
+  await page.getByRole("button", { name: /opened in 1987/ }).click();
+  await page.getByRole("button", { name: /welcoming place/ }).click();
+  await check(page);
+  await expect(page.getByText("You marked 1 of 2, and 1 that does not belong.")).toBeVisible();
+  await expect(page.getByText(/This is a judgment/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Show the answer" }).click();
+  await expect(page.getByText(/This is a judgment/)).toBeVisible();
+  await cont(page);
+
   await page.getByLabel(/Hold both figures/).check();
   await check(page);
   await cont(page);
 
-  // Open response: self-assessed, with the skip route also available.
+  // Practice first: rate two sample answers, and compare with a reviewed rating.
+  const pattern = page.getByRole("group", { name: "Answer 2" }).getByRole("checkbox", { name: /patterns in training data/ });
+  await pattern.check();
+  await page.getByRole("button", { name: "Compare my ratings" }).click();
+  await expect(page.getByText(/It covers where the answer came from/)).toBeVisible();
+  await page.getByRole("button", { name: "Write my own answer" }).click();
+
+  // Self-assessment means pointing at a sentence of your own. Nothing checks it, and the page says so.
   await page.getByLabel("Your answer").fill("It learned old timetables, so it may be out of date. Check the operator.");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await page.getByLabel(/Names a check/).check();
+  await page.getByLabel(/Names a check/).selectOption({ label: "Check the operator." });
   await expect(page.getByText("It has not been reviewed by anyone.")).toBeVisible();
   await cont(page);
 
@@ -112,10 +129,10 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await expect(review.getByText("Working out how training data shapes output")).toBeVisible();
   await expect(review.getByText("Separating confidence of tone from evidence")).toBeVisible();
   await expect(shown.getByText("Tracing a failure to where it came in")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Your own assessment" }).locator("..").getByText("you ticked 1 of 3 criteria")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your own assessment" }).locator("..").getByText("you pointed to a sentence for 1 of 3 criteria")).toBeVisible();
 
   await page.reload();
-  await expect(page.getByText("Step 1 of 11")).toBeVisible();
+  await expect(page.getByText("Step 1 of 12")).toBeVisible();
 });
 
 test("a learner who skips and guesses can finish, and is not credited with what they did not show", async ({ page }) => {
@@ -165,12 +182,15 @@ test("a learner who skips and guesses can finish, and is not credited with what 
   await check(page);
   await cont(page);
 
+  await markAndCheck(page, []);
+
   await page.getByLabel(/Publish it with a note/).check();
   await check(page);
   await page.getByLabel(/Hold both figures/).check();
   await check(page);
   await cont(page);
 
+  await page.getByRole("button", { name: "Skip the practice" }).click();
   await page.getByRole("button", { name: "Skip writing and see the criteria" }).click();
   await cont(page);
 
@@ -189,11 +209,11 @@ test("M01 can be driven by keyboard and focus follows each new step", async ({ p
   await page.goto("/missions/m01-foundations");
   await page.getByRole("button", { name: "Continue" }).focus();
   await page.keyboard.press("Enter"); // brief -> refresher
-  await expect(page.getByRole("region", { name: "Step 2 of 11" })).toBeFocused();
+  await expect(page.getByRole("region", { name: "Step 2 of 12" })).toBeFocused();
   await page.keyboard.press("Tab"); // first control inside the step
   await expect(page.getByRole("button", { name: "Continue" })).toBeFocused();
   await page.keyboard.press("Enter"); // -> initial judgment
-  await expect(page.getByRole("region", { name: "Step 3 of 11" })).toBeFocused();
+  await expect(page.getByRole("region", { name: "Step 3 of 12" })).toBeFocused();
   await page.keyboard.press("Tab");
   await page.keyboard.press("Space"); // first radio option
   await expect(page.getByRole("button", { name: "Record my judgment" })).toBeDisabled(); // confidence still required

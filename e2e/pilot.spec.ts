@@ -53,6 +53,7 @@ test("criterion 1: a new learner completes P0 to P5 with no account", async ({ p
   expect(copied).toContain("BIRCH-HARBOUR-58");
   expect(copied).toContain("It tells me little; I need evidence. (Somewhat)");
   expect(copied).not.toContain("PRIVATE-");
+  expect(copied).toContain("You would have relied on 7 claims"); // M04's first read, against the evidence
   expect(copied).not.toMatch(/\bscore\b/i);
   expect(copied).not.toMatch(/demonstrated/i); // finishing a mission is not proof of a skill
 
@@ -160,7 +161,7 @@ test("regression: pages kept alive in the background do not interfere with the v
   await page.getByRole("link", { name: /Open mission.*The Evidence Bureau/ }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  const answer = page.getByLabel(/It tells me where to look/);
+  const answer = page.getByRole("group", { name: /Attendance averaged/ }).getByRole("radio", { name: "Not sure" });
   await answer.check();
   await expect(answer).toBeChecked();
 

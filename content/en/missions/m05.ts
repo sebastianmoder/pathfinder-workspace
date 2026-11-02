@@ -1,10 +1,10 @@
-import type { Choice, DialogueChoice, DialogueStrategy, Mission, Source } from "../../types";
+import { PROPOSAL, type Choice, type DialogueChoice, type DialogueStrategy, type Mission, type Source } from "../../types";
 
 /**
  * M05 — The Argument Forge.
  * All organisations, documents, people and figures are fictional.
  * Arithmetic to re-check on review: 61→74 is +13 points; 59→63 is +4 points; €6,000 is half of €12,000;
- * 7 of 50 answers wrong leaves 43 right.
+ * 7 of 50 answers wrong leaves 43 right. Rafael's "40% more homework" is deliberately false: it borrows the brochure's figure.
  */
 
 const positionQuestion =
@@ -102,9 +102,9 @@ export const m05: Mission = {
   outcome: "Identify assumptions, test objections, consider alternatives, and revise a position for evidence-based reasons.",
   scenario:
     "You are advising the Riverside Learning Commons, a fictional community learning centre, on a proposal to replace a volunteer homework drop-in with an AI tutor. You will take a position, test it in a conversation, and then decide whether it still stands.",
-  approxMinutes: 14,
+  approxMinutes: 18,
   meta: {
-    version: "1.1",
+    version: "1.2",
     reviewedOn: "2026-11-02",
     reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
     sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
@@ -127,15 +127,25 @@ export const m05: Mission = {
       kind: "dialogue",
       id: "forge",
       title: "Test your position",
-      intro: "Choose how to respond at each turn. There is no winning move, but different moves uncover different things.",
+      intro: "You have four questions before the board meets, so choose them with care. There is no winning move, but different moves uncover different things, and not everyone here is always right.",
       initialStepId: "initial",
       sources,
       reflectionPrompt: "What is on your mind about this so far?",
       dialogue: {
         characters: [
           { id: "imani", name: "Imani", role: "Socratic coach", knows: "How to question an argument, but not the answer here.", wants: "You to say why you think what you think." },
-          { id: "rafael", name: "Rafael", role: "Opposing advocate", knows: "The case against whichever position you took.", wants: "To find the weakest part of your argument." },
+          { id: "rafael", name: "Rafael", role: "Opposing advocate", knows: "The case against whichever position you took. He sometimes overstates it, and he is sometimes right.", wants: "To find the weakest part of your argument." },
           { id: "nadia", name: "Nadia", role: "Evidence critic", knows: "Only what is in the source pack.", wants: "Claims to match what the sources actually say." },
+        ],
+        budget: {
+          questions: 4,
+          moveOn: move("board-time", "alternative", "The board is about to start. Let's go in.", "You have used your questions. What you didn't ask, you don't know yet, unless you read it in the source pack.", "rafael-misquote"),
+        },
+        boardQuestions: [
+          { question: "“How good is the evidence that the tutor made the difference at Eastfield?”", discoveryId: "selection", ifFound: "Learners chose for themselves, so the whole gain can't be credited to the tutor.", ifMissed: "The trial report says learners chose for themselves, so the gain may not all be the tutor's." },
+          { question: "“What happens when it gets an answer wrong?”", discoveryId: "errors", ifFound: "7 of 50 checked answers were wrong, with no sign of doubt, so somebody has to check.", ifMissed: "The trial report's spot check found 7 of 50 wrong, with no sign of doubt." },
+          { question: "“Does this cover everyone who comes on Wednesdays?”", discoveryId: "purpose", ifFound: "About a third of visits are for forms or English, which a homework tutor wouldn't cover.", ifMissed: "The drop-in log says about a third of visits are not about homework." },
+          { question: "“Who sees what the children type?”", discoveryId: "privacy", ifFound: "Standard terms keep messages for 12 months, and many learners are under 16, so consent and new terms are needed.", ifMissed: "The privacy officer's note covers this: 12 months' retention, and many learners under 16." },
         ],
         start: "open-pilot",
         starts: { adopt: "open-against", pilot: "open-pilot", reject: "open-for" },
@@ -171,7 +181,7 @@ export const m05: Mission = {
             text: "Fair enough. Conceding isn't losing, but it should change something. What does it change for you?",
             choices: [
               move("look", "evidence", "I should look at the evidence before holding this view any more firmly.", "You treated the concession as a reason to check, not as the end of the matter.", "evidence-trial"),
-              move("condition", "alternative", "My position needs a condition attached to it.", "You turned a concession into a change to your position.", "conditions"),
+              move("condition", "alternative", "My position needs a condition attached to it.", "You turned a concession into a change to your position.", "rafael-misquote"),
             ],
           },
           {
@@ -219,7 +229,7 @@ export const m05: Mission = {
             reveals: ["errors"],
             choices: [
               move("data", "evidence", "Who sees what learners type into it?", "You widened the question from whether it works to what else it does.", "privacy-check"),
-              move("safe", "alternative", "What would make this safe enough to use?", "You turned a problem into a condition that could be met or missed.", "conditions"),
+              move("safe", "alternative", "What would make this safe enough to use?", "You turned a problem into a condition that could be met or missed.", "rafael-misquote"),
             ],
           },
           {
@@ -239,7 +249,7 @@ export const m05: Mission = {
             choices: [
               move("correct", "evidence", "Is the tutor at least reliable for the homework part?", "You checked the part of the proposal that still stands.", "trial-errors"),
               move("data", "evidence", "What happens to what learners type into it?", "You kept checking what the proposal leaves unsaid.", "privacy-check"),
-              move("conditions", "alternative", "Then we need to say which needs a tutor could meet.", "You narrowed the proposal to what the evidence fits.", "conditions"),
+              move("conditions", "alternative", "Then we need to say which needs a tutor could meet.", "You narrowed the proposal to what the evidence fits.", "rafael-misquote"),
             ],
           },
           {
@@ -248,9 +258,57 @@ export const m05: Mission = {
             text: "The privacy officer's note says the standard terms keep messages for 12 months and allow them to be used to improve the product. Many drop-in learners are under 16, so parental consent would be needed.",
             reveals: ["privacy"],
             choices: [
-              move("terms", "alternative", "Then different terms and consent become conditions.", "You turned a finding into something the Commons could require.", "conditions"),
-              move("ignore", "restate", "That isn't our concern if the tutor works.", "The Commons is responsible for learners' data whether or not the tutor works, so this leaves a problem unanswered.", "conditions"),
+              move("terms", "alternative", "Then different terms and consent become conditions.", "You turned a finding into something the Commons could require.", "rafael-misquote"),
+              move("ignore", "restate", "That isn't our concern if the tutor works.", "The Commons is responsible for learners' data whether or not the tutor works, so this leaves a problem unanswered.", "rafael-misquote"),
             ],
+          },
+          {
+            id: "rafael-misquote",
+            speakerId: "rafael",
+            text: "Before you go in, you should know Eastfield backs up the brochure. Learners using the tutor finished 40% more homework. It's in their report.",
+            choices: [
+              { ...move("accept", "concede", "Then the brochure's figure holds up.", "You took his word for it. The Eastfield report gives 61% to 74% against 59% to 63%. The 40% appears only in the brochure, which names no study.", "rafael-right"), scored: { item: "misquote", right: false } },
+              { ...move("dispute", "restate", "That sounds too high to me.", "You doubted it, which is a start, but doubt alone doesn't answer him. The Eastfield report gives 61% to 74% against 59% to 63%. The 40% appears only in the brochure.", "rafael-right"), scored: { item: "misquote", right: false } },
+            ],
+            cite: {
+              responses: [
+                {
+                  passageIds: ["eastfield-result"],
+                  note: "You checked the report he named and showed it. It says 61% to 74% against 59% to 63%. The 40% appears only in the brochure, so he has no answer.",
+                  next: "rafael-right",
+                  scored: { item: "misquote", right: true },
+                },
+              ],
+              otherwise: {
+                note: "That passage doesn't settle it. He named the Eastfield report, and its result passage says 61% to 74% against 59% to 63%. The 40% appears only in the brochure.",
+                next: "rafael-right",
+                scored: { item: "misquote", right: false },
+              },
+            },
+          },
+          {
+            id: "rafael-right",
+            speakerId: "rafael",
+            text: "Here's a number nobody has mentioned. A licence costs €6,000 a year, which is half of what the Trust gives the homework programme this year.",
+            choices: [
+              { ...move("accept-cost", "concede", "That's right, and my argument has to account for it.", "He is right: the brochure gives €6,000 and the Trust letter €12,000. Conceding what holds up is part of arguing well.", "conditions"), scored: { item: "concede", right: true } },
+              { ...move("reject-cost", "restate", "He would say that. I don't accept the figure.", "The figure comes from the sources: €6,000 in the brochure, €12,000 in the Trust letter. Being on the other side doesn't make someone wrong.", "conditions"), scored: { item: "concede", right: false } },
+            ],
+            cite: {
+              responses: [
+                {
+                  passageIds: ["brochure-price", "budget-amount"],
+                  note: "You checked it, and it holds. Going to the source and then accepting what you find is the same habit as catching a misquote.",
+                  next: "conditions",
+                  scored: { item: "concede", right: true },
+                },
+              ],
+              otherwise: {
+                note: "That passage doesn't bear on the cost. The brochure gives €6,000 and the Trust letter €12,000, so his figure holds.",
+                next: "conditions",
+                scored: { item: "concede", right: false },
+              },
+            },
           },
           {
             id: "conditions",
@@ -277,6 +335,8 @@ export const m05: Mission = {
       title: "Map the argument",
       prompt: "Select a card, then choose where it belongs. The map is about the proposal, whatever your own position is.",
       proposal: "The Commons should replace its Wednesday drop-in with an AI tutor.",
+      initialStepId: "initial",
+      dialogueStepId: "forge",
       hints: [
         { text: "Ask of each card: is it a recorded finding, or a reason someone would give?" },
         { text: "If a card must be true for the proposal to work, but the proposal never says so, it is an assumption." },
@@ -291,14 +351,23 @@ export const m05: Mission = {
       ],
       cards: [
         { id: "shrink", text: "Without another option, the session may shrink when the volunteers leave.", slotId: "reason", explanation: "This is the main reason behind the proposal. The log gives it its factual footing." },
+        { id: "completion", text: "A tutor could help learners finish more of their homework.", slotId: "reason", explanation: "This is the benefit the trial is usually cited for. It needs the trial to mean what it seems to mean." },
         { id: "hours", text: "A tutor could help at any hour, not only on Wednesdays.", slotId: "reason", explanation: "This is a reason someone could give for the tutor. It rests on availability, and it says nothing about accuracy." },
         { id: "trial", text: "Homework completion rose from 61% to 74% among tutor users, and from 59% to 63% among others.", slotId: "evidence", explanation: "This is the strongest finding in favour, though learners chose for themselves which group to be in." },
         { id: "numbers", text: "The drop-in averages 18 learners, and three of its six volunteers leave in December.", slotId: "evidence", explanation: "This is a recorded fact that supports the reason about the session shrinking." },
-        { id: "wrong", text: "In a spot check, 7 of 50 maths answers were wrong, with no sign of uncertainty.", slotId: "objection", defensibleSlotIds: ["evidence"], explanation: "This counts against the proposal. Filing it as evidence is also defensible, since it is a specific finding, but its role here is to object." },
-        { id: "terms", text: "The vendor's standard terms keep learners' messages for 12 months.", slotId: "objection", defensibleSlotIds: ["evidence"], explanation: "This is a cost the proposal does not mention, particularly with learners under 16." },
-        { id: "credit", text: "The rise in completion was caused by the tutor, not by which learners chose to use it.", slotId: "assumption", explanation: "The argument needs this to be true, but the trial does not establish it." },
-        { id: "homework", text: "Drop-in visits are about homework.", slotId: "assumption", explanation: "Replacing the drop-in with a homework tutor assumes this. The log says about a third of visits are not." },
+        { id: "wrong", text: "In a spot check, 7 of 50 maths answers were wrong, with no sign of uncertainty.", slotId: "objection", defensibleSlotIds: ["evidence"], discovery: "errors", explanation: "This counts against the proposal. Filing it as evidence is also defensible, since it is a specific finding, but its role here is to object." },
+        { id: "terms", text: "The vendor's standard terms keep learners' messages for 12 months.", slotId: "objection", defensibleSlotIds: ["evidence"], discovery: "privacy", explanation: "This is a cost the proposal does not mention, particularly with learners under 16." },
+        { id: "credit", text: "The rise in completion was caused by the tutor, not by which learners chose to use it.", slotId: "assumption", discovery: "selection", explanation: "The argument needs this to be true, but the trial does not establish it." },
+        { id: "homework", text: "Drop-in visits are about homework.", slotId: "assumption", discovery: "purpose", explanation: "Replacing the drop-in with a homework tutor assumes this. The log says about a third of visits are not." },
         { id: "faster", text: "Students finish homework 40% faster with the tutor.", slotId: "aside", defensibleSlotIds: ["evidence"], explanation: "This comes from a sales brochure that names no study. It can be noted as the vendor's claim, but it should not carry weight." },
+      ],
+      links: [
+        { cardId: "trial", kind: "supports", targetId: "completion", explanation: "Completion is what the trial measured." },
+        { cardId: "numbers", kind: "supports", targetId: "shrink", explanation: "The log's numbers are why the session might shrink." },
+        { cardId: "wrong", kind: "attacks", targetId: "completion", defensibleTargetIds: [PROPOSAL], explanation: "Finishing homework helps less if the answers are wrong. It also counts against the proposal more widely." },
+        { cardId: "terms", kind: "attacks", targetId: PROPOSAL, explanation: "The data terms apply however well the tutor works, so this bears on the whole proposal." },
+        { cardId: "credit", kind: "restsOn", targetId: "completion", explanation: "If keen learners would have improved anyway, the trial no longer supports this reason." },
+        { cardId: "homework", kind: "restsOn", targetId: PROPOSAL, defensibleTargetIds: ["shrink"], explanation: "A homework tutor can only replace the drop-in if the drop-in is about homework." },
       ],
     },
     {
@@ -310,10 +379,25 @@ export const m05: Mission = {
       withConfidence: true,
     },
     {
+      kind: "quiz",
+      id: "weigh",
+      prompt: "Which finding did the most work in deciding your position just now, or in testing it?",
+      choices: [
+        { id: "selection", label: "Learners in the Eastfield trial chose for themselves.", verdict: "defensible", explanation: "This limits how much of the gain can be credited to the tutor. It weakens the main evidence in favour without showing that the tutor doesn't work." },
+        { id: "errors", label: "7 of 50 checked answers were wrong, with no sign of doubt.", verdict: "defensible", explanation: "This is about accuracy and how a learner could tell. It makes a case for supervision more than a case against any use." },
+        { id: "purpose", label: "About a third of visits are not about homework.", verdict: "defensible", explanation: "This shows that the proposal replaces more than a tutor can do, whichever way the evidence on the tutor falls." },
+        { id: "privacy", label: "Standard terms keep messages for 12 months, and many learners are under 16.", verdict: "defensible", explanation: "This applies however well the tutor works, so it sets conditions rather than deciding the matter." },
+      ],
+    },
+    {
       kind: "openResponse",
       id: "argument",
       prompt: "Write your revised argument for the board in three or four sentences: your position, your strongest evidence, and how you answer the strongest objection.",
       rubric: {
+        samples: [
+          { id: "thin", text: "We should try the tutor, because AI is the future and something has to be done before December.", met: ["position"], note: "It takes a position, but it rests on opinion and answers no objection." },
+          { id: "full", text: "Trial it for a term with a volunteer checking answers. Eastfield's completion rose from 61% to 74%, though learners chose for themselves. The 7 wrong answers out of 50 are why a person checks. We would stop if errors stay at that level.", met: ["position", "evidence", "objection", "limits"], note: "It takes a position, rests on findings, answers the error objection and says when it would stop." },
+        ],
         criteria: [
           { id: "position", text: "States a clear position." },
           { id: "evidence", text: "Rests on a specific finding from the source pack, not only on opinion." },
@@ -330,11 +414,21 @@ export const m05: Mission = {
       kind: "transfer",
       id: "transfer",
       title: "A new case, with no hints",
-      prompt: "A town's transport office says: “Most riders have a smartphone, so an AI chatbot can replace the bus information desk and will serve everyone.” Which missing premise does this argument depend on most?",
-      choices: [
-        { id: "a", label: "That having a smartphone means a rider can and will use the chatbot.", verdict: "correct", explanation: "The conclusion says “everyone”, but the reason only covers most people, and only says they own a phone. Getting from one to the other is what the argument leaves unsaid." },
-        { id: "b", label: "That the chatbot will cost less than staff at the desk.", verdict: "weaker", explanation: "Cost may be why the office wants this, but the argument as stated says nothing about money. Its conclusion is that the chatbot will serve everyone." },
-        { id: "c", label: "That its answers are as accurate as the desk staff's.", verdict: "defensible", explanation: "This is a real gap, and worth testing. But the office's stated reason is smartphones, so the step it leans on most is from owning a phone to being served." },
+      prompt: "A town's transport office argues for replacing its bus information desk. Mark the words where the argument claims more than its reason shows.",
+      mark: [
+        [
+          "“",
+          { id: "most", text: "Most riders", target: false, optional: true, explanation: "“Most” is fine on its own. It matters because the conclusion says “everyone”, so marking it is also reasonable." },
+          " ",
+          { id: "phone", text: "have a smartphone,", target: true, explanation: "Owning a phone isn't the same as being able and willing to use a chatbot on it. The argument treats them as the same." },
+          " so ",
+          { id: "chatbot", text: "an AI chatbot", target: false, explanation: "Naming the proposal isn't a leap. The leaps are in what it is said to do." },
+          " ",
+          { id: "replace", text: "can replace the bus information desk", target: false, optional: true, explanation: "This is the conclusion. It does depend on the chatbot being good enough, so marking it is also reasonable." },
+          " and ",
+          { id: "everyone", text: "will serve everyone.", target: true, explanation: "The reason covers most riders, and the conclusion says everyone. Nothing bridges that gap." },
+          "”",
+        ],
       ],
     },
     {
@@ -365,10 +459,30 @@ export const m05: Mission = {
           items: ["selection", "errors", "purpose", "privacy"].map((id) => `forge/${id}`),
         },
         {
+          id: "under-pressure",
+          label: "Checking a claim under pressure, and conceding when it holds",
+          kind: "action",
+          items: ["forge/misquote", "forge/concede"],
+          practice: {
+            prompt: "In a meeting, a colleague says, “The survey shows that most members want later opening.” You have the survey, and it says 41 of 90 respondents do. What is the most useful reply?",
+            choices: [
+              { id: "a", label: "“The survey says 41 of 90, which is just under half.”", verdict: "correct", explanation: "Bringing the passage into the conversation answers the claim, and doesn't turn it into a contest of opinions." },
+              { id: "b", label: "“I don't think that's right, and I doubt most members want that.”", verdict: "weaker", explanation: "The doubt is well placed, but it gives your colleague nothing to respond to. You have the figure, so use it." },
+              { id: "c", label: "“OK, if that's what the survey shows.”", verdict: "weaker", explanation: "Letting it go means the meeting decides on a figure that you know is wrong." },
+            ],
+          },
+        },
+        {
+          id: "connect-argument",
+          label: "Connecting evidence and objections to what they bear on",
+          kind: "action",
+          items: ["trial", "numbers", "wrong", "terms", "credit", "homework"].map((id) => `map/link/${id}`),
+        },
+        {
           id: "argument-parts",
           label: "Separating reasons, evidence, objections and assumptions",
           kind: "action",
-          items: ["shrink", "hours", "trial", "numbers", "wrong", "terms", "credit", "homework", "faster"].map((id) => `map/${id}`),
+          items: ["shrink", "completion", "hours", "trial", "numbers", "wrong", "terms", "credit", "homework", "faster"].map((id) => `map/${id}`),
           practice: {
             prompt: "Someone argues: “The new timetable will cut queues, because the pilot branch's queues fell by a third.” Which of these is an unstated assumption of that argument?",
             choices: [
@@ -388,7 +502,7 @@ export const m05: Mission = {
           id: "missing-premise",
           label: "Finding a missing premise in a new case without hints",
           kind: "transfer",
-          items: ["transfer"],
+          items: ["phone", "chatbot", "everyone"].map((id) => `transfer/${id}`),
           practice: {
             prompt: "A school says: “Pupils who use the homework app get better marks, so giving it to every pupil will raise marks across the school.” Which missing premise does this depend on most?",
             choices: [

@@ -1,10 +1,12 @@
 import type { Choice, Mission, Step } from "@/content/types";
+import { calibrate, type Calibration, type TrustLevel } from "./audit";
 import { assessSkill, type EvidenceLedger } from "./evidence";
 
 export interface MissionInput {
   stepIndex: number;
   answers: Record<string, { choiceId?: string; confidence?: number } | undefined>;
   evidence: EvidenceLedger;
+  stepState?: Record<string, unknown>;
 }
 
 export interface MissionSummary {
@@ -18,6 +20,8 @@ export interface MissionSummary {
   review: string[];
   before: { label: string; confidence: number | null } | null;
   after: { label: string; confidence: number | null } | null;
+  /** First-read trust against the evidence, once an audit that asks for it is finished. */
+  calibration: Calibration | null;
 }
 
 function answerOf(step: Step | undefined, answers: MissionInput["answers"]) {
@@ -25,6 +29,15 @@ function answerOf(step: Step | undefined, answers: MissionInput["answers"]) {
   const answer = answers[step.id];
   const choice: Choice | undefined = step.choices.find((c) => c.id === answer?.choiceId);
   return choice ? { label: choice.label, confidence: answer?.confidence ?? null } : null;
+}
+
+function calibrationOf(mission: Mission, input: MissionInput): Calibration | null {
+  for (const step of mission.steps) {
+    if (!("audit" in step) || !step.audit.trustFirst) continue;
+    const state = input.stepState?.[step.id] as { trust?: Record<string, TrustLevel>; phase?: string } | undefined;
+    if (state?.trust && (state.phase === "final" || state.phase === "decision")) return calibrate(step.audit.claims, state.trust);
+  }
+  return null;
 }
 
 export function summarizeMission(mission: Mission, input: MissionInput, completed: boolean): MissionSummary | null {
@@ -45,6 +58,7 @@ export function summarizeMission(mission: Mission, input: MissionInput, complete
     review: withStatus("review"),
     before: answerOf(mission.steps.find((s) => s.kind === "initialJudgment"), input.answers),
     after: answerOf(mission.steps.find((s) => s.kind === "revision"), input.answers),
+    calibration: calibrationOf(mission, input),
   };
 }
 
@@ -59,6 +73,8 @@ export interface SummaryText {
     shown: string;
     selfAssessed: string;
     review: string;
+    calibration: string;
+    calibrationText: (c: Calibration) => string;
     before: string;
     after: string;
     notFinished: string;
@@ -82,6 +98,7 @@ export function summaryToText(s: SummaryText): string {
     if (!m.completed) lines.push(s.labels.notFinished);
     if (m.before) lines.push(`${s.labels.before}: ${m.before.label}${conf(m.before.confidence)}`);
     if (m.after) lines.push(`${s.labels.after}: ${m.after.label}${conf(m.after.confidence)}`);
+    if (m.calibration) lines.push(`${s.labels.calibration}: ${s.labels.calibrationText(m.calibration)}`);
     if (m.takeaway) lines.push(`${s.labels.takeaway}: ${m.takeaway}`);
     if (m.shown.length) lines.push(`${s.labels.shown}: ${m.shown.join("; ")}`);
     if (m.selfAssessed.length) lines.push(`${s.labels.selfAssessed}: ${m.selfAssessed.join("; ")}`);

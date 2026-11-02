@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import type { DialogueSpec, Step } from "@/content/types";
-import { startNodeId, walk, type Walk } from "@/lib/dialogue";
+import type { DialogueChoice, DialogueSpec, Source, Step } from "@/content/types";
+import { citeChoiceId, startNodeId, walk, type Walk } from "@/lib/dialogue";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
@@ -23,13 +23,23 @@ interface ReplayState {
 
 const primary = "btn btn-primary";
 
+/** A shown passage has no label of its own, so it reads as what was shown. */
+function moveLabel(choice: DialogueChoice, sources: Source[]): string {
+  if (!choice.citedPassage) return choice.label;
+  const source = sources.find((s) => s.passages.some((p) => p.id === choice.citedPassage));
+  const passage = source?.passages.find((p) => p.id === choice.citedPassage);
+  return t.dialogue.showed(source?.title ?? "", passage?.text ?? "");
+}
+
 function Conversation({
   spec,
+  sources,
   path,
   firstTurn = 0,
   onChoose,
 }: {
   spec: DialogueSpec;
+  sources: Source[];
   path: Walk;
   /** Earlier turns are hidden, for a replay that starts part-way through. */
   firstTurn?: number;
@@ -66,7 +76,7 @@ function Conversation({
                   <p className="text-sm font-semibold">
                     {t.dialogue.youChose} <span className="font-normal text-muted">({t.dialogue.strategy[turn.choice.strategy]})</span>
                   </p>
-                  <p className="mt-1">{turn.choice.label}</p>
+                  <p className="mt-1">{moveLabel(turn.choice, sources)}</p>
                   <p className="mt-2 border-t border-border pt-2 text-sm">
                     <strong>{t.dialogue.whatThisDid}:</strong> {turn.choice.note}
                   </p>
@@ -80,21 +90,45 @@ function Conversation({
         <fieldset className="mt-4">
           <legend className="font-bold">{t.dialogue.respond}</legend>
           <div className="mt-2 space-y-2">
-            {path.current.choices.map((c) => (
+            {path.options.map((c) => (
               <button
                 key={c.id}
                 type="button"
                 onClick={() => onChoose(c.id)}
                 className="block w-full rounded-lg border border-border bg-surface p-3 text-left hover:border-accent"
               >
-                <span className="block text-sm text-muted">{t.dialogue.strategy[c.strategy]}</span>
                 {c.label}
               </button>
             ))}
           </div>
+          {path.canCite && <p className="mt-2 text-sm">{t.dialogue.citeHelp}</p>}
         </fieldset>
       )}
     </div>
+  );
+}
+
+function BoardQuestions({ spec, found }: { spec: DialogueSpec; found: string[] }) {
+  if (!spec.boardQuestions?.length) return null;
+  return (
+    <section className="mt-6 rounded-lg border border-border bg-surface p-4">
+      <h3 className="font-bold">{t.dialogue.boardTitle}</h3>
+      <p className="text-sm text-muted">{t.dialogue.boardNote}</p>
+      <ul className="mt-2 space-y-3">
+        {spec.boardQuestions.map((q) => {
+          const ok = found.includes(q.discoveryId);
+          return (
+            <li key={q.discoveryId}>
+              <p className="font-semibold">{q.question}</p>
+              <p className="text-sm">
+                <span aria-hidden="true" className={ok ? "mark-yes" : "mark-no"}>{ok ? "✔ " : "✖ "}</span>
+                <strong>{ok ? t.dialogue.couldAnswer : t.dialogue.couldNotAnswer}</strong> {ok ? q.ifFound : q.ifMissed}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
@@ -143,6 +177,7 @@ export function DialogueActivity({
   const set = (patch: Partial<DialogueState>) => session.setStepState(missionId, step.id, { ...state, ...patch });
   const spec = step.dialogue;
   const path = walk(spec, startNodeId(spec, initialChoiceId), state.choices);
+  const choose = (id: string) => set({ choices: [...state.choices, id] });
 
   return (
     <div>
@@ -162,10 +197,20 @@ export function DialogueActivity({
       </details>
 
       <div className="mt-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
-        <Conversation spec={spec} path={path} onChoose={(id) => set({ choices: [...state.choices, id] })} />
+        <div>
+          {path.questionsLeft !== null && !path.ended && (
+            <p role="status" className="mb-3 text-sm font-bold">{t.dialogue.questionsLeft(path.questionsLeft)}</p>
+          )}
+          <Conversation spec={spec} sources={step.sources} path={path} onChoose={choose} />
+        </div>
         <div className="mt-4 space-y-4 lg:mt-0">
           <Discoveries spec={spec} found={path.discovered} showMissed={path.ended} />
-          <SourceDrawer sources={step.sources} />
+          <SourceDrawer
+            sources={step.sources}
+            hasClaim
+            onLink={path.canCite ? (id) => choose(citeChoiceId(id)) : undefined}
+            linkLabel={t.dialogue.showPassage}
+          />
           <div>
             <label htmlFor={notesId} className="font-bold">{t.dialogue.notesLabel}</label>
             <p className="text-sm text-muted">{t.dialogue.notesHelp} {step.reflectionPrompt}</p>
@@ -180,11 +225,16 @@ export function DialogueActivity({
         </div>
       </div>
 
+      {path.ended && <BoardQuestions spec={spec} found={path.discovered} />}
+
       {path.ended && (
         <button
           type="button"
           onClick={() => {
             for (const d of spec.discoveries) onEvidence(itemKey(step.id, d.id), { right: path.discovered.includes(d.id) });
+            for (const turn of path.turns) {
+              if (turn.choice?.scored) onEvidence(itemKey(step.id, turn.choice.scored.item), { right: turn.choice.scored.right });
+            }
             onContinue();
           }}
           className={`mt-6 ${primary}`}
@@ -228,7 +278,7 @@ export function DialogueReplay({
       <ol className="mt-2 space-y-2">
         {decisions.map((turn, i) => (
           <li key={`${turn.node.id}-${i}`} className="rounded border border-border bg-surface p-3 text-sm">
-            <p><strong>{t.dialogue.decision(i + 1)}:</strong> {turn.choice?.label}</p>
+            <p><strong>{t.dialogue.decision(i + 1)}:</strong> {turn.choice && moveLabel(turn.choice, step.sources)}</p>
             <button
               type="button"
               onClick={() => set({ from: i, choices: original.slice(0, i) })}
@@ -244,6 +294,7 @@ export function DialogueReplay({
         <ReplayPath
           key={replay.from}
           spec={spec}
+          sources={step.sources}
           start={start}
           replay={replay as ReplayState & { from: number }}
           originalFound={originalPath.discovered}
@@ -257,6 +308,7 @@ export function DialogueReplay({
 
 function ReplayPath({
   spec,
+  sources,
   start,
   replay,
   originalFound,
@@ -264,6 +316,7 @@ function ReplayPath({
   onClose,
 }: {
   spec: DialogueSpec;
+  sources: Source[];
   start: string;
   replay: ReplayState & { from: number };
   originalFound: string[];
@@ -276,7 +329,7 @@ function ReplayPath({
     <div className="mt-4 rounded-lg border-2 border-dashed border-accent p-3">
       <h4 className="text-sm font-semibold">{t.dialogue.replayLabel}</h4>
       <div className="mt-2">
-        <Conversation spec={spec} path={path} firstTurn={replay.from} onChoose={onChoose} />
+        <Conversation spec={spec} sources={sources} path={{ ...path, canCite: false }} firstTurn={replay.from} onChoose={onChoose} />
       </div>
       {path.ended && (
         <div className="mt-3 space-y-2 text-sm">

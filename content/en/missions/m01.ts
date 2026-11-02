@@ -32,7 +32,7 @@ export const m01: Mission = {
     "You are a researcher at the Riverside Learning Commons, a fictional community learning centre. A colleague pastes an AI answer into the team chat and says, “It sounds right, so let's use it.”",
   approxMinutes: 12,
   meta: {
-    version: "1.1",
+    version: "1.2",
     reviewedOn: "2026-11-02",
     reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
     sourcesToReview: ["Toy model description matches how counting-based predictors work (simplification is labelled in the UI).", "Whether services reuse conversations for training, or add memory features, changes over time; keep the training-vs-use explanation general.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
@@ -236,10 +236,27 @@ export const m01: Mission = {
     },
     {
       kind: "transfer",
-      id: "transfer",
+      id: "transfer-mark",
       title: "A new example",
+      prompt: "A model writes this about the Commons. It reads smoothly. Mark the parts that could be checked against a record.",
+      mark: [
+        [
+          { id: "year", text: "The Riverside Commons opened in 1987", target: true, explanation: "A date can be compared with the Commons' records." },
+          " ",
+          { id: "branches", text: "and has 40 branches.", target: true, explanation: "A count can be compared with the Commons' records." },
+          " ",
+          { id: "welcoming", text: "It is a welcoming place to learn,", target: false, explanation: "This is a judgment. People could agree or disagree, but a record couldn't settle it." },
+          " ",
+          { id: "future", text: "and its best days are still ahead.", target: false, explanation: "This is an opinion about the future. Nothing can be looked up to check it." },
+        ],
+      ],
+    },
+    {
+      kind: "transfer",
+      id: "transfer",
+      title: "What next?",
       prompt:
-        "A model writes: “The Riverside Commons opened in 1987 and has 40 branches.” It reads smoothly and you have no records handy. What is the best next step?",
+        "You have no records handy, and the text is due to go out. What is the best next step with “opened in 1987 and has 40 branches”?",
       choices: [
         { id: "a", label: "Publish it with a note that AI helped.", verdict: "weaker", explanation: "Disclosure is honest, but it leaves readers to check facts you could have checked. Smooth wording says nothing about the year or the number." },
         { id: "b", label: "Hold both figures until you can compare them with the Commons' records.", verdict: "correct", explanation: "Specific facts are checkable. The model only continued a likely pattern." },
@@ -253,6 +270,10 @@ export const m01: Mission = {
       prompt:
         "A model trained on old bus timetables tells someone, in confident language, that their bus leaves at 8:15. Explain one reason this could be wrong even though it sounds right, and what the person should do.",
       rubric: {
+        samples: [
+          { id: "partial", text: "Buses change, so the model could be wrong. They should check the timetable.", met: ["action"], note: "It names a check, but it doesn't say why a model would be wrong, or why sounding sure doesn't help." },
+          { id: "full", text: "It only knows patterns from old timetables, so it hasn't looked at today's. Sounding sure isn't proof. They should check the operator's site.", met: ["pattern", "confidence", "action"], note: "It covers where the answer came from, why the tone isn't evidence, and what to do." },
+        ],
         criteria: [
           { id: "pattern", text: "Says the output comes from patterns in training data, not from checking the current timetable." },
           { id: "confidence", text: "Says that confident wording is not evidence that it is right." },
@@ -335,7 +356,7 @@ export const m01: Mission = {
           id: "checkable-next-step",
           label: "Choosing a checkable next step in a new example",
           kind: "transfer",
-          items: ["transfer"],
+          items: ["transfer", "transfer-mark/year", "transfer-mark/branches", "transfer-mark/welcoming", "transfer-mark/future"],
           practice: {
             prompt: "A model writes that a local charity “helped 12,000 families last year”. You are about to quote it in a report. What is the best next step?",
             choices: [

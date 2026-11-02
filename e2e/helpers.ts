@@ -16,7 +16,7 @@ export async function recordJudgment(page: Page, answer: RegExp | string, confid
 export async function auditClaim(
   page: Page,
   claim: RegExp,
-  opts: { passage?: string; status: string; action: string; reason?: string },
+  opts: { passage?: string; status: string; action: string; calc?: string; repair?: string[]; reason?: string; independent?: boolean },
 ) {
   if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();
   await page.getByRole("button", { name: claim }).click();
@@ -28,10 +28,44 @@ export async function auditClaim(
   } else {
     await page.getByRole("button", { name: "No source addresses this claim" }).click();
   }
+  if (opts.calc) await page.getByLabel(/^Work it out/).fill(opts.calc);
   await page.getByRole("radio", { name: new RegExp(`^${opts.status}\\.`) }).check();
   await page.getByRole("radio", { name: new RegExp(`^${opts.action}`) }).check();
+  for (const [i, value] of (opts.repair ?? []).entries()) {
+    const blank = page.getByLabel(`Blank ${i + 1}`, { exact: true });
+    if ((await blank.evaluate((el) => el.tagName)) === "SELECT") await blank.selectOption(value);
+    else await blank.fill(value);
+  }
   if (opts.reason) await page.getByLabel(/Before you check/).fill(opts.reason);
-  await page.getByRole("button", { name: "Check this claim" }).click();
+  const withoutReason = page.getByRole("button", { name: /without explaining/ });
+  if (!opts.reason && (await withoutReason.count())) await withoutReason.click();
+  else await page.getByRole("button", { name: opts.independent ? "Save my judgment" : "Check this claim" }).click();
+}
+
+/** Marks every statement in the list, then checks and moves on with the given button. */
+export async function markAndCheck(page: Page, parts: RegExp[], nextButton = "Continue") {
+  for (const part of parts) await page.getByRole("button", { name: part }).click();
+  await check(page);
+  await page.getByRole("button", { name: nextButton, exact: true }).click();
+}
+
+/** Records the same first read for every claim. */
+export async function firstRead(page: Page, level: string) {
+  for (const group of await page.getByRole("group").all()) await group.getByRole("radio", { name: level }).check();
+  await page.getByRole("button", { name: "Start checking" }).click();
+}
+
+/** Opens the source holding a passage, and shows that passage as a reply. */
+export async function showPassage(page: Page, passage: string) {
+  const details = page.locator("details", { has: page.locator(`[data-passage="${passage}"]`) });
+  if (!(await details.evaluate((d: HTMLDetailsElement) => d.open))) await details.locator("summary").click();
+  await page.locator(`[data-passage="${passage}"]`).click();
+}
+
+/** Takes Rafael's two closing claims at face value. */
+export async function passRafael(page: Page) {
+  await choose(page, /brochure's figure holds up/);
+  await choose(page, /my argument has to account for it/);
 }
 
 /** Trains the machine on the board as it stands, then predicts and asks. */
@@ -108,9 +142,11 @@ export async function completeM01(page: Page) {
   await page.getByLabel("Somewhat", { exact: true }).check();
   await check(page);
   await cont(page);
+  await markAndCheck(page, [/opened in 1987/, /40 branches/]);
   await page.getByLabel(/Hold both figures/).check();
   await check(page);
   await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
   await page.getByLabel("Your answer").fill("PRIVATE-M01-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -120,32 +156,41 @@ export async function completeM01(page: Page) {
 export async function completeM04(page: Page) {
   await cont(page);
   await cont(page);
-  await recordJudgment(page, /Quite far/, "Very");
-  await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", status: "Supported", action: "Retain" });
-  await auditClaim(page, /about 30% higher/, { passage: "attendance-avg", status: "Supported", action: "Retain" });
-  await auditClaim(page, /Three-quarters/, { passage: "survey-result", status: "Misleading", action: "Qualify" });
-  await auditClaim(page, /Research shows/, { passage: "review-finding", status: "Unsupported", action: "Correct" });
-  await auditClaim(page, /funds the programme/, { passage: "trust-2026-amount", status: "Outdated", action: "Correct" });
+  await firstRead(page, "I would rely on it");
+  await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", calc: "31", status: "Supported", action: "Retain" });
+  await auditClaim(page, /Three-quarters/, { passage: "survey-result", status: "Misleading", action: "Qualify", repair: ["63", "210", "48"] });
+  await auditClaim(page, /Research shows/, { passage: "review-finding", status: "Unsupported", action: "Correct", repair: ["time spent on homework", "grades"] });
+  await auditClaim(page, /funds the programme/, { passage: "trust-2026-amount", status: "Outdated", action: "Correct", repair: ["12,000", "2026–27"] });
   await auditClaim(page, /repeatedly asked/, { status: "Unsupported", action: "Remove" });
-  await auditClaim(page, /can staff a second/, { passage: "volunteers-capacity", status: "Incorrect", action: "Correct" });
+  await auditClaim(page, /can staff a second/, { passage: "volunteers-capacity", status: "Incorrect", action: "Correct", repair: ["Five", "month"] });
   await auditClaim(page, /Tuesday trial/, { passage: "attendance-tuesday", status: "Supported", action: "Retain" });
   await page.getByRole("button", { name: "See the final briefing" }).click();
-  await cont(page);
-  await page.getByLabel(/It tells me where to look/).check();
-  await page.getByLabel("Fairly", { exact: true }).check();
+  await page.getByRole("button", { name: "Make the decision" }).click();
+  await page.getByLabel(/Run one extra session a month/).check();
   await check(page);
   await cont(page);
-  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", status: "Incorrect", action: "Correct", reason: "PRIVATE-M04-REASON" });
-  await cont(page);
+  await completeNorthgate(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeNorthgate(page: Page) {
+  await markAndCheck(page, [/Repair café visits doubled/, /repair volunteers doubled/, /largest repair café/], "Audit the claims");
+  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", calc: "41", status: "Incorrect", action: "Correct", repair: ["290", "410", "41"], reason: "PRIVATE-M04-REASON", independent: true });
+  await auditClaim(page, /repair volunteers doubled/, { passage: "report-volunteers", status: "Supported", action: "Retain", independent: true });
+  await auditClaim(page, /largest repair café/, { status: "Unsupported", action: "Remove", independent: true });
+  await page.getByRole("button", { name: "Submit the audit" }).click();
+  await page.getByRole("button", { name: "See the final briefing" }).click();
+  await cont(page);
 }
 
 export const choose = (page: Page, label: RegExp) => page.getByRole("button", { name: label }).click();
 
 export const MAP_PLACEMENT: [RegExp, string][] = [
   [/Without another option/, "Reasons for"],
+  [/finish more of their homework/, "Reasons for"],
   [/at any hour/, "Reasons for"],
   [/rose from 61%/, "Evidence"],
   [/averages 18 learners/, "Evidence"],
@@ -163,6 +208,29 @@ export async function placeCards(page: Page) {
   }
 }
 
+export const CONNECTIONS: [RegExp, RegExp][] = [
+  [/rose from 61%/, /finish more of their homework/],
+  [/averages 18 learners/, /Without another option/],
+  [/7 of 50 maths answers/, /finish more of their homework/],
+  [/standard terms keep/, /The proposal as a whole/],
+  [/caused by the tutor/, /finish more of their homework/],
+  [/visits are about homework/, /The proposal as a whole/],
+];
+
+export async function connectAndTest(page: Page) {
+  await page.getByRole("button", { name: "Connect the cards" }).click();
+  for (const [card, target] of CONNECTIONS) {
+    const select = page.getByLabel(card);
+    const value = await select.locator("option").filter({ hasText: target }).getAttribute("value");
+    await select.selectOption(value!);
+  }
+  await page.getByRole("button", { name: "Check my connections" }).click();
+  await page.getByRole("button", { name: "Test the argument" }).click();
+  await page.getByRole("checkbox", { name: /Suppose this is false.*caused by the tutor/ }).check();
+  await page.getByRole("checkbox", { name: /Suppose this is false.*visits are about homework/ }).check();
+  await cont(page);
+}
+
 export async function completeM05(page: Page) {
   await cont(page);
   await cont(page);
@@ -171,22 +239,26 @@ export async function completeM05(page: Page) {
   await choose(page, /How were the two groups formed/);
   await choose(page, /Were its answers right/);
   await choose(page, /Who sees what learners type/);
-  await choose(page, /different terms and consent/);
+  await choose(page, /The board is about to start/);
+  await showPassage(page, "eastfield-result");
+  await choose(page, /my argument has to account for it/);
   await choose(page, /Keep the remaining volunteers/);
   await page.getByRole("button", { name: "Continue to the argument map" }).click();
   await placeCards(page);
   await page.getByRole("button", { name: "Check my map" }).click();
-  await cont(page);
+  await connectAndTest(page);
   await page.getByLabel(/Try it for a limited time/).check();
   await page.getByLabel("Somewhat", { exact: true }).check();
   await check(page);
   await cont(page);
+  await page.getByLabel(/About a third of visits/).check();
+  await check(page);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
   await page.getByLabel("Your answer").fill("PRIVATE-M05-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
-  await page.getByLabel(/having a smartphone means/).check();
-  await check(page);
-  await cont(page);
+  await markAndCheck(page, [/have a smartphone/, /will serve everyone/]);
   await page.getByRole("button", { name: "Skip writing and see the criteria" }).click();
   await cont(page);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
@@ -195,24 +267,22 @@ export async function completeM05(page: Page) {
 export async function completeT01(page: Page) {
   await cont(page);
   await cont(page);
-  await recordJudgment(page, /Send it/, "Fairly");
   await expect(page.getByRole("button", { name: "Need a hint?" })).toHaveCount(0);
-  await auditClaim(page, /enrolled 48 people/, { passage: "register-numbers", status: "Supported", action: "Retain" });
-  await auditClaim(page, /Almost everyone/, { passage: "questionnaire-result", status: "Misleading", action: "Qualify" });
-  await auditClaim(page, /shown to improve/, { passage: "questionnaire-scope", status: "Unsupported", action: "Remove" });
-  await auditClaim(page, /One in four/, { passage: "county-2026-broadband", status: "Outdated", action: "Correct" });
-  await auditClaim(page, /completely free/, { passage: "register-fee", status: "Incorrect", action: "Correct" });
-  await auditClaim(page, /next course starts/i, { passage: "tutor-next", status: "Supported", action: "Retain" });
+  await markAndCheck(page, [/enrolled 48 people/, /Almost everyone/, /shown to improve/, /One in four/, /completely free/, /next course starts/i], "Audit the claims");
+  await firstRead(page, "Not sure");
+  const save = { independent: true };
+  await auditClaim(page, /enrolled 48 people/, { ...save, passage: "register-numbers", status: "Supported", action: "Retain" });
+  await auditClaim(page, /Almost everyone/, { ...save, passage: "questionnaire-result", status: "Misleading", action: "Qualify", repair: ["24", "20"] });
+  await auditClaim(page, /shown to improve/, { ...save, passage: "questionnaire-scope", status: "Unsupported", action: "Remove" });
+  await auditClaim(page, /One in four/, { ...save, passage: "county-2026-broadband", status: "Outdated", action: "Correct", repair: ["seven"] });
+  await auditClaim(page, /completely free/, { ...save, passage: "register-fee", status: "Incorrect", action: "Correct", repair: ["15", "request"] });
+  await auditClaim(page, /next course starts/i, { ...save, passage: "tutor-next", status: "Supported", action: "Retain" });
+  await page.getByRole("button", { name: "Submit the audit" }).click();
   await page.getByRole("button", { name: "See the final briefing" }).click();
-  await expect(page.getByText(/One in seven adults/)).toBeVisible();
+  await expect(page.getByText(/One in seven adults/).first()).toBeVisible();
   await cont(page);
-  await page.getByLabel(/a course twice the size/).check();
-  await check(page);
-  await cont(page);
-  await page.getByLabel(/Check its claims against the sources/).check();
-  await page.getByLabel("Very", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await markAndCheck(page, [/^People$/, /double its size/]);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
   await page.getByLabel("Your answer").fill("PRIVATE-T01-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);

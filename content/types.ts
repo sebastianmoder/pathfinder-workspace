@@ -21,7 +21,24 @@ export interface Rubric {
   criteria: { id: string; text: string }[];
   /** At least two acceptable example responses. */
   examples: string[];
+  /** Answers to rate against the criteria before writing, compared with a reviewed rating. */
+  samples?: { id: string; text: string; met: string[]; note: string }[];
 }
+
+/** A stretch of text a learner can mark, checked against the authored answer. */
+export interface MarkSegment {
+  id: string;
+  text: string;
+  target: boolean;
+  /** Reasonable to mark or to leave, so it is never counted either way. */
+  optional?: boolean;
+  explanation: string;
+}
+
+/** Paragraphs of plain text and markable segments. */
+export type MarkParagraph = (string | MarkSegment)[];
+
+export type RepairPart = string | { id: string; accept: string[]; options?: string[] };
 
 export interface Hint {
   text: string;
@@ -59,15 +76,34 @@ export interface Claim {
   finalText: string | null;
   /** Omitted where support has faded, such as transfer tasks. */
   hint?: string;
+  /** Wording with blanks for "qualify" and "correct". Filled with the first accepted values, it equals finalText. */
+  repair?: RepairPart[];
+  /** A figure the learner works out from the passage. */
+  calculation?: { prompt: string; min: number; max: number; explanation: string };
+  /** Fictional outcome if the flawed wording reaches the reader. */
+  ifKept?: string;
+  /** Fictional outcome if the reader never sees what this claim should have told them. */
+  ifLost?: string;
 }
 
 export interface AuditSpec {
   sources: Source[];
   claims: Claim[];
-  /** Paragraphs of plain text and references to claims. */
-  briefing: (string | { claimId: string })[][];
+  /** Paragraphs of plain text, references to claims, and sentences that only look like claims. */
+  briefing: (string | { claimId: string } | { decoyId: string })[][];
   /** Asks for a written reason before any feedback, so the explanation can't just repeat the feedback. */
   reasonPrompt?: string;
+  /**
+   * "independent": the learner finds the claims, status definitions are on request,
+   * and feedback waits until the whole audit is submitted. Defaults to "guided".
+   */
+  support?: "guided" | "independent";
+  /** Sentences for the learner to tell apart from claims when finding them. */
+  decoys?: { id: string; text: string; explanation: string }[];
+  /** Record trust in each claim before any source opens, and compare it with the evidence afterwards. */
+  trustFirst?: boolean;
+  /** A decision made with the learner's own finished briefing. */
+  decision?: { prompt: string; choices: Choice[] };
 }
 
 export type EvidenceKind = "knowledge" | "action" | "reasoning" | "transfer";
@@ -125,6 +161,17 @@ export interface DialogueChoice {
   /** What this move did. Shown after the choice and kept separate from the character's speech. */
   note: string;
   next: string;
+  /** Recorded for the debrief when the conversation finishes. */
+  scored?: { item: string; right: boolean };
+  /** Set when the move was showing a passage, which takes the place of a label. */
+  citedPassage?: string;
+}
+
+/** A reply the learner makes by showing a passage from the source pack. */
+export interface DialogueCite {
+  responses: { passageIds: string[]; note: string; next: string; scored?: DialogueChoice["scored"] }[];
+  /** Used for any other passage. */
+  otherwise: { note: string; next: string; scored?: DialogueChoice["scored"] };
 }
 
 export interface DialogueNode {
@@ -135,6 +182,7 @@ export interface DialogueNode {
   reveals?: string[];
   /** Empty means the conversation ends here. */
   choices: DialogueChoice[];
+  cite?: DialogueCite;
 }
 
 export interface DialogueSpec {
@@ -145,6 +193,10 @@ export interface DialogueSpec {
   starts: Record<string, string>;
   nodes: DialogueNode[];
   discoveries: { id: string; label: string; lookIn: string }[];
+  /** Questions available before the meeting. When they run out, moveOn is the only move left. */
+  budget?: { questions: number; moveOn: DialogueChoice };
+  /** Asked at the end. What the learner can answer depends on what they uncovered. */
+  boardQuestions?: { question: string; discoveryId: string; ifFound: string; ifMissed: string }[];
 }
 
 export type Step =
@@ -210,6 +262,7 @@ export type Step =
     }
   | { kind: "transfer"; id: string; title: string; prompt: string; choices: Choice[]; hints?: Hint[] }
   | { kind: "transfer"; id: string; title: string; prompt: string; audit: AuditSpec }
+  | { kind: "transfer"; id: string; title: string; prompt: string; mark: MarkParagraph[] }
   | { kind: "claimAudit"; id: string; title: string; intro: string; audit: AuditSpec }
   | {
       kind: "dialogue";
@@ -228,8 +281,27 @@ export type Step =
       prompt: string;
       proposal: string;
       hints?: Hint[];
+      /** Where the learner's position and the conversation's outcome come from. */
+      initialStepId: string;
+      dialogueStepId: string;
       slots: { id: string; label: string; help: string }[];
-      cards: { id: string; text: string; slotId: string; defensibleSlotIds?: string[]; explanation: string }[];
+      cards: {
+        id: string;
+        text: string;
+        slotId: string;
+        defensibleSlotIds?: string[];
+        explanation: string;
+        /** The discovery this card records, marked when the learner uncovered it. */
+        discovery?: string;
+      }[];
+      /** What each card bears on. A target is a card id or PROPOSAL. */
+      links: {
+        cardId: string;
+        kind: "supports" | "attacks" | "restsOn";
+        targetId: string;
+        defensibleTargetIds?: string[];
+        explanation: string;
+      }[];
     }
   | {
       kind: "debrief";
@@ -271,3 +343,6 @@ export interface PasswordEntry {
   /** If the mission was replaced, the compatible successor. */
   supersededBy?: MissionId;
 }
+
+/** Target id for a link that bears on the proposal as a whole. */
+export const PROPOSAL = "proposal";
