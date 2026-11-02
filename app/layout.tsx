@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import { Atkinson_Hyperlegible_Next, Atkinson_Hyperlegible_Mono, Zilla_Slab } from "next/font/google";
 import { SessionProvider } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
@@ -18,6 +19,21 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${atkinson.variable} ${atkinsonMono.variable} ${zilla.variable} h-full antialiased`}>
+      <head>
+        <Script id="google-analytics" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-KFMFQE4CDW');
+          `}
+        </Script>
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-KFMFQE4CDW"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body className="min-h-full flex flex-col overflow-x-clip">
         <a
           href="#main"
