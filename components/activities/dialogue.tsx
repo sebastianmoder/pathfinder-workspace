@@ -20,7 +20,7 @@ interface ReplayState {
   choices: string[];
 }
 
-const primary = "rounded bg-accent px-4 py-2 font-medium text-accent-foreground";
+const primary = "btn btn-primary";
 
 function Conversation({
   spec,
@@ -61,7 +61,7 @@ function Conversation({
                 <p className="mt-1">{turn.node.text}</p>
               </div>
               {turn.choice && (
-                <div className="ml-6 mt-2 rounded-lg border border-accent p-3">
+                <div className="ml-4 mt-2 border-l-4 border-accent pl-3 sm:ml-8">
                   <p className="text-sm font-semibold">
                     {t.dialogue.youChose} <span className="font-normal text-muted">({t.dialogue.strategy[turn.choice.strategy]})</span>
                   </p>
@@ -77,7 +77,7 @@ function Conversation({
       </ol>
       {!path.ended && (
         <fieldset className="mt-4">
-          <legend className="font-medium">{t.dialogue.respond}</legend>
+          <legend className="font-bold">{t.dialogue.respond}</legend>
           <div className="mt-2 space-y-2">
             {path.current.choices.map((c) => (
               <button
@@ -101,7 +101,7 @@ function Discoveries({ spec, found, showMissed }: { spec: DialogueSpec; found: s
   const missed = spec.discoveries.filter((d) => !found.includes(d.id));
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
-      <h3 className="font-medium">{t.dialogue.found}</h3>
+      <h3 className="font-bold">{t.dialogue.found}</h3>
       {found.length === 0 ? (
         <p className="mt-1 text-sm">{t.dialogue.foundNone}</p>
       ) : (
@@ -111,7 +111,7 @@ function Discoveries({ spec, found, showMissed }: { spec: DialogueSpec; found: s
       )}
       {showMissed && missed.length > 0 && (
         <>
-          <h3 className="mt-3 font-medium">{t.dialogue.missed}</h3>
+          <h3 className="mt-3 font-bold">{t.dialogue.missed}</h3>
           <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
             {missed.map((d) => (
               <li key={d.id}>{d.label} {t.dialogue.lookIn(d.lookIn)}</li>
@@ -143,12 +143,12 @@ export function DialogueActivity({
 
   return (
     <div>
-      <h2 className="text-xl font-medium">{step.title}</h2>
+      <h2 className="text-2xl">{step.title}</h2>
       <p className="mt-1">{step.intro}</p>
-      <p className="mt-3 rounded-lg border border-border p-3 text-sm"><strong>{t.dialogue.scripted}</strong></p>
+      <p className="mt-3 border-l-4 border-border pl-3 text-sm">{t.dialogue.scripted}</p>
 
       <details className="mt-3 rounded-lg border border-border bg-surface p-3">
-        <summary className="cursor-pointer font-medium">{t.dialogue.cast}</summary>
+        <summary className="cursor-pointer font-bold">{t.dialogue.cast}</summary>
         <ul className="mt-2 space-y-2 text-sm">
           {spec.characters.map((c) => (
             <li key={c.id}>
@@ -164,7 +164,7 @@ export function DialogueActivity({
           <Discoveries spec={spec} found={path.discovered} showMissed={path.ended} />
           <SourceDrawer sources={step.sources} />
           <div>
-            <label htmlFor={notesId} className="font-medium">{t.dialogue.notesLabel}</label>
+            <label htmlFor={notesId} className="font-bold">{t.dialogue.notesLabel}</label>
             <p className="text-sm text-muted">{t.dialogue.notesHelp} {step.reflectionPrompt}</p>
             <textarea
               id={notesId}
@@ -210,7 +210,7 @@ export function DialogueReplay({
 
   return (
     <section className="no-print mt-6 rounded-lg border border-border p-4" aria-labelledby={titleId}>
-      <h3 id={titleId} className="font-medium">{t.dialogue.replayHeading}</h3>
+      <h3 id={titleId} className="font-bold">{t.dialogue.replayHeading}</h3>
       <p className="mt-1 text-sm">{t.dialogue.replayIntro}</p>
       <h4 className="mt-3 text-sm font-semibold">{t.dialogue.originalLabel}</h4>
       <ol className="mt-2 space-y-2">
@@ -220,7 +220,7 @@ export function DialogueReplay({
             <button
               type="button"
               onClick={() => set({ from: i, choices: original.slice(0, i) })}
-              className="mt-2 rounded border border-border px-3 py-1.5"
+              className="mt-2 btn btn-secondary btn-small"
             >
               {t.dialogue.tryOther}<span className="sr-only">: {t.dialogue.decision(i + 1)}</span>
             </button>
@@ -272,7 +272,7 @@ function ReplayPath({
           <p><strong>{t.dialogue.originalFound}:</strong> {labels(originalFound) || t.dialogue.foundNone}</p>
         </div>
       )}
-      <button type="button" onClick={onClose} className="mt-3 rounded border border-border px-3 py-1.5 text-sm">{t.dialogue.closeReplay}</button>
+      <button type="button" onClick={onClose} className="mt-3 btn btn-secondary btn-small">{t.dialogue.closeReplay}</button>
     </div>
   );
 }

@@ -10,7 +10,7 @@ const fluencyChoices: Choice[] = [
 ];
 
 /**
- * M01 — Inside the Machine. DRAFT content for review (reviewedOn: null).
+ * M01 — Inside the Machine.
  * All cases are fictional. The toy model is a labelled simplification.
  */
 export const m01: Mission = {
@@ -22,9 +22,10 @@ export const m01: Mission = {
     "You are a researcher at the Riverside Learning Commons, a fictional community learning centre. A colleague pastes an AI answer into the team chat and says, “It sounds right, so let's use it.”",
   approxMinutes: 9,
   meta: {
-    version: "0.3-draft",
-    reviewedOn: null,
-    sourcesToReview: ["Toy model description matches how counting-based predictors work (simplification is labelled in the UI)."],
+    version: "1.0",
+    reviewedOn: "2026-11-02",
+    reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
+    sourcesToReview: ["Toy model description matches how counting-based predictors work (simplification is labelled in the UI).", "Whether services reuse conversations for training changes over time; keep the training-vs-use explanation general.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
   },
   steps: [
     {
@@ -65,7 +66,7 @@ export const m01: Mission = {
       intendedMeaning: "In this case, the Riverside library really opens at nine.",
       minRuns: 2,
       takeaway:
-        "The machine never checked when the library opens. It continued the pattern in whatever it was shown, so different training data gave different, equally confident answers.",
+        "The machine never checked when the library opens. It continued the pattern in whatever it was shown, so different training data gave different answers, each one simply stated as the next word.",
       corpora: [
         {
           id: "library",
@@ -105,7 +106,7 @@ export const m01: Mission = {
       choices: [
         { id: "a", label: "It looked up the real opening time and sometimes made mistakes copying it.", verdict: "weaker", explanation: "This toy machine has no lookup at all. It only counts which words followed which in its training sentences." },
         { id: "b", label: "Its answer depends on the patterns in what it was shown, not on what is true.", verdict: "correct", explanation: "Change the examples and the pattern changes. Truth never entered the process." },
-        { id: "c", label: "It was in a different mood each time.", verdict: "weaker", explanation: "The machine is deterministic: the same training data always gives the same result." },
+        { id: "c", label: "It was guessing at random each time.", verdict: "weaker", explanation: "Run the same training set again and you get the same result. The answers changed because the data changed, not by chance." },
       ],
       hints: [{ text: "Compare the Library notices result with the Shop and café result." }],
     },
@@ -115,13 +116,18 @@ export const m01: Mission = {
       prompt: "Which of these is the model being used rather than trained?",
       choices: [
         { id: "a", label: "Showing it millions of example sentences.", verdict: "weaker", explanation: "That is training: the model is adjusted from examples." },
-        { id: "b", label: "Typing a question and reading its reply.", verdict: "correct", explanation: "Using a model means giving it an input and getting an output. It does not learn from that exchange." },
+        { id: "b", label: "Typing a question and reading its reply.", verdict: "correct", explanation: "Using a model means giving it an input and getting an output. Its learned patterns do not change in that moment, although some services may later use conversations for further training." },
       ],
+      hints: [{ text: "Which of these happens before anyone has asked the model anything?" }],
     },
     {
       kind: "sort",
       id: "functions",
       prompt: "Sort these everyday products by the main AI function they use.",
+      hints: [
+        { text: "Ask what the product gives you: something it identified, something new, a ranked choice, or an estimate of what will happen." },
+        { text: "Two products recognise something, and two generate something." },
+      ],
       categories: [
         { id: "recognise", label: "Recognise (images, speech)" },
         { id: "generate", label: "Generate (text, images)" },
@@ -133,7 +139,7 @@ export const m01: Mission = {
         { id: "email", label: "A chatbot drafts an email for you", categoryId: "generate", explanation: "It produces new text." },
         { id: "show", label: "A streaming service suggests your next show", categoryId: "recommend", explanation: "It ranks options it expects you to like." },
         { id: "speech", label: "A voice assistant turns speech into text", categoryId: "recognise", explanation: "It recognises words in audio." },
-        { id: "rain", label: "A weather app estimates rain tomorrow", categoryId: "predict", explanation: "It forecasts a future quantity from past data." },
+        { id: "parcel", label: "A delivery app estimates when your parcel will arrive", categoryId: "predict", explanation: "It estimates something that has not happened yet, from past deliveries and current conditions." },
         { id: "poster", label: "An image tool makes a poster from a description", categoryId: "generate", explanation: "It produces a new image." },
       ],
     },

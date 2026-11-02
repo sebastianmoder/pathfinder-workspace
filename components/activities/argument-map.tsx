@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Step } from "@/content/types";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { useHintLadder } from "../hint-ladder";
 
 type MapStep = Extract<Step, { kind: "argumentMap" }>;
 
@@ -15,7 +16,7 @@ interface MapState {
   moves: number;
 }
 
-const primary = "rounded bg-accent px-4 py-2 font-medium text-accent-foreground disabled:opacity-50";
+const primary = "btn btn-primary";
 
 /** Select-and-place: choose a card, then a slot. Nothing needs dragging. */
 export function ArgumentMap({ missionId, step, onContinue }: { missionId: string; step: MapStep; onContinue: () => void }) {
@@ -38,6 +39,7 @@ export function ArgumentMap({ missionId, step, onContinue }: { missionId: string
     }
   }, [state.moves]);
 
+  const ladder = useHintLadder(step.hints ?? []);
   const unplaced = step.cards.filter((c) => !state.placed[c.id]);
   const allPlaced = unplaced.length === 0;
 
@@ -59,12 +61,12 @@ export function ArgumentMap({ missionId, step, onContinue }: { missionId: string
 
   return (
     <div>
-      <h2 className="text-xl font-medium">{step.title}</h2>
+      <h2 className="text-2xl">{step.title}</h2>
       <p className="mt-1">{step.prompt}</p>
 
       <div className="mt-4 lg:grid lg:grid-cols-[2fr_3fr] lg:items-start lg:gap-6">
         <div>
-          <h3 ref={poolHeading} tabIndex={-1} className="font-medium">{t.argumentMap.cards}</h3>
+          <h3 ref={poolHeading} tabIndex={-1} className="font-bold">{t.argumentMap.cards}</h3>
           {allPlaced ? (
             <p className="mt-2 text-sm">{t.argumentMap.allPlaced}</p>
           ) : (
@@ -75,7 +77,7 @@ export function ArgumentMap({ missionId, step, onContinue }: { missionId: string
                     type="button"
                     aria-pressed={state.selected === c.id}
                     onClick={() => set({ selected: state.selected === c.id ? null : c.id })}
-                    className="w-full rounded-lg border border-border bg-surface p-3 text-left text-sm aria-pressed:border-2 aria-pressed:border-accent aria-pressed:font-semibold"
+                    className="w-full rounded-lg border border-border bg-surface p-3 text-left text-sm aria-pressed:border-2 aria-pressed:border-accent aria-pressed:font-bold"
                   >
                     {state.selected === c.id && <span aria-hidden="true">▶ </span>}
                     {c.text}
@@ -87,23 +89,25 @@ export function ArgumentMap({ missionId, step, onContinue }: { missionId: string
         </div>
 
         <div className="mt-6 lg:mt-0">
-          <div className="rounded-lg border-2 border-accent bg-surface p-3">
-            <p className="text-sm text-muted">{t.argumentMap.proposal}</p>
-            <p className="font-medium">{step.proposal}</p>
+          <div className="mat p-3">
+            <p className="sheet p-3">
+              <span className="text-sm text-muted">{t.argumentMap.proposal}: </span>
+              <strong>{step.proposal}</strong>
+            </p>
           </div>
           <ul className="ml-4 border-l-2 border-border pl-4">
             {step.slots.map((slot) => (
               <li key={slot.id} className="mt-3 rounded-lg border border-border p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-medium">{slot.label}</h3>
+                    <h3 className="font-bold">{slot.label}</h3>
                     <p className="text-sm text-muted">{slot.help}</p>
                   </div>
                   <button
                     type="button"
                     disabled={!state.selected}
                     onClick={() => place(slot.id)}
-                    className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-60"
+                    className="btn btn-secondary btn-small"
                   >
                     {t.argumentMap.placeHere}<span className="sr-only">: {slot.label}</span>
                   </button>
@@ -117,8 +121,8 @@ export function ArgumentMap({ missionId, step, onContinue }: { missionId: string
                         {state.checked && (
                           <p className="mt-1">
                             <strong>
-                              <span aria-hidden="true">{verdict === "weaker" ? "✖ " : verdict === "best" ? "✔ " : "◆ "}</span>
-                              {t.argumentMap[verdict === "best" ? "best" : verdict]}.
+                              <span aria-hidden="true" className={verdict === "weaker" ? "mark-no" : "mark-yes"}>{verdict === "weaker" ? "✖ " : verdict === "best" ? "✔ " : "◆ "}</span>
+                              {t.argumentMap[verdict]}.
                             </strong>{" "}
                             {verdict !== "best" && <>{t.argumentMap.reviewed(step.slots.find((s) => s.id === c.slotId)!.label)} </>}
                             {c.explanation}
@@ -137,7 +141,9 @@ export function ArgumentMap({ missionId, step, onContinue }: { missionId: string
         </div>
       </div>
 
+      {ladder.list}
       <div className="mt-4 flex flex-wrap gap-3">
+        {!state.checked && ladder.button}
         <button type="button" disabled={!allPlaced} onClick={() => set({ checked: true })} className={primary}>{t.argumentMap.check}</button>
         {state.checked && (
           <button type="button" onClick={onContinue} className={primary}>{t.mission.next}</button>

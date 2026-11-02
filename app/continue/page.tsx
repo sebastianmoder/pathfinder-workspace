@@ -14,7 +14,7 @@ export default function ContinuePage() {
   });
   return (
     <div className="max-w-xl">
-      <h1 className="text-3xl font-semibold">{t.continuePage.title}</h1>
+      <h1 className="text-4xl">{t.continuePage.title}</h1>
       <p className="mt-2">{t.continuePage.help}</p>
       <ContinueForm registry={registry} />
     </div>

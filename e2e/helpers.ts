@@ -29,7 +29,7 @@ export async function auditClaim(
     await page.getByRole("button", { name: "No source addresses this claim" }).click();
   }
   await page.getByRole("radio", { name: new RegExp(`^${opts.status}\\.`) }).check();
-  await page.getByRole("radio", { name: opts.action, exact: true }).check();
+  await page.getByRole("radio", { name: new RegExp(`^${opts.action}`) }).check();
   await page.getByRole("button", { name: "Check this claim" }).click();
 }
 
@@ -42,6 +42,7 @@ export async function completeM01(page: Page) {
   await page.getByLabel("First, what word do you expect next?").fill("nine");
   await page.getByRole("button", { name: "Run the machine" }).click();
   await page.getByLabel(/Shop and café notices/).check();
+  await page.getByLabel("First, what word do you expect next?").fill("eight");
   await page.getByRole("button", { name: "Run the machine" }).click();
   await cont(page);
   await page.getByLabel(/Its answer depends on the patterns/).check();
@@ -55,7 +56,7 @@ export async function completeM01(page: Page) {
     "A chatbot drafts an email for you": "Generate (text, images)",
     "A streaming service suggests your next show": "Recommend",
     "A voice assistant turns speech into text": "Recognise (images, speech)",
-    "A weather app estimates rain tomorrow": "Predict / forecast",
+    "A delivery app estimates when your parcel will arrive": "Predict / forecast",
     "An image tool makes a poster from a description": "Generate (text, images)",
   };
   for (const [item, cat] of Object.entries(place)) await page.getByLabel(item).selectOption({ label: cat });

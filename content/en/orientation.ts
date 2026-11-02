@@ -1,5 +1,5 @@
 /**
- * P0 starting questions. DRAFT for review. These set a starting point and are deliberately not marked:
+ * P0 starting questions. Reviewed 2026-11-02 (author self-review). These set a starting point and are deliberately not marked:
  * there are no verdicts here, and nothing depends on the answers.
  */
 export interface OrientationQuestion {

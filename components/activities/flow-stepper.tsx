@@ -13,7 +13,7 @@ export function FlowStepper({ step, onContinue }: { step: FlowStep; onContinue: 
 
   return (
     <div>
-      <h2 className="text-xl font-medium">{step.title}</h2>
+      <h2 className="text-2xl">{step.title}</h2>
       <ol className="mt-4 flex flex-wrap gap-2" aria-label={step.title}>
         {step.stages.map((s, idx) => (
           <li
@@ -29,15 +29,15 @@ export function FlowStepper({ step, onContinue }: { step: FlowStep; onContinue: 
         <strong>{step.stages[i].title}.</strong> {step.stages[i].text}
       </p>
       <div className="mt-4 flex gap-3">
-        <button type="button" disabled={i === 0} onClick={() => setI(i - 1)} className="rounded border border-border px-4 py-2 disabled:opacity-50">
+        <button type="button" disabled={i === 0} onClick={() => setI(i - 1)} className="btn btn-secondary">
           {t.flow.back}
         </button>
         {!last ? (
-          <button type="button" onClick={() => setI(i + 1)} className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+          <button type="button" onClick={() => setI(i + 1)} className="btn btn-primary">
             {t.flow.nextStage}
           </button>
         ) : (
-          <button type="button" onClick={onContinue} className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+          <button type="button" onClick={onContinue} className="btn btn-primary">
             {t.mission.next}
           </button>
         )}

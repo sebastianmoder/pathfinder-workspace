@@ -11,23 +11,31 @@ export function MapModule({ module, availableInOrder }: { module: ModuleEntry; a
   const available = module.status === "available";
   const done = available && module.missionIds.every(isCompleted);
 
+  if (!available) {
+    // Planned work reads as a quiet line with no destination, so nothing looks playable.
+    return (
+      <li className="px-1 py-0.5 text-muted">
+        <span className="font-bold">{module.title}.</span> {module.summary}{" "}
+        <span className="whitespace-nowrap"><span aria-hidden="true">○ </span>{t.map.planned}</span>
+      </li>
+    );
+  }
+
   return (
-    <li className={`rounded-lg border p-4 ${available ? "border-border bg-surface" : "border-dashed border-border"}`}>
-      <p className="text-xs font-mono text-muted">{module.id}</p>
-      <h3 className="font-medium">{module.title}</h3>
-      <p className="mt-1 text-sm">{module.summary}</p>
-      <p className="mt-2 text-sm">
-        {/* Status uses text + symbol, never colour alone. */}
-        <span aria-hidden="true">{available ? "●" : "○"} </span>
-        {available ? t.map.available : t.map.planned}
-        {done && <> · <span aria-hidden="true">✔ </span>{t.map.completed}</>}
-        {recommended && !done && <> · {t.map.recommended}</>}
-      </p>
-      {available && (
-        <Link href={`/missions/${module.missionIds[0]}`} className="mt-3 inline-block rounded bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground">
-          {t.map.play}<span className="sr-only">: {module.title}</span>
-        </Link>
-      )}
+    <li className="flex flex-wrap items-start justify-between gap-3 border border-border bg-surface p-4">
+      <div className="min-w-0 flex-1 basis-64">
+        <h3 className="text-lg">{module.title}</h3>
+        <p className="mt-0.5">{module.summary}</p>
+        <p className="mt-1 text-sm">
+          {done && <span className="mark-yes font-bold"><span aria-hidden="true">✔ </span>{t.map.completed}</span>}
+          {recommended && (
+            <span className="bg-[var(--highlighter)] px-1 font-bold text-[var(--highlighter-ink)]">{t.map.recommended}</span>
+          )}
+        </p>
+      </div>
+      <Link href={`/missions/${module.missionIds[0]}`} className={`btn btn-small ${recommended ? "btn-primary" : "btn-secondary"}`}>
+        {t.map.play}<span className="sr-only">: {module.title}</span>
+      </Link>
     </li>
   );
 }

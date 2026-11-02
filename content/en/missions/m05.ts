@@ -1,7 +1,7 @@
 import type { Choice, DialogueChoice, DialogueStrategy, Mission, Source } from "../../types";
 
 /**
- * M05 — The Argument Forge. DRAFT content for review (reviewedOn: null).
+ * M05 — The Argument Forge.
  * All organisations, documents, people and figures are fictional.
  * Arithmetic to re-check on review: 61→74 is +13 points; 59→63 is +4 points; €6,000 is half of €12,000;
  * 7 of 50 answers wrong leaves 43 right.
@@ -104,9 +104,10 @@ export const m05: Mission = {
     "You are advising the Riverside Learning Commons, a fictional community learning centre, on a proposal to replace a volunteer homework drop-in with an AI tutor. You will take a position, test it in a conversation, and then decide whether it still stands.",
   approxMinutes: 14,
   meta: {
-    version: "0.1-draft",
-    reviewedOn: null,
-    sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts."],
+    version: "1.0",
+    reviewedOn: "2026-11-02",
+    reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
+    sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
   },
   steps: [
     {
@@ -214,7 +215,7 @@ export const m05: Mission = {
           {
             id: "trial-errors",
             speakerId: "nadia",
-            text: "In a spot check of 50 maths answers, 43 were right and 7 were wrong. None of the wrong ones showed any sign of doubt. So it is often right, and a learner can't tell when it isn't.",
+            text: "In a spot check of 50 maths answers, 43 were right and 7 were wrong. None of the wrong ones showed any sign of doubt. So it is often right, and its wording gives a learner no signal when it isn't.",
             reveals: ["errors"],
             choices: [
               move("data", "evidence", "Who sees what learners type into it?", "You widened the question from whether it works to what else it does.", "privacy-check"),
@@ -232,7 +233,7 @@ export const m05: Mission = {
           },
           {
             id: "drop-in-log",
-            speakerId: "imani",
+            speakerId: "nadia",
             text: "The log says about a third of visits are for help with forms or with English. A homework tutor wouldn't replace those. So what is really being replaced?",
             reveals: ["purpose"],
             choices: [
@@ -248,7 +249,7 @@ export const m05: Mission = {
             reveals: ["privacy"],
             choices: [
               move("terms", "alternative", "Then different terms and consent become conditions.", "You turned a finding into something the Commons could require.", "conditions"),
-              move("ignore", "restate", "That isn't our concern if the tutor works.", "Nadia has no argument with you, but the Commons is responsible for this whether or not the tutor works.", "conditions"),
+              move("ignore", "restate", "That isn't our concern if the tutor works.", "The Commons is responsible for learners' data whether or not the tutor works, so this leaves a problem unanswered.", "conditions"),
             ],
           },
           {
@@ -276,6 +277,11 @@ export const m05: Mission = {
       title: "Map the argument",
       prompt: "Select a card, then choose where it belongs. The map is about the proposal, whatever your own position is.",
       proposal: "The Commons should replace its Wednesday drop-in with an AI tutor.",
+      hints: [
+        { text: "Ask of each card: is it a recorded finding, or a reason someone would give?" },
+        { text: "If a card must be true for the proposal to work, but the proposal never says so, it is an assumption." },
+        { text: "Check who wrote the source behind a card, and whether it names any study." },
+      ],
       slots: [
         { id: "reason", label: "Reasons for", help: "Why someone would support the proposal." },
         { id: "evidence", label: "Evidence", help: "A specific finding that a reason can rest on." },

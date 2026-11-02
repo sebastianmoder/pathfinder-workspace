@@ -1,7 +1,7 @@
 import { passwords } from "@/content/passwords";
 import type { PasswordEntry } from "@/content/types";
 
-/** Case, spacing and separators are ignored: "maple lantern 42" === "MAPLE-LANTERN-42". */
+/** Case, spacing and separators are ignored: "hazel beacon 47" === "HAZEL-BEACON-47". */
 export function normalizePassword(input: string): string {
   return input.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }

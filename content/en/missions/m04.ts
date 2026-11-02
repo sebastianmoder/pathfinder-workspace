@@ -1,7 +1,7 @@
 import type { AuditSpec, Choice, Mission } from "../../types";
 
 /**
- * M04 — The Evidence Bureau. DRAFT content for review (reviewedOn: null).
+ * M04 — The Evidence Bureau.
  * All organisations, documents and figures are fictional.
  * Arithmetic to re-check on review: 26→34 is +30.8%; 48/63 is 76%; 63/210 is 30%; 290→410 is +41.4%.
  */
@@ -66,7 +66,7 @@ const audit: AuditSpec = {
     },
   ],
   briefing: [
-    ["The Saturday Homework Club is well attended. ", { claimId: "attendance" }, " ", { claimId: "growth" }],
+    ["Briefing for the board: the Saturday Homework Club. ", { claimId: "attendance" }, " ", { claimId: "growth" }],
     [{ claimId: "families" }, " ", { claimId: "research" }],
     [{ claimId: "funding" }, " ", { claimId: "demand" }, " ", { claimId: "staffing" }, " ", { claimId: "tuesday" }],
     ["The board is asked to decide whether to add a second weekly session on Tuesdays."],
@@ -210,12 +210,13 @@ export const m04: Mission = {
   title: "The Evidence Bureau",
   outcome: "Identify checkable claims, assess whether sources support them, and decide what to keep, qualify, correct or remove.",
   scenario:
-    "You are the researcher at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted a briefing for tomorrow's board meeting on the Saturday Homework Club. You have the source pack and a few minutes to audit the draft.",
+    "You are the researcher at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted a briefing for tomorrow's board meeting on the Saturday Homework Club. You have the source pack, and your job is to audit the draft.",
   approxMinutes: 14,
   meta: {
-    version: "0.1-draft",
-    reviewedOn: null,
-    sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts."],
+    version: "1.0",
+    reviewedOn: "2026-11-02",
+    reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
+    sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
   },
   steps: [
     {

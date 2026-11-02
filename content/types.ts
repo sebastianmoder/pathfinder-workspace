@@ -3,6 +3,8 @@ export type MissionId = string;
 export interface ContentMeta {
   version: string;
   reviewedOn: string | null; // ISO date; null = draft not yet reviewed
+  /** Who reviewed it, so a self-review by the author can't be mistaken for an independent one. */
+  reviewedBy?: string;
   sourcesToReview: string[];
 }
 
@@ -133,6 +135,7 @@ export type Step =
       kind: "sort";
       id: string;
       prompt: string;
+      hints?: Hint[];
       categories: { id: string; label: string }[];
       items: { id: string; label: string; categoryId: string; explanation: string }[];
     }
@@ -164,6 +167,7 @@ export type Step =
       title: string;
       prompt: string;
       proposal: string;
+      hints?: Hint[];
       slots: { id: string; label: string; help: string }[];
       cards: { id: string; text: string; slotId: string; defensibleSlotIds?: string[]; explanation: string }[];
     }

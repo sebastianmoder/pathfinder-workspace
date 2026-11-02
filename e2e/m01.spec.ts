@@ -25,12 +25,14 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await expect(page.getByText("Result after learning from: Library notices")).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(0); // gated on 2 runs
   await page.getByLabel(/Shop and café notices/).check();
+  await expect(page.getByRole("button", { name: "Run the machine" })).toBeDisabled(); // a new prediction first
+  await page.getByLabel("First, what word do you expect next?").fill("eight");
   await page.getByRole("button", { name: "Run the machine" }).click();
   await expect(page.getByRole("cell", { name: /eight/ })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await cont();
 
-  await page.getByLabel("It was in a different mood each time.").check();
+  await page.getByLabel("It was guessing at random each time.").check();
   await check();
   await expect(page.getByText("Try again")).toBeVisible(); // wrong → retry, never trapped
   await page.getByLabel("Its answer depends on the patterns in what it was shown, not on what is true.").check();
@@ -47,14 +49,14 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
     "A chatbot drafts an email for you": "Generate (text, images)",
     "A streaming service suggests your next show": "Recommend",
     "A voice assistant turns speech into text": "Recognise (images, speech)",
-    "A weather app estimates rain tomorrow": "Recommend", // wrong on purpose
+    "A delivery app estimates when your parcel will arrive": "Recommend", // wrong on purpose
     "An image tool makes a poster from a description": "Generate (text, images)",
   };
   for (const [item, cat] of Object.entries(place)) await page.getByLabel(item).selectOption({ label: cat });
   await check();
-  await expect(page.getByText("Try another.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(0);
-  await page.getByLabel("A weather app estimates rain tomorrow").selectOption({ label: "Predict / forecast" });
+  await expect(page.getByText("Look again.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continue" })).toBeVisible(); // retry is offered, not required
+  await page.getByLabel("A delivery app estimates when your parcel will arrive").selectOption({ label: "Predict / forecast" });
   await check();
   await cont();
 

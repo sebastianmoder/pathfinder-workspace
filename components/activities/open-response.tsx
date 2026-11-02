@@ -21,9 +21,9 @@ export function OpenResponse({ missionId, step, onContinue }: { missionId: strin
 
   return (
     <div>
-      <h2 className="text-xl font-medium">{step.prompt}</h2>
+      <h2 className="text-2xl">{step.prompt}</h2>
       <p className="mt-2 text-sm text-muted">{t.open.privacy}</p>
-      <label htmlFor={fieldId} className="mt-4 block font-medium">{t.open.label}</label>
+      <label htmlFor={fieldId} className="mt-4 block font-bold">{t.open.label}</label>
       <textarea
         id={fieldId}
         rows={5}
@@ -37,11 +37,11 @@ export function OpenResponse({ missionId, step, onContinue }: { missionId: strin
             type="button"
             disabled={!state.text.trim()}
             onClick={() => set({ revealed: true })}
-            className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground disabled:opacity-50"
+            className="btn btn-primary"
           >
             {t.open.showCriteria}
           </button>
-          <button type="button" onClick={() => set({ revealed: true })} className="rounded border border-border px-4 py-2">
+          <button type="button" onClick={() => set({ revealed: true })} className="btn btn-secondary">
             {t.open.skip}
           </button>
         </div>
@@ -49,10 +49,10 @@ export function OpenResponse({ missionId, step, onContinue }: { missionId: strin
       {state.revealed && (
         <div className="mt-5">
           <fieldset>
-            <legend className="font-medium">{t.open.criteria}</legend>
+            <legend className="font-bold">{t.open.criteria}</legend>
             <div className="mt-2 space-y-2">
               {step.rubric.criteria.map((c) => (
-                <label key={c.id} className="flex cursor-pointer gap-3 rounded-lg border border-border bg-surface p-3">
+                <label key={c.id} className="option">
                   <input
                     type="checkbox"
                     checked={state.met.includes(c.id)}
@@ -66,12 +66,12 @@ export function OpenResponse({ missionId, step, onContinue }: { missionId: strin
               ))}
             </div>
           </fieldset>
-          <h3 className="mt-4 font-medium">{t.open.examples}</h3>
+          <h3 className="mt-4 font-bold">{t.open.examples}</h3>
           <ul className="mt-1 list-disc space-y-2 pl-5 text-sm">
             {step.rubric.examples.map((e) => <li key={e}>{e}</li>)}
           </ul>
           <p className="mt-3 text-sm text-muted">{t.open.selfAssessed}</p>
-          <button type="button" onClick={onContinue} className="mt-4 rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+          <button type="button" onClick={onContinue} className="mt-4 btn btn-primary">
             {t.mission.next}
           </button>
         </div>

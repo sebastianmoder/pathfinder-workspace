@@ -16,14 +16,14 @@ export function PasswordCard({ code, label = t.password.label }: { code: string;
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
+    <div className="ticket">
       <p className="text-sm text-muted">{label}</p>
-      <p className="mt-1 select-all font-mono text-2xl font-semibold tracking-wider">{code}</p>
+      <p className="mt-1 select-all break-all font-mono text-2xl font-semibold tracking-wide">{code}</p>
       <div className="no-print mt-3 flex gap-2">
-        <button type="button" onClick={copy} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-background">
+        <button type="button" onClick={copy} className="btn btn-secondary btn-small">
           {t.password.copy}
         </button>
-        <button type="button" onClick={() => window.print()} className="rounded border border-border px-3 py-1.5 text-sm hover:bg-background">
+        <button type="button" onClick={() => window.print()} className="btn btn-secondary btn-small">
           {t.password.print}
         </button>
       </div>

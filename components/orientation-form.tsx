@@ -13,10 +13,10 @@ export function OrientationForm({ questions, firstMissionHref }: { questions: Or
     <div className="mt-6 space-y-6">
       {questions.map((q) => (
         <fieldset key={q.id}>
-          <legend className="font-medium">{q.prompt}</legend>
+          <legend className="font-bold">{q.prompt}</legend>
           <div className="mt-2 space-y-2">
             {q.choices.map((c) => (
-              <label key={c.id} className="flex cursor-pointer gap-3 rounded-lg border border-border bg-surface p-3 has-[:checked]:border-accent">
+              <label key={c.id} className="option">
                 <input
                   type="radio"
                   name={`${group}-${q.id}`}
@@ -31,7 +31,7 @@ export function OrientationForm({ questions, firstMissionHref }: { questions: Or
         </fieldset>
       ))}
       <div className="flex flex-wrap items-center gap-4">
-        <Link href={firstMissionHref} className="rounded bg-accent px-5 py-2.5 font-medium text-accent-foreground">
+        <Link href={firstMissionHref} className="btn btn-primary">
           {Object.keys(orientation).length ? t.orientation.start : t.orientation.skip}
         </Link>
         <Link href="/map" className="underline">{t.orientation.map}</Link>

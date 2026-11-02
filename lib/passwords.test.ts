@@ -17,7 +17,7 @@ describe("normalizePassword", () => {
 
 describe("lookupPassword", () => {
   it("resolves variants to the mission", () => {
-    expect(lookupPassword(" maple lantern 42 ")?.missionId).toBe("m01-foundations");
+    expect(lookupPassword(" hazel beacon 47 ")?.missionId).toBe("m01-foundations");
   });
 
   it("returns null for unknown or empty input", () => {

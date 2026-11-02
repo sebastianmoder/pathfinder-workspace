@@ -24,6 +24,9 @@ interface Props {
 export function MissionRunner({ mission, password, next }: Props) {
   const session = useSession();
   const pauseRef = useRef<HTMLDialogElement>(null);
+  const helpRef = useRef<HTMLDialogElement>(null);
+  const helpTitleId = useId();
+  const reminder = mission.steps.find((s) => s.kind === "refresher");
   const pauseTitleId = useId();
   const { stepIndex, answers } = session.progress(mission.id);
   const step = mission.steps[stepIndex];
@@ -50,22 +53,30 @@ export function MissionRunner({ mission, password, next }: Props) {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1 basis-64">
-          <p className="text-sm text-muted">{t.mission.fictional}</p>
-          <h1 className="text-2xl font-semibold">{mission.title}</h1>
-          <p className="mt-1">{mission.outcome}</p>
+          <h1 className="text-3xl sm:text-4xl">{mission.title}</h1>
+          <p className="mt-1 max-w-3xl">{mission.outcome}</p>
         </div>
-        <button type="button" onClick={() => pauseRef.current?.showModal()} className="no-print rounded border border-border px-3 py-1.5 text-sm">
-          {t.mission.pause}
-        </button>
+        <div className="no-print flex gap-2">
+          {reminder && (
+            <button type="button" onClick={() => helpRef.current?.showModal()} className="btn btn-secondary btn-small">
+              {t.mission.remind}
+            </button>
+          )}
+          <button type="button" onClick={() => pauseRef.current?.showModal()} className="btn btn-secondary btn-small">
+            {t.mission.pause}
+          </button>
+        </div>
       </div>
 
-      <p className="mt-4 rounded-lg border border-border bg-surface p-4 text-sm">{mission.scenario}</p>
+      <p className="mt-4 max-w-3xl border-l-4 border-border pl-3"><strong>{t.mission.fictional}</strong> {mission.scenario}</p>
 
       <div className="mt-6">
-        <p className="text-sm text-muted">
-          {t.mission.step(stepIndex + 1, total)}
-          <progress className="ml-3 align-middle" value={stepIndex + 1} max={total} aria-label={t.mission.step(stepIndex + 1, total)} />
-        </p>
+        <p className="text-sm font-bold">{t.mission.step(stepIndex + 1, total)}</p>
+        <div className="ruler mt-1" aria-hidden="true">
+          {mission.steps.map((s, i) => (
+            <span key={s.id} data-done={i <= stepIndex} />
+          ))}
+        </div>
         <section key={step.id} ref={stepRef} tabIndex={-1} aria-label={t.mission.step(stepIndex + 1, total)} className="mt-4 outline-offset-8">
           <StepView
             step={step}
@@ -82,16 +93,30 @@ export function MissionRunner({ mission, password, next }: Props) {
         </section>
       </div>
 
+      {reminder?.kind === "refresher" && (
+        <dialog
+          ref={helpRef}
+          aria-labelledby={helpTitleId}
+          className="m-auto w-[min(32rem,calc(100%-2rem))] border border-border bg-background p-5 text-foreground backdrop:bg-black/50"
+        >
+          <h2 id={helpTitleId} className="text-2xl">{t.mission.remindTitle}</h2>
+          <p className="my-3">{reminder.body}</p>
+          <form method="dialog">
+            <button className="btn btn-primary">{t.mission.remindClose}</button>
+          </form>
+        </dialog>
+      )}
+
       <dialog
         ref={pauseRef}
         aria-labelledby={pauseTitleId}
-        className="m-auto w-[min(32rem,calc(100%-2rem))] rounded-lg border border-border bg-background p-5 text-foreground backdrop:bg-black/50"
+        className="m-auto w-[min(32rem,calc(100%-2rem))] border border-border bg-background p-5 text-foreground backdrop:bg-black/50"
       >
-        <h2 id={pauseTitleId} className="text-lg font-semibold">{t.pause.title}</h2>
+        <h2 id={pauseTitleId} className="text-2xl">{t.pause.title}</h2>
         <p className="my-3 text-sm">{t.pause.body(password, mission.title)} {t.pause.refreshNote}</p>
         <PasswordCard code={password} />
         <form method="dialog" className="mt-4">
-          <button className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground">{t.pause.close}</button>
+          <button className="btn btn-primary">{t.pause.close}</button>
         </form>
       </dialog>
     </div>
@@ -122,9 +147,9 @@ function StepView({
     case "refresher":
       return (
         <>
-          <h2 className="text-xl font-medium">{step.title}</h2>
+          <h2 className="text-2xl">{step.title}</h2>
           <p className="mt-2">{step.body}</p>
-          <button type="button" onClick={onContinue} className="mt-5 rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+          <button type="button" onClick={onContinue} className="mt-5 btn btn-primary">
             {t.mission.next}
           </button>
         </>
@@ -148,7 +173,7 @@ function StepView({
     case "transfer":
       return (
         <>
-          <h2 className="mb-2 text-xl font-medium">{step.title}</h2>
+          <h2 className="mb-2 text-2xl">{step.title}</h2>
           {"audit" in step ? (
             <>
               <p className="mb-4">{step.prompt}</p>
@@ -163,7 +188,7 @@ function StepView({
     case "claimAudit":
       return (
         <>
-          <h2 className="text-xl font-medium">{step.title}</h2>
+          <h2 className="text-2xl">{step.title}</h2>
           <p className="mb-4 mt-1">{step.intro}</p>
           <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal onContinue={onContinue} />
         </>
@@ -178,7 +203,7 @@ function StepView({
       const label = (n: number | undefined) => (n === undefined ? "—" : t.mission.confidence[n]);
       return (
         <>
-          <h2 className="text-xl font-medium">{step.prompt}</h2>
+          <h2 className="text-2xl">{step.prompt}</h2>
           <p className="mt-3 rounded border border-border bg-surface p-3 text-sm">
             <strong>{t.mission.before}:</strong> {before?.label ?? "—"}
             {first?.confidence !== undefined && <> ({label(first.confidence)})</>}
@@ -226,10 +251,12 @@ function StepView({
     case "debrief":
       return (
         <>
-          <h2 className="text-xl font-medium">{t.debrief.title}</h2>
-          <h3 className="mt-4 font-medium">{t.debrief.takeaway}</h3>
-          <p>{step.takeaway}</p>
-          <h3 className="mt-4 font-medium">{t.debrief.skills}</h3>
+          <h2 className="text-2xl">{t.debrief.title}</h2>
+          <div className="mat mt-3 p-5 sm:p-8">
+            <h3 className="text-sm font-normal">{t.debrief.takeaway}</h3>
+            <p className="mt-1 max-w-3xl font-[family-name:var(--font-zilla)] text-2xl font-semibold leading-tight sm:text-3xl">{step.takeaway}</p>
+          </div>
+          <h3 className="mt-4 font-bold">{t.debrief.skills}</h3>
           <ul className="list-disc pl-5">
             {step.skills.map((s) => <li key={s}>{s}</li>)}
           </ul>
@@ -241,19 +268,19 @@ function StepView({
           <div className="mt-6 space-y-4">
             {next ? (
               <div>
-                <h3 className="font-medium">{t.debrief.next}: {next.title}</h3>
+                <h3 className="font-bold">{t.debrief.next}: {next.title}</h3>
                 <PasswordCard code={next.password} />
-                <Link href={`/missions/${next.missionId}`} className="mt-3 inline-block rounded bg-accent px-4 py-2 font-medium text-accent-foreground">{next.title}</Link>
+                <Link href={`/missions/${next.missionId}`} className="mt-3 inline-block btn btn-primary">{next.title}</Link>
               </div>
             ) : (
               <p>{t.debrief.endOfContent}</p>
             )}
             <div>
-              <h3 className="font-medium">{t.debrief.thisMission}</h3>
+              <h3 className="font-bold">{t.debrief.thisMission}</h3>
               <PasswordCard code={replayPassword} />
             </div>
             <div className="flex flex-wrap items-center gap-4">
-              <button type="button" onClick={() => session.restart(mission.id)} className="rounded border border-border px-4 py-2">
+              <button type="button" onClick={() => session.restart(mission.id)} className="btn btn-secondary">
                 {t.debrief.replay}
               </button>
               <Link href="/map" className="underline">{t.map.title}</Link>

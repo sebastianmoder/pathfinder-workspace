@@ -3,6 +3,7 @@ import { missions } from "./missions";
 import { modules } from "./journey";
 import { passwords } from "./passwords";
 import { hasCycle, reachableNodes } from "@/lib/dialogue";
+import { buildModel, predict } from "@/lib/toy-model";
 import type { AuditSpec, Choice, Step } from "./types";
 
 const REQUIRED_KINDS: Step["kind"][] = [
@@ -170,6 +171,31 @@ describe("M04 required case types (PRD §7)", () => {
 
   it("has a real citation that does not support its claim", () => {
     expect(claims.some((c) => c.citationMismatch)).toBe(true);
+  });
+});
+
+describe("M01 toy model tells the story the mission tells", () => {
+  const m01 = missions.find((m) => m.id === "m01-foundations")!;
+  const toy = m01.steps.find((s) => s.kind === "toyModel");
+  it.each([
+    ["library", "nine"],
+    ["shops", "eight"],
+    ["night", "midnight"],
+    ["closing", "six"],
+  ])("%s training set predicts %s", (id, word) => {
+    if (toy?.kind !== "toyModel") throw new Error("no toy step");
+    const corpus = toy.corpora.find((c) => c.id === id)!;
+    expect(predict(buildModel(corpus.sentences), toy.promptText).ranked[0].word).toBe(word);
+  });
+});
+
+describe("review status (PRD §10, criterion 3)", () => {
+  it("every available mission records a review, and who did it", () => {
+    for (const id of modules.filter((m) => m.status === "available").flatMap((m) => m.missionIds)) {
+      const meta = missions.find((m) => m.id === id)!.meta;
+      expect(meta.reviewedOn, id).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(meta.reviewedBy, id).toBeTruthy();
+    }
   });
 });
 

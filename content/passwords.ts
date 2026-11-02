@@ -6,7 +6,7 @@ import type { PasswordEntry } from "./types";
  * Format: WORD-WORD-NN (digits 2–9 only, no look-alike characters).
  */
 export const passwords: PasswordEntry[] = [
-  { code: "MAPLE-LANTERN-42", missionId: "m01-foundations" },
+  { code: "HAZEL-BEACON-47", missionId: "m01-foundations" },
   { code: "CEDAR-COMPASS-37", missionId: "m04-evidence" },
   { code: "ALDER-THIMBLE-26", missionId: "m05-argument" },
   { code: "BIRCH-HARBOUR-58", missionId: "t01-transfer" },

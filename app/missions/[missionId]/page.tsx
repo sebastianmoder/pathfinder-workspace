@@ -4,6 +4,7 @@ import { missions, getMission } from "@/content/missions";
 import { modules } from "@/content/journey";
 import { passwordForMission } from "@/lib/passwords";
 import { MissionRunner } from "@/components/mission-runner";
+import { t } from "@/lib/i18n/en";
 
 export function generateStaticParams() {
   return missions.map((m) => ({ missionId: m.id }));
@@ -11,7 +12,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: PageProps<"/missions/[missionId]">): Promise<Metadata> {
   const { missionId } = await props.params;
-  return { title: getMission(missionId)?.title ?? "Mission" };
+  return { title: getMission(missionId)?.title ?? t.mission.missionFallback };
 }
 
 export default async function MissionPage(props: PageProps<"/missions/[missionId]">) {

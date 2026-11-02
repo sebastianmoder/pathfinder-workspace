@@ -56,13 +56,13 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-3xl font-semibold">{t.summary.title}</h1>
+      <h1 className="text-4xl">{t.summary.title}</h1>
       <p className="mt-2 text-sm">{t.summary.contains}</p>
       <p className="mt-1 text-sm text-muted">{t.summary.temporary}</p>
 
       <div className="no-print mt-4 flex flex-wrap gap-2">
-        <button type="button" onClick={copy} className="rounded border border-border px-3 py-1.5 text-sm">{t.summary.copy}</button>
-        <button type="button" onClick={() => window.print()} className="rounded border border-border px-3 py-1.5 text-sm">{t.summary.print}</button>
+        <button type="button" onClick={copy} className="btn btn-secondary btn-small">{t.summary.copy}</button>
+        <button type="button" onClick={() => window.print()} className="btn btn-secondary btn-small">{t.summary.print}</button>
       </div>
       <p role="status" className="no-print mt-2 min-h-5 text-sm">
         {copyStatus === "copied" && t.summary.copied}
@@ -71,7 +71,7 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
 
       {startingPoint.length > 0 && (
         <section className="mt-4">
-          <h2 className="text-xl font-medium">{t.summary.startingPoint}</h2>
+          <h2 className="text-2xl">{t.summary.startingPoint}</h2>
           <ul className="mt-2 space-y-1 text-sm">
             {startingPoint.map((a) => <li key={a.question}>{a.question} <strong>{a.answer}</strong></li>)}
           </ul>
@@ -86,7 +86,7 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
         <div className="mt-6 space-y-4">
           {rows.map((m) => (
             <section key={m.id} className="rounded-lg border border-border bg-surface p-4">
-              <h2 className="text-lg font-medium">{m.title}</h2>
+              <h2 className="text-2xl">{m.title}</h2>
               {!m.completed && <p className="text-sm text-muted">{t.summary.notFinished}</p>}
               <dl className="mt-2 space-y-2 text-sm">
                 {m.before && (
@@ -111,7 +111,7 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
       )}
 
       <section className="mt-6">
-        <h2 className="text-xl font-medium">{t.summary.passwords}</h2>
+        <h2 className="text-2xl">{t.summary.passwords}</h2>
         <p className="mt-1 text-sm text-muted">{t.summary.passwordsHelp}</p>
         <ul className="mt-2 space-y-1">
           {passwords.map((p) => (

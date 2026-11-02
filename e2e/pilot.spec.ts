@@ -41,7 +41,7 @@ test("criterion 1: a new learner completes P0 to P5 with no account", async ({ p
   await expect(page.locator("strong", { hasText: "Open the source and read the relevant part" })).toBeVisible();
   await expect(page.getByText(/It is probably correct\. \(Very\)/)).toBeVisible();
   await expect(page.getByText(/It tells me little; I need evidence\. \(Somewhat\)/)).toBeVisible();
-  for (const code of ["MAPLE-LANTERN-42", "CEDAR-COMPASS-37", "ALDER-THIMBLE-26", "BIRCH-HARBOUR-58"])
+  for (const code of ["HAZEL-BEACON-47", "CEDAR-COMPASS-37", "ALDER-THIMBLE-26", "BIRCH-HARBOUR-58"])
     await expect(page.locator("li").getByText(code).locator("visible=true")).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
@@ -75,7 +75,7 @@ test("criterion 1: the starting questions can be skipped", async ({ page }) => {
 });
 
 for (const [id, title, code] of [
-  ["m01-foundations", "Inside the Machine", "maple lantern 42"],
+  ["m01-foundations", "Inside the Machine", "hazel beacon 47"],
   ["m04-evidence", "The Evidence Bureau", "CEDAR-COMPASS-37"],
   ["m05-argument", "The Argument Forge", "alder-thimble-26"],
   ["t01-transfer", "The Newsletter Desk", "birchharbour58"],
@@ -174,3 +174,23 @@ test("regression: pages kept alive in the background do not interfere with the v
   });
   expect(duplicates).toEqual([]);
 });
+
+test("Help reminds the learner of the method without losing their place", async ({ page }) => {
+  await page.goto("/missions/t01-transfer");
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page.getByText(/^Step 3 of/)).toBeVisible();
+  await page.getByRole("button", { name: "Help", exact: true }).click();
+  await expect(page.getByRole("dialog").getByText(/Find the passage that bears on each claim/)).toBeVisible();
+  await page.getByRole("button", { name: "Back to the mission" }).click();
+  await expect(page.getByText(/^Step 3 of/)).toBeVisible();
+});
+
+test("the welcome page offers a real judgment before any explanation", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText(/about 8%/)).toHaveCount(0);
+  await page.getByRole("button", { name: "It does not" }).click();
+  await expect(page.getByText(/about 8%/)).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+

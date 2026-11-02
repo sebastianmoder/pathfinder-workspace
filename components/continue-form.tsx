@@ -25,7 +25,7 @@ export function ContinueForm({ registry }: { registry: Entry[] }) {
 
   return (
     <form onSubmit={submit} className="mt-6">
-      <label htmlFor="pw" className="block font-medium">{t.continuePage.field}</label>
+      <label htmlFor="pw" className="block font-bold">{t.continuePage.field}</label>
       <input
         id="pw"
         value={value}
@@ -39,7 +39,7 @@ export function ContinueForm({ registry }: { registry: Entry[] }) {
         aria-describedby="pw-status"
         className="mt-1 w-full rounded border border-border bg-surface px-3 py-2 font-mono text-lg"
       />
-      <button type="submit" className="mt-3 rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+      <button type="submit" className="mt-3 btn btn-primary">
         {t.continuePage.submit}
       </button>
 
@@ -51,9 +51,9 @@ export function ContinueForm({ registry }: { registry: Entry[] }) {
         )}
         {result && result !== "invalid" && (
           <div className="rounded-lg border border-border bg-surface p-4">
-            <p className="font-medium">{t.continuePage.found(result.title)}</p>
+            <p className="font-bold">{t.continuePage.found(result.title)}</p>
             <p className="mt-1 text-sm text-muted">{t.continuePage.restartNote}</p>
-            <Link href={`/missions/${result.missionId}`} onClick={() => session.restart(result.missionId)} className="mt-3 inline-block rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+            <Link href={`/missions/${result.missionId}`} onClick={() => session.restart(result.missionId)} className="mt-3 inline-block btn btn-primary">
               {t.continuePage.start}
             </Link>
           </div>

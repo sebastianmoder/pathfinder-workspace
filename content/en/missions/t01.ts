@@ -1,7 +1,7 @@
 import type { AuditSpec, Choice, Mission } from "../../types";
 
 /**
- * T01 — The Newsletter Desk: the pilot's combined transfer case. DRAFT content for review (reviewedOn: null).
+ * T01 — The Newsletter Desk: the pilot's combined transfer case.
  * All organisations, documents and figures are fictional. A small precursor to C01, not a substitute for it.
  * Arithmetic to re-check on review: 20 of 24 respondents is 83%; 24 of 31 finishers responded; 31 of 48 enrolled finished.
  */
@@ -10,7 +10,7 @@ const approachQuestion =
   "The newsletter goes out today. An AI draft of the lead article reads well and cites its sources. What is the most useful thing to do with the time you have?";
 const approachChoices: Choice[] = [
   { id: "send", label: "Send it. It reads well and it has citations.", verdict: "weaker", explanation: "Good writing and citations do not show that it is right. Several of the draft's claims did not survive a check." },
-  { id: "check", label: "Check the specific claims against the sources, then keep, fix or qualify them.", verdict: "correct", explanation: "This takes less time than rewriting. It also keeps what was accurate, and a good part of the draft was." },
+  { id: "check", label: "Check the specific claims against the sources, then keep, fix or qualify them.", verdict: "correct", explanation: "This takes less time than rewriting, and it keeps what was accurate. Some of the draft was fine, and other parts only needed qualifying." },
   { id: "scrap", label: "Scrap it and write something from memory.", verdict: "weaker", explanation: "That throws away accurate work, and writing from memory is no better checked than the draft." },
 ];
 
@@ -143,9 +143,10 @@ export const t01: Mission = {
     "You are the editor of the newsletter at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted the lead article about a digital skills course, and a colleague has added an argument for expanding it.",
   approxMinutes: 9,
   meta: {
-    version: "0.1-draft",
-    reviewedOn: null,
-    sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts."],
+    version: "1.0",
+    reviewedOn: "2026-11-02",
+    reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
+    sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale.", "The next-course date (12 January 2027) is in the fictional case; move it forward if the pilot runs past that date."],
   },
   steps: [
     {

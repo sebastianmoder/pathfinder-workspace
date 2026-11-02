@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import type { Choice, Hint } from "@/content/types";
 import { t } from "@/lib/i18n/en";
+import { useHintLadder } from "./hint-ladder";
 
 const VERDICT_MARK = { correct: "✔", defensible: "◆", weaker: "✖" } as const;
 
@@ -39,7 +40,7 @@ export function ChoiceQuestion({
   const [selected, setSelected] = useState<string | undefined>(initialChoiceId);
   const [confidence, setConfidence] = useState<number | undefined>(initialConfidence);
   const [committed, setCommitted] = useState(false);
-  const [hintsShown, setHintsShown] = useState(0);
+  const ladder = useHintLadder(hints);
 
   const picked = choices.find((c) => c.id === selected);
   const acceptable = picked && (recordOnly || picked.verdict !== "weaker");
@@ -47,10 +48,10 @@ export function ChoiceQuestion({
   return (
     <div>
       <fieldset disabled={committed && !!acceptable}>
-        <legend className="text-lg font-medium">{prompt}</legend>
+        <legend className="text-xl font-bold">{prompt}</legend>
         <div className="mt-4 space-y-2">
           {choices.map((c) => (
-            <label key={c.id} className="flex cursor-pointer gap-3 rounded-lg border border-border bg-surface p-3 has-[:checked]:border-accent">
+            <label key={c.id} className="option">
               <input
                 type="radio"
                 name={group}
@@ -73,7 +74,7 @@ export function ChoiceQuestion({
           <legend className="text-sm text-muted">{t.mission.confidenceLabel}</legend>
           <div className="mt-2 flex flex-wrap gap-2">
             {t.mission.confidence.map((label, i) => (
-              <label key={label} className="flex cursor-pointer items-center gap-1 rounded border border-border px-2 py-1 text-sm has-[:checked]:border-accent">
+              <label key={label} className="option-compact">
                 <input type="radio" name={`${group}-confidence`} checked={confidence === i} onChange={() => setConfidence(i)} />
                 {label}
               </label>
@@ -91,35 +92,20 @@ export function ChoiceQuestion({
               setCommitted(true);
               onCommit(selected!, confidence);
             }}
-            className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground disabled:opacity-50"
+            className="btn btn-primary"
           >
             {recordOnly ? t.mission.record : t.mission.commit}
           </button>
         )}
-        {hints.length > 0 && !committed && (
-          <button
-            type="button"
-            onClick={() => setHintsShown((n) => Math.min(n + 1, hints.length))}
-            disabled={hintsShown >= hints.length}
-            className="rounded border border-border px-3 py-2 text-sm"
-          >
-            {hintsShown >= hints.length && hintsShown > 0 ? t.mission.noMoreHints : t.mission.help}
-          </button>
-        )}
+        {!committed && ladder.button}
         {committed && acceptable && (
-          <button type="button" onClick={onContinue} className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+          <button type="button" onClick={onContinue} className="btn btn-primary">
             {t.mission.next}
           </button>
         )}
       </div>
 
-      {hintsShown > 0 && (
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
-          {hints.slice(0, hintsShown).map((h) => (
-            <li key={h.text}>{h.text}</li>
-          ))}
-        </ul>
-      )}
+      {ladder.list}
 
       {committed && recordOnly && (
         <p role="status" className="mt-4 text-sm">{t.mission.recorded}</p>
@@ -128,16 +114,16 @@ export function ChoiceQuestion({
       {committed && !recordOnly && (
         <div role="status" className="mt-5 space-y-2">
           {choices.map((c) => (
-            <p key={c.id} className="rounded border border-border p-3 text-sm">
+            <p key={c.id} className="border-l-4 border-border py-1 pl-3">
               <strong>
-                <span aria-hidden="true">{VERDICT_MARK[c.verdict]} </span>
-                {c.label} — {t.mission.verdict[c.verdict]}
+                <span aria-hidden="true" className={c.verdict === "weaker" ? "mark-no" : "mark-yes"}>{VERDICT_MARK[c.verdict]} </span>
+                {c.label} {t.mission.verdict[c.verdict]}.
               </strong>
               <br />
               {c.explanation}
             </p>
           ))}
-          {!acceptable && <p className="text-sm font-medium">{t.mission.retry}: choose another option above.</p>}
+          {!acceptable && <p className="font-bold">{t.mission.retryChoice}</p>}
         </div>
       )}
     </div>

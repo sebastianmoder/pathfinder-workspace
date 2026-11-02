@@ -23,8 +23,8 @@ const STATUSES: ClaimStatus[] = ["supported", "unsupported", "outdated", "mislea
 const ACTIONS: ClaimAction[] = ["retain", "qualify", "correct", "remove"];
 const VIEWS: View[] = ["briefing", "sources", "judgment"];
 
-const primary = "rounded bg-accent px-4 py-2 font-medium text-accent-foreground disabled:opacity-50";
-const secondary = "rounded border border-border px-3 py-2 text-sm";
+const primary = "btn btn-primary";
+const secondary = "btn btn-secondary btn-small";
 
 interface Props {
   missionId: string;
@@ -101,7 +101,7 @@ export function ClaimAudit({ missionId, stepId, audit, showFinal, onContinue }: 
 
   return (
     <div>
-      <p role="status" className="mb-3 text-sm font-medium">
+      <p role="status" className="mb-3 text-sm font-bold">
         {t.audit.progress(audit.claims.filter((c) => state.done.includes(c.id)).length, audit.claims.length)}
       </p>
       <div ref={tabsRef} role="group" aria-label={t.audit.views} className="mb-4 flex flex-wrap gap-2 lg:hidden">
@@ -111,7 +111,7 @@ export function ClaimAudit({ missionId, stepId, audit, showFinal, onContinue }: 
             type="button"
             aria-pressed={state.view === v}
             onClick={() => set({ view: v })}
-            className="rounded border border-border px-3 py-2 text-sm aria-pressed:border-accent aria-pressed:font-semibold"
+            className="btn btn-secondary btn-small"
           >
             {t.audit.view[v]}
           </button>
@@ -126,7 +126,8 @@ export function ClaimAudit({ missionId, stepId, audit, showFinal, onContinue }: 
             aria-label={t.audit.view.briefing}
             className={panelClass("briefing")}
           >
-            <div className="rounded-lg border border-border bg-surface p-4">
+            <div className="mat p-3 sm:p-5">
+            <div className="sheet p-4 sm:p-5">
               <p className="text-sm text-muted">{t.audit.aiDraft}</p>
               {audit.briefing.map((paragraph, i) => (
                 <p key={i} className="mt-3">
@@ -145,6 +146,7 @@ export function ClaimAudit({ missionId, stepId, audit, showFinal, onContinue }: 
                   )}
                 </p>
               ))}
+            </div>
             </div>
           </section>
 
@@ -210,18 +212,29 @@ export function ClaimAudit({ missionId, stepId, audit, showFinal, onContinue }: 
   );
 }
 
+/**
+ * A span with the button role, because a real <button> can't wrap as inline text and the briefing has
+ * to read as prose. It keeps full button behaviour: focusable, and activated by Enter or Space.
+ */
 function ClaimButton({ claim, selected, done, onSelect }: { claim: Claim; selected: boolean; done: boolean; onSelect: (id: string) => void }) {
   return (
-    <button
-      type="button"
+    <span
+      role="button"
+      tabIndex={0}
       aria-pressed={selected}
       onClick={() => onSelect(claim.id)}
-      className={`inline rounded px-1 text-left underline decoration-dashed underline-offset-4 ${selected ? "bg-accent text-accent-foreground" : "hover:bg-background"}`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(claim.id);
+        }
+      }}
+      className="claim"
     >
       {claim.text}{" "}
       <span aria-hidden="true">{done ? "✔" : "○"}</span>
       <span className="sr-only"> ({done ? t.audit.checkedMark : t.audit.unchecked})</span>
-    </button>
+    </span>
   );
 }
 
@@ -249,9 +262,9 @@ function JudgmentPanel({
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
       <p className="text-sm text-muted">{t.audit.selectedClaim}</p>
-      <p className="font-medium">{claim.text}</p>
+      <p className="font-bold">{claim.text}</p>
 
-      <h3 className="mt-4 font-medium">{t.audit.evidenceHeading}</h3>
+      <h3 className="mt-4 font-bold">{t.audit.evidenceHeading}</h3>
       {linked ? (
         <blockquote className="mt-1 border-l-4 border-border pl-3 text-sm">
           <strong>{t.audit.linked} ({linked.source.title}):</strong> {linked.text}
@@ -261,14 +274,14 @@ function JudgmentPanel({
       )}
       <div className="mt-2 flex flex-wrap gap-2">
         <button type="button" onClick={onOpenSources} className={`${secondary} lg:hidden`}>{t.audit.openSources}</button>
-        <button type="button" aria-pressed={answer.evidence === NO_EVIDENCE} onClick={() => onChange({ evidence: NO_EVIDENCE })} className={`${secondary} aria-pressed:border-accent aria-pressed:font-semibold`}>
+        <button type="button" aria-pressed={answer.evidence === NO_EVIDENCE} onClick={() => onChange({ evidence: NO_EVIDENCE })} className={`${secondary}`}>
           {answer.evidence === NO_EVIDENCE && <span aria-hidden="true">✔ </span>}
           {t.audit.noSource}
         </button>
       </div>
 
       <fieldset className="mt-4">
-        <legend className="font-medium">{t.audit.statusHeading}</legend>
+        <legend className="font-bold">{t.audit.statusHeading}</legend>
         <div className="mt-2 space-y-1">
           {STATUSES.map((s) => (
             <label key={s} className="flex cursor-pointer gap-2 text-sm">
@@ -280,7 +293,7 @@ function JudgmentPanel({
       </fieldset>
 
       <fieldset className="mt-4">
-        <legend className="font-medium">{t.audit.actionHeading}</legend>
+        <legend className="font-bold">{t.audit.actionHeading}</legend>
         <div className="mt-2 flex flex-wrap gap-3">
           {ACTIONS.map((a) => (
             <label key={a} className="flex cursor-pointer items-center gap-2 text-sm">
@@ -306,7 +319,7 @@ function JudgmentPanel({
 
 function ClaimFeedback({ claim, answer }: { claim: Claim; answer: ClaimAnswer }) {
   const grade = gradeClaim(claim, answer);
-  const mark = (ok: boolean) => <span aria-hidden="true">{ok ? "✔ " : "✖ "}</span>;
+  const mark = (ok: boolean) => <span aria-hidden="true" className={ok ? "mark-yes" : "mark-no"}>{ok ? "✔ " : "✖ "}</span>;
   return (
     <div role="status" className="mt-4 space-y-3 border-t border-border pt-3 text-sm">
       <p>
@@ -333,11 +346,11 @@ function ClaimFeedback({ claim, answer }: { claim: Claim; answer: ClaimAnswer })
 export function SourceDrawer({ sources, linked, hasClaim, onLink }: { sources: Source[]; linked?: string; hasClaim?: boolean; onLink?: (id: string) => void }) {
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
-      <h3 className="font-medium">{t.audit.sourcesHeading}</h3>
+      <h3 className="font-bold">{t.audit.sourcesHeading}</h3>
       <div className="mt-2 space-y-2">
         {sources.map((s) => (
-          <details key={s.id} className="rounded border border-border p-3">
-            <summary className="cursor-pointer font-medium">{s.title} · <span className="font-normal">{s.date}</span></summary>
+          <details key={s.id} className="border border-border bg-surface p-3">
+            <summary className="cursor-pointer font-bold">{s.title}, <span className="font-normal">{s.date}</span></summary>
             <p className="mt-2 text-sm text-muted">{s.description}</p>
             <ul className="mt-2 space-y-3">
               {s.passages.map((p, i) => (
@@ -349,11 +362,11 @@ export function SourceDrawer({ sources, linked, hasClaim, onLink }: { sources: S
                     aria-pressed={linked === p.id}
                     data-passage={p.id}
                     onClick={() => onLink(p.id)}
-                    className={`mt-1 ${secondary} aria-pressed:border-accent aria-pressed:font-semibold disabled:opacity-60`}
+                    className={`mt-1 ${secondary}`}
                   >
                     {linked === p.id && <span aria-hidden="true">✔ </span>}
                     {!hasClaim ? t.audit.selectFirst : linked === p.id ? t.audit.linkedPassage : t.audit.linkPassage}
-                    <span className="sr-only">: {s.title}, {s.date}, passage {i + 1}</span>
+                    <span className="sr-only">: {t.audit.passage(s.title, s.date, i + 1)}</span>
                   </button>}
                 </li>
               ))}
@@ -378,9 +391,10 @@ function FinalBriefing({
 }) {
   return (
     <div>
-      <h3 ref={headingRef} tabIndex={-1} className="text-lg font-medium">{t.audit.finalTitle}</h3>
+      <h3 ref={headingRef} tabIndex={-1} className="text-lg font-bold">{t.audit.finalTitle}</h3>
       <p className="mt-1 text-sm text-muted">{t.audit.finalIntro}</p>
-      <div className="mt-3 rounded-lg border border-border bg-surface p-4">
+      <div className="mat mt-3 p-3 sm:p-5">
+      <div className="sheet p-4 sm:p-5">
         {audit.briefing.map((paragraph, i) => {
           const text = paragraph
             .map((seg) => (typeof seg === "string" ? seg : (audit.claims.find((c) => c.id === seg.claimId)?.finalText ?? "")))
@@ -390,7 +404,8 @@ function FinalBriefing({
           return text ? <p key={i} className="mt-2 first:mt-0">{text}</p> : null;
         })}
       </div>
-      <h3 className="mt-6 font-medium">{t.audit.decisions}</h3>
+      </div>
+      <h3 className="mt-6 font-bold">{t.audit.decisions}</h3>
       <ul className="mt-2 space-y-3">
         {audit.claims.map((c) => {
           const answer = answers[c.id];
@@ -398,7 +413,8 @@ function FinalBriefing({
             <li key={c.id} className="rounded-lg border border-border bg-surface p-3 text-sm">
               <p>{c.text}</p>
               <p className="mt-1">
-                <strong>{t.audit.yourDecision}:</strong> {answer?.action ? t.audit.action[answer.action] : "—"} ·{" "}
+                <strong>{t.audit.yourDecision}:</strong> {answer?.action ? t.audit.action[answer.action] : "—"}
+                <br />
                 <strong>{t.audit.reviewed}:</strong> {t.audit.action[c.bestAction]} ({t.audit.status[c.status].label})
               </p>
               {c.finalText === null && <p className="mt-1 text-muted">{t.audit.removed}</p>}

@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import type { Step } from "@/content/types";
 import { t } from "@/lib/i18n/en";
+import { useHintLadder } from "../hint-ladder";
 
 type SortStep = Extract<Step, { kind: "sort" }>;
 
@@ -11,19 +12,20 @@ export function SortActivity({ step, onContinue }: { step: SortStep; onContinue:
   const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
+  const ladder = useHintLadder(step.hints ?? []);
 
   const allPlaced = step.items.every((i) => placed[i.id]);
   const allRight = step.items.every((i) => placed[i.id] === i.categoryId);
 
   return (
     <div>
-      <h2 className="text-xl font-medium">{step.prompt}</h2>
+      <h2 className="text-2xl">{step.prompt}</h2>
       <ul className="mt-4 space-y-3">
         {step.items.map((item) => {
           const right = placed[item.id] === item.categoryId;
           return (
             <li key={item.id} className="rounded-lg border border-border bg-surface p-3">
-              <label htmlFor={`${uid}-${item.id}`} className="font-medium">{item.label}</label>
+              <label htmlFor={`${uid}-${item.id}`} className="font-bold">{item.label}</label>
               <select
                 id={`${uid}-${item.id}`}
                 value={placed[item.id] ?? ""}
@@ -40,7 +42,7 @@ export function SortActivity({ step, onContinue }: { step: SortStep; onContinue:
               </select>
               {checked && (
                 <p className="mt-2 text-sm" role="status">
-                  <strong><span aria-hidden="true">{right ? "✔ " : "✖ "}</span>{right ? t.sort.fits : t.sort.tryAnother}</strong>{" "}
+                  <strong><span aria-hidden="true" className={right ? "mark-yes" : "mark-no"}>{right ? "✔ " : "✖ "}</span>{right ? t.sort.fits : t.sort.tryAnother}</strong>{" "}
                   {item.explanation}
                 </p>
               )}
@@ -48,17 +50,19 @@ export function SortActivity({ step, onContinue }: { step: SortStep; onContinue:
           );
         })}
       </ul>
-      <div className="mt-4 flex gap-3">
+      {ladder.list}
+      <div className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"
           disabled={!allPlaced}
           onClick={() => setChecked(true)}
-          className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground disabled:opacity-50"
+          className="btn btn-primary"
         >
           {t.mission.commit}
         </button>
-        {checked && allRight && (
-          <button type="button" onClick={onContinue} className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+        {!checked && ladder.button}
+        {checked && (
+          <button type="button" onClick={onContinue} className="btn btn-primary">
             {t.mission.next}
           </button>
         )}
