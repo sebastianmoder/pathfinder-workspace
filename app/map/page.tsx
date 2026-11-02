@@ -6,7 +6,7 @@ import { t } from "@/lib/i18n/en";
 export const metadata: Metadata = { title: t.map.title };
 
 export default function MapPage() {
-  const firstAvailable = modules.find((m) => m.status === "available");
+  const availableInOrder = modules.filter((m) => m.status === "available");
   return (
     <div>
       <h1 className="text-3xl font-semibold">{t.map.title}</h1>
@@ -18,7 +18,7 @@ export default function MapPage() {
             <p className="text-sm text-muted">{stage.question}</p>
             <ul className="mt-3 grid gap-3 sm:grid-cols-2">
               {modules.filter((m) => m.stage === stage.id).map((m) => (
-                <MapModule key={m.id} module={m} recommended={m.id === firstAvailable?.id} />
+                <MapModule key={m.id} module={m} availableInOrder={availableInOrder} />
               ))}
             </ul>
           </section>

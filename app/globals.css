@@ -42,6 +42,28 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  accent-color: var(--accent); /* radios and checkboxes follow the theme */
+}
+
+progress {
+  appearance: none;
+  height: 0.5rem;
+  border: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--border);
+}
+progress::-webkit-progress-bar {
+  background: var(--border);
+}
+progress::-webkit-progress-value {
+  background: var(--accent);
+}
+progress::-moz-progress-bar {
+  background: var(--accent);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

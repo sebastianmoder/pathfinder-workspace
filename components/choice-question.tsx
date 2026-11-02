@@ -13,6 +13,8 @@ interface Props {
   hints?: Hint[];
   /** Show confidence check-in alongside the choice. */
   withConfidence?: boolean;
+  /** Initial judgment: record the answer with no verdict, so it can be compared later. */
+  recordOnly?: boolean;
   initialChoiceId?: string;
   initialConfidence?: number;
   onCommit: (choiceId: string, confidence: number | undefined) => void;
@@ -26,6 +28,7 @@ export function ChoiceQuestion({
   choices,
   hints = [],
   withConfidence,
+  recordOnly,
   initialChoiceId,
   initialConfidence,
   onCommit,
@@ -37,7 +40,7 @@ export function ChoiceQuestion({
   const [hintsShown, setHintsShown] = useState(0);
 
   const picked = choices.find((c) => c.id === selected);
-  const acceptable = picked && picked.verdict !== "weaker";
+  const acceptable = picked && (recordOnly || picked.verdict !== "weaker");
 
   return (
     <div>
@@ -64,7 +67,7 @@ export function ChoiceQuestion({
       </fieldset>
 
       {withConfidence && (
-        <fieldset className="mt-4">
+        <fieldset className="mt-4" disabled={committed && !!acceptable}>
           <legend className="text-sm text-muted">{t.mission.confidenceLabel}</legend>
           <div className="mt-2 flex flex-wrap gap-2">
             {t.mission.confidence.map((label, i) => (
@@ -88,7 +91,7 @@ export function ChoiceQuestion({
             }}
             className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground disabled:opacity-50"
           >
-            {t.mission.commit}
+            {recordOnly ? t.mission.record : t.mission.commit}
           </button>
         )}
         {hints.length > 0 && !committed && (
@@ -116,7 +119,11 @@ export function ChoiceQuestion({
         </ul>
       )}
 
-      {committed && (
+      {committed && recordOnly && (
+        <p role="status" className="mt-4 text-sm">{t.mission.recorded}</p>
+      )}
+
+      {committed && !recordOnly && (
         <div role="status" className="mt-5 space-y-2">
           {choices.map((c) => (
             <p key={c.id} className="rounded border border-border p-3 text-sm">

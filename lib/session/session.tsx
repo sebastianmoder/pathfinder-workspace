@@ -12,6 +12,8 @@ export interface Answer {
 interface MissionProgress {
   stepIndex: number;
   answers: Record<string, Answer>;
+  /** Working state of longer activities, kept for the visit like everything else here. */
+  stepState: Record<string, unknown>;
 }
 
 interface SessionState {
@@ -26,11 +28,12 @@ interface SessionApi {
   setAnswer(missionId: string, stepId: string, patch: Partial<Answer>): void;
   recordAttempt(missionId: string, stepId: string, choiceId: string): void;
   goTo(missionId: string, stepIndex: number): void;
+  setStepState(missionId: string, stepId: string, value: unknown): void;
   complete(missionId: string): void;
   restart(missionId: string): void;
 }
 
-const empty: MissionProgress = { stepIndex: 0, answers: {} };
+const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {} };
 const SessionContext = createContext<SessionApi | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -65,6 +68,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           };
         }),
       goTo: (id, stepIndex) => update(id, (p) => ({ ...p, stepIndex })),
+      setStepState: (id, stepId, value) =>
+        update(id, (p) => ({ ...p, stepState: { ...p.stepState, [stepId]: value } })),
       complete: (id) =>
         setState((s) => (s.completed.includes(id) ? s : { ...s, completed: [...s.completed, id] })),
       restart: (id) => update(id, () => empty),

@@ -5,8 +5,9 @@ import type { ModuleEntry } from "@/content/types";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 
-export function MapModule({ module, recommended }: { module: ModuleEntry; recommended: boolean }) {
+export function MapModule({ module, availableInOrder }: { module: ModuleEntry; availableInOrder: ModuleEntry[] }) {
   const { isCompleted } = useSession();
+  const recommended = availableInOrder.find((m) => !m.missionIds.every(isCompleted))?.id === module.id;
   const available = module.status === "available";
   const done = available && module.missionIds.every(isCompleted);
 

@@ -11,7 +11,8 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
 
   await page.getByLabel("It tells me little; I need evidence.").check();
   await page.getByLabel("Fairly", { exact: true }).check();
-  await check();
+  await page.getByRole("button", { name: "Record my judgment" }).click();
+  await expect(page.getByText("Weaker fit")).toHaveCount(0); // no verdict before investigating
   await cont();
 
   // Step-through diagram: 5 stages, last one offers Continue.
@@ -58,29 +59,39 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await cont();
 
   await expect(page.getByText("It tells me little; I need evidence.").first()).toBeVisible(); // before/after
-  await page.getByLabel(/Keep my answer/).check();
+  await page.getByLabel("It tells me little; I need evidence.").check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
   await check();
+  await expect(page.getByText(/Fairly at the start, Somewhat now/)).toBeVisible();
   await cont();
 
   await page.getByLabel(/Treat the year and branch count/).check();
   await check();
   await cont();
 
+  // Open response: self-assessed, with the skip route also available.
+  await page.getByLabel("Your answer").fill("It learned old timetables, so it may be out of date. Check the operator.");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await page.getByLabel(/Names a check/).check();
+  await expect(page.getByText("It has not been reviewed by anyone.")).toBeVisible();
+  await cont();
+
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Recommended next mission: The Evidence Bureau/ })).toBeVisible();
   await page.reload();
-  await expect(page.getByText("Step 1 of 11")).toBeVisible();
+  await expect(page.getByText("Step 1 of 12")).toBeVisible();
 });
 
 test("M01 can be driven by keyboard and focus follows each new step", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
   await page.getByRole("button", { name: "Continue" }).focus();
   await page.keyboard.press("Enter"); // brief -> refresher
-  await expect(page.getByRole("region", { name: "Step 2 of 11" })).toBeFocused();
+  await expect(page.getByRole("region", { name: "Step 2 of 12" })).toBeFocused();
   await page.keyboard.press("Tab"); // first control inside the step
   await expect(page.getByRole("button", { name: "Continue" })).toBeFocused();
   await page.keyboard.press("Enter"); // -> initial judgment
-  await expect(page.getByRole("region", { name: "Step 3 of 11" })).toBeFocused();
+  await expect(page.getByRole("region", { name: "Step 3 of 12" })).toBeFocused();
   await page.keyboard.press("Tab");
   await page.keyboard.press("Space"); // first radio option
-  await expect(page.getByRole("button", { name: "Check my answer" })).toBeDisabled(); // confidence still required
+  await expect(page.getByRole("button", { name: "Record my judgment" })).toBeDisabled(); // confidence still required
 });

@@ -10,6 +10,8 @@ import { PasswordCard } from "./password-card";
 import { FlowStepper } from "./activities/flow-stepper";
 import { SortActivity } from "./activities/sort-activity";
 import { ToyModelActivity } from "./activities/toy-model-activity";
+import { ClaimAudit } from "./activities/claim-audit";
+import { OpenResponse } from "./activities/open-response";
 
 interface Props {
   mission: Mission;
@@ -44,9 +46,10 @@ export function MissionRunner({ mission, password, next }: Props) {
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted">{t.mission.fictional} · {mission.title}</p>
-          <h1 className="text-2xl font-semibold">{mission.outcome}</h1>
+        <div className="min-w-0 flex-1 basis-64">
+          <p className="text-sm text-muted">{t.mission.fictional}</p>
+          <h1 className="text-2xl font-semibold">{mission.title}</h1>
+          <p className="mt-1">{mission.outcome}</p>
         </div>
         <button type="button" onClick={() => pauseRef.current?.showModal()} className="no-print rounded border border-border px-3 py-1.5 text-sm">
           {t.mission.pause}
@@ -55,7 +58,7 @@ export function MissionRunner({ mission, password, next }: Props) {
 
       <p className="mt-4 rounded-lg border border-border bg-surface p-4 text-sm">{mission.scenario}</p>
 
-      <div className="mt-6" aria-live="polite">
+      <div className="mt-6">
         <p className="text-sm text-muted">
           {t.mission.step(stepIndex + 1, total)}
           <progress className="ml-3 align-middle" value={stepIndex + 1} max={total} aria-label={t.mission.step(stepIndex + 1, total)} />
@@ -126,45 +129,74 @@ function StepView({
 
     case "initialJudgment":
     case "quiz":
+      return (
+        <ChoiceQuestion
+          name={step.id}
+          prompt={step.prompt}
+          choices={step.choices}
+          hints={step.hints}
+          withConfidence={step.kind === "initialJudgment"}
+          recordOnly={step.kind === "initialJudgment"}
+          onCommit={onAnswer}
+          onContinue={onContinue}
+        />
+      );
+
     case "transfer":
       return (
         <>
-          {step.kind === "transfer" && <h2 className="mb-2 text-xl font-medium">{step.title}</h2>}
-          <ChoiceQuestion
-            name={step.id}
-            prompt={step.prompt}
-            choices={step.choices}
-            hints={step.hints}
-            withConfidence={step.kind === "initialJudgment"}
-            onCommit={onAnswer}
-            onContinue={onContinue}
-          />
+          <h2 className="mb-2 text-xl font-medium">{step.title}</h2>
+          {"audit" in step ? (
+            <>
+              <p className="mb-4">{step.prompt}</p>
+              <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={false} onContinue={onContinue} />
+            </>
+          ) : (
+            <ChoiceQuestion name={step.id} prompt={step.prompt} choices={step.choices} hints={step.hints} onCommit={onAnswer} onContinue={onContinue} />
+          )}
+        </>
+      );
+
+    case "claimAudit":
+      return (
+        <>
+          <h2 className="text-xl font-medium">{step.title}</h2>
+          <p className="mb-4 mt-1">{step.intro}</p>
+          <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal onContinue={onContinue} />
         </>
       );
 
     case "revision": {
       const initialStep = mission.steps.find((s) => s.id === step.initialStepId);
       const initialChoices = initialStep && "choices" in initialStep ? initialStep.choices : [];
-      const before = initialChoices.find((c) => c.id === answers[step.initialStepId]?.choiceId);
+      const first = answers[step.initialStepId];
+      const before = initialChoices.find((c) => c.id === first?.choiceId);
+      const now = answers[step.id];
+      const label = (n: number | undefined) => (n === undefined ? "—" : t.mission.confidence[n]);
       return (
         <>
           <h2 className="text-xl font-medium">{step.prompt}</h2>
           <p className="mt-3 rounded border border-border bg-surface p-3 text-sm">
             <strong>{t.mission.before}:</strong> {before?.label ?? "—"}
+            {first?.confidence !== undefined && <> ({label(first.confidence)})</>}
           </p>
           <ChoiceQuestion
             name={step.id}
             prompt={t.mission.after}
             choices={step.choices}
+            withConfidence={step.withConfidence}
             onCommit={onAnswer}
             onContinue={onContinue}
           />
+          {step.withConfidence && now?.confidence !== undefined && first?.confidence !== undefined && (
+            <p className="mt-3 text-sm">{t.mission.confidenceChange(label(first.confidence), label(now.confidence))}</p>
+          )}
         </>
       );
     }
 
     case "openResponse":
-      return <p>Open responses arrive with M05.</p>;
+      return <OpenResponse missionId={mission.id} step={step} onContinue={onContinue} />;
 
     case "flow":
       return <FlowStepper step={step} onContinue={onContinue} />;

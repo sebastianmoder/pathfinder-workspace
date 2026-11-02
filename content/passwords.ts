@@ -7,4 +7,5 @@ import type { PasswordEntry } from "./types";
  */
 export const passwords: PasswordEntry[] = [
   { code: "MAPLE-LANTERN-42", missionId: "m01-foundations" },
+  { code: "CEDAR-COMPASS-37", missionId: "m04-evidence" },
 ];

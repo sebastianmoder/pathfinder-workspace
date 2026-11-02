@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { normalizePassword } from "@/lib/passwords";
+import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 
 interface Entry {
@@ -12,6 +13,7 @@ interface Entry {
 }
 
 export function ContinueForm({ registry }: { registry: Entry[] }) {
+  const session = useSession();
   const [value, setValue] = useState("");
   const [result, setResult] = useState<Entry | "invalid" | null>(null);
 
@@ -51,7 +53,7 @@ export function ContinueForm({ registry }: { registry: Entry[] }) {
           <div className="rounded-lg border border-border bg-surface p-4">
             <p className="font-medium">{t.continuePage.found(result.title)}</p>
             <p className="mt-1 text-sm text-muted">{t.continuePage.restartNote}</p>
-            <Link href={`/missions/${result.missionId}`} className="mt-3 inline-block rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
+            <Link href={`/missions/${result.missionId}`} onClick={() => session.restart(result.missionId)} className="mt-3 inline-block rounded bg-accent px-4 py-2 font-medium text-accent-foreground">
               {t.continuePage.start}
             </Link>
           </div>

@@ -1,6 +1,13 @@
-import type { Mission } from "../../types";
+import type { Choice, Mission } from "../../types";
 
 const rep = (n: number, s: string) => Array<string>(n).fill(s);
+
+const fluencyQuestion = "An AI answer is fluent and confident. What does that tell you about whether it is correct?";
+const fluencyChoices: Choice[] = [
+  { id: "a", label: "It is probably correct.", verdict: "weaker", explanation: "Fluency comes from matching language patterns. Wrong answers can be just as fluent." },
+  { id: "b", label: "It tells me little; I need evidence.", verdict: "correct", explanation: "Confidence of tone is not evidence. Check the claim against a source." },
+  { id: "c", label: "It is probably wrong.", verdict: "weaker", explanation: "Fluent answers are often right too. Blanket suspicion is not a method; checking is." },
+];
 
 /**
  * M01 — Inside the Machine. DRAFT content for review (reviewedOn: null).
@@ -15,7 +22,7 @@ export const m01: Mission = {
     "You are a researcher at the Riverside Learning Commons, a fictional community learning centre. A colleague pastes an AI answer into the team chat and says, “It sounds right, so let's use it.”",
   approxMinutes: 9,
   meta: {
-    version: "0.2-draft",
+    version: "0.3-draft",
     reviewedOn: null,
     sourcesToReview: ["Toy model description matches how counting-based predictors work (simplification is labelled in the UI)."],
   },
@@ -35,13 +42,8 @@ export const m01: Mission = {
     {
       kind: "initialJudgment",
       id: "initial",
-      prompt: "An AI answer is fluent and confident. What does that tell you about whether it is correct?",
-      choices: [
-        { id: "a", label: "It is probably correct.", verdict: "weaker", explanation: "Fluency comes from matching language patterns. Wrong answers can be just as fluent." },
-        { id: "b", label: "It tells me little; I need evidence.", verdict: "correct", explanation: "Confidence of tone is not evidence. Check the claim against a source." },
-        { id: "c", label: "It is probably wrong.", verdict: "weaker", explanation: "Fluent answers are often right too. Blanket suspicion is not a method; checking is." },
-      ],
-      hints: [{ text: "Think about what the model was built to do: produce likely text, or verify facts?" }],
+      prompt: fluencyQuestion,
+      choices: fluencyChoices,
     },
     {
       kind: "flow",
@@ -139,11 +141,9 @@ export const m01: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: "Having run the machine, would you answer the first question differently?",
-      choices: [
-        { id: "keep", label: "Keep my answer. My reason is the same.", verdict: "defensible", explanation: "Fine if you can say why. Revision is not required." },
-        { id: "change", label: "Change my answer. The machine showed me something new.", verdict: "defensible", explanation: "Fine if you can say what changed your mind: fluent output is not evidence by itself." },
-      ],
+      prompt: `Having run the machine, answer the first question again. ${fluencyQuestion}`,
+      choices: fluencyChoices,
+      withConfidence: true,
     },
     {
       kind: "transfer",
@@ -159,6 +159,23 @@ export const m01: Mission = {
       hints: [{ text: "Which parts of the sentence could be looked up?" }],
     },
     {
+      kind: "openResponse",
+      id: "explain",
+      prompt:
+        "A model trained on old bus timetables tells someone, in confident language, that their bus leaves at 8:15. Explain one reason this could be wrong even though it sounds right, and what the person should do.",
+      rubric: {
+        criteria: [
+          { id: "pattern", text: "Says the output comes from patterns in training data, not from checking the current timetable." },
+          { id: "confidence", text: "Says that confident wording is not evidence that it is right." },
+          { id: "action", text: "Names a check, such as the transport operator's current timetable." },
+        ],
+        examples: [
+          "It learned from old timetables, so 8:15 may just be the pattern from those. Sounding sure doesn't mean it checked anything. They should look at the operator's current timetable.",
+          "The model continues what it saw in training and has no idea whether the times changed. I would treat 8:15 as a guess and confirm it on the bus company's site before relying on it.",
+        ],
+      },
+    },
+    {
       kind: "debrief",
       id: "debrief",
       takeaway: "Fluent is not the same as correct. Treat specific claims as things to check against a source.",
@@ -168,7 +185,7 @@ export const m01: Mission = {
         "Told training apart from using a model",
         "Chose a checkable next step in a new example",
       ],
-      nextMissionId: null,
+      nextMissionId: "m04-evidence",
     },
   ],
 };

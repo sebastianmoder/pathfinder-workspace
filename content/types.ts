@@ -25,6 +25,47 @@ export interface Hint {
   text: string;
 }
 
+export type ClaimStatus = "supported" | "unsupported" | "outdated" | "misleading" | "incorrect";
+export type ClaimAction = "retain" | "qualify" | "correct" | "remove";
+
+export interface Source {
+  id: string;
+  title: string;
+  /** Who produced it and what kind of document it is. */
+  description: string;
+  /** Human-readable date, shown so learners can judge currency. */
+  date: string;
+  passages: { id: string; text: string }[];
+}
+
+export interface Claim {
+  id: string;
+  /** Exact wording as it appears in the briefing, including any citation. */
+  text: string;
+  status: ClaimStatus;
+  /** Passages that are the right evidence. Empty means no source addresses this claim. */
+  passageIds: string[];
+  /** True when the claim cites a real source that does not support it (PRD M04). */
+  citationMismatch?: boolean;
+  bestAction: ClaimAction;
+  /** Other actions that are defensible judgments rather than errors. */
+  defensibleActions?: ClaimAction[];
+  evidenceExplanation: string;
+  statusExplanation: string;
+  actionExplanation: string;
+  /** Reviewed wording for the final briefing; null means the claim is removed. */
+  finalText: string | null;
+  /** Omitted where support has faded, such as transfer tasks. */
+  hint?: string;
+}
+
+export interface AuditSpec {
+  sources: Source[];
+  claims: Claim[];
+  /** Paragraphs of plain text and references to claims. */
+  briefing: (string | { claimId: string })[][];
+}
+
 export type Step =
   | { kind: "brief"; id: string; title: string; body: string }
   | { kind: "refresher"; id: string; title: string; body: string }
@@ -64,8 +105,18 @@ export type Step =
       categories: { id: string; label: string }[];
       items: { id: string; label: string; categoryId: string; explanation: string }[];
     }
-  | { kind: "revision"; id: string; initialStepId: string; prompt: string; choices: Choice[] }
+  | {
+      kind: "revision";
+      id: string;
+      initialStepId: string;
+      prompt: string;
+      choices: Choice[];
+      /** Ask for confidence again and show it beside the first value. */
+      withConfidence?: boolean;
+    }
   | { kind: "transfer"; id: string; title: string; prompt: string; choices: Choice[]; hints?: Hint[] }
+  | { kind: "transfer"; id: string; title: string; prompt: string; audit: AuditSpec }
+  | { kind: "claimAudit"; id: string; title: string; intro: string; audit: AuditSpec }
   | {
       kind: "debrief";
       id: string;
