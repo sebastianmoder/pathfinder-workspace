@@ -1,3 +1,4 @@
+import { products } from '@pathfinder/brand/products';
 import React from "react";
 import Headings from "@/components/DoubleHeadings";
 import Link from "next/link";
@@ -21,7 +22,7 @@ export default function Sage() {
         <p className="mb-8">
           Explore the live output at{" "}
           <Link
-            href="https://sage.ai-pathfinder.eu"
+            href={products[1].url}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-eu-blue hover:underline">

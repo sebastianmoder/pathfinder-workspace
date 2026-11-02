@@ -45,27 +45,27 @@ readiness learning journey for educators and students.
 ## Tech Stack
 
 - [Next.js](https://nextjs.org/) 16 with the App Router
-- [React](https://react.dev/) 18
+- [React](https://react.dev/) 19
 - [TypeScript](https://www.typescriptlang.org/) with strict mode enabled
 - [Tailwind CSS](https://tailwindcss.com/) for layout and project styling
-- [Material UI](https://mui.com/) for the responsive navigation shell
+- [Material UI](https://mui.com/) for existing form controls; shared Pathfinder navigation
 - [next-sitemap](https://github.com/iamvishnusankar/next-sitemap) for sitemap
   and robots generation
 
 ## Getting Started
 
-Use Node.js `>=20.9.0`.
+Use the workspace Node version in `../../.nvmrc` and pnpm. Run installation from the workspace root.
 
 Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 Start the local development server:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Open <http://localhost:3000> in a browser.
@@ -82,12 +82,12 @@ Useful local routes:
 
 | Command         | Purpose                                                  |
 | --------------- | -------------------------------------------------------- |
-| `npm run dev`   | Start the local development server.                      |
-| `npm run lint`  | Run ESLint with Next.js core web vitals rules.           |
-| `npm run build` | Create a production build and regenerate sitemap output. |
-| `npm run start` | Run the production server after a successful build.      |
+| `pnpm run dev`   | Start the local development server.                      |
+| `pnpm run lint`  | Run ESLint with Next.js core web vitals rules.           |
+| `pnpm run build` | Create a production build and regenerate sitemap output. |
+| `pnpm run start` | Run the production server after a successful build.      |
 
-`npm run build` also runs the `postbuild` script, which calls
+`pnpm run build` also runs the `postbuild` script, which calls
 `next-sitemap`.
 
 ## Project Structure
@@ -130,8 +130,8 @@ run a production build so generated SEO files stay in sync.
 Before opening a pull request, verify:
 
 ```bash
-npm run lint
-npm run build
+pnpm run lint
+pnpm run build
 ```
 
 For UI changes, manually check the main routes: `/`, `/about`, `/guard`,
@@ -144,7 +144,7 @@ configuration uses `SITE_URL` when provided and falls back to that production
 domain:
 
 ```bash
-SITE_URL=https://ai-pathfinder.eu npm run build
+SITE_URL=https://ai-pathfinder.eu pnpm run build
 ```
 
 `netlify.toml` contains a redirect from the previous Netlify URL to the

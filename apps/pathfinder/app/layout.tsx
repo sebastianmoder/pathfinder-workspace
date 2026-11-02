@@ -1,18 +1,17 @@
+import { Analytics } from '@pathfinder/analytics';
 import "./globals.css";
 import * as React from "react";
-import { Inter } from "next/font/google";
-import type { Metadata } from "next";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
+import '@pathfinder/brand/styles.css';
 
-const inter = Inter({ subsets: ["latin"] });
 
 // export const metadata: Metadata = {
 //   title: "Pathfinder",
 //   description: "An Erasmus+ project for higher education",
 // };
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -44,14 +43,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           property="og:url"
           content="https://ai-pathfinder.eu"
         />
-        <GoogleAnalytics gaId="G-CCR887R8FM" />
       </head>
-      <body className={inter.className}>
+      <body >
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <Navigation />
           <main className="mx-auto py-14 sm:py-16">{children}</main>
           <Footer />
         </AppRouterCacheProvider>
+      <Analytics product="pathfinder" measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} production={process.env.CONTEXT === "production"} />
       </body>
     </html>
   );

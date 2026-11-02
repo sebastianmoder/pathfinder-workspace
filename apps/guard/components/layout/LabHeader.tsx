@@ -1,3 +1,4 @@
+import { ProjectHeader } from '@pathfinder/brand';
 import Link from 'next/link';
 
 interface LabHeaderProps {
@@ -6,6 +7,8 @@ interface LabHeaderProps {
 
 export function LabHeader({ labTitle }: LabHeaderProps) {
   return (
+    <>
+    <ProjectHeader product="guard" compact />
     <header className="border-b border-guard-border bg-guard-surface">
       <div className="px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -47,5 +50,6 @@ export function LabHeader({ labTitle }: LabHeaderProps) {
         </div>
       </div>
     </header>
+    </>
   );
 }

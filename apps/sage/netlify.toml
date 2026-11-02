@@ -1,3 +1,10 @@
+[build]
+  command = "pnpm --filter @pathfinder/sage build"
+  publish = "apps/sage/.next"
+
+[build.environment]
+  NODE_VERSION = "22.22.0"
+
 [[redirects]]
   from = "https://pathfinder-sage.netlify.app/*"
   to = "https://sage.ai-pathfinder.eu/:splat"

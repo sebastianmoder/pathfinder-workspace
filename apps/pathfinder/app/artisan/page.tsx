@@ -1,3 +1,4 @@
+import { products } from '@pathfinder/brand/products';
 import React from "react";
 import Headings from "@/components/DoubleHeadings";
 
@@ -10,9 +11,10 @@ export default function Artisan() {
           bottom="AI Readiness Training for Insightful Systematic Adaptation and
           Navigation"
         />
+        <p className="mb-4"><a className="underline text-eu-blue" href={products[3].url}>Visit ARTISAN</a></p>
         <div className="mb-8 flex flex-wrap gap-2">
           <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
-            Status: Coming soon
+            Status: {products[3].status}
           </span>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
             For: Educators and Students
@@ -41,7 +43,7 @@ export default function Artisan() {
           </li>
         </ul>
         <p className="mb-4">
-          <b>Planned program components:</b>
+          <b>Program components:</b>
         </p>
         <ul className="mb-8">
           <li>
@@ -60,7 +62,7 @@ export default function Artisan() {
           </li>
         </ul>
         <p className="mb-4">
-          <b>At launch, participants will be able to:</b>
+          <b>Participants can:</b>
         </p>
         <ul className="mb-8">
           <li>Follow a structured AI literacy learning path</li>
@@ -68,7 +70,7 @@ export default function Artisan() {
           <li>Develop portfolios of applied work for academic and career growth</li>
         </ul>
         <p className="mb-8">
-          ARTISAN is being designed to support long-term AI readiness through practical
+          ARTISAN is designed to support long-term AI readiness through practical
           learning, critical thinking, and continuous adaptation.
         </p>
       </div>

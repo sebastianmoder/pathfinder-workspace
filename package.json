@@ -1,0 +1,29 @@
+{
+  "name": "pathfinder-workspace",
+  "private": true,
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=22.13 <23"
+  },
+  "scripts": {
+    "dev:pathfinder": "pnpm --filter @pathfinder/pathfinder dev --port 3000",
+    "dev:sage": "pnpm --filter @pathfinder/sage dev --port 3001",
+    "dev:guard": "pnpm --filter @pathfinder/guard dev --port 3002",
+    "dev:artisan": "pnpm --filter @pathfinder/artisan dev --port 3003",
+    "build": "pnpm --filter \"./apps/*\" --workspace-concurrency=1 -r build",
+    "lint": "eslint packages tests playwright.config.ts && pnpm --filter \"./apps/*\" --if-present -r lint",
+    "typecheck": "pnpm --filter \"./apps/*\" --if-present -r typecheck",
+    "test": "node --test packages/analytics/policy.test.mjs && pnpm --filter @pathfinder/artisan test",
+    "test:e2e": "pnpm --filter @pathfinder/artisan test:e2e",
+    "test:smoke": "playwright test",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/react": "^19.3.0",
+    "@types/node": "^22.20.5",
+    "typescript": "~6.0.3",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.4"
+  }
+}

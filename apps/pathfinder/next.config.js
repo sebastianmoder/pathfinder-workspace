@@ -1,7 +1,1 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-  },
-}
-
-module.exports = nextConfig
+module.exports = async () => { const { withPathfinder } = await import('@pathfinder/config/next'); return withPathfinder(); };

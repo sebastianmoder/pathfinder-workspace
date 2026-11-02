@@ -1,8 +1,9 @@
+import { ProjectHeader } from '@pathfinder/brand';
 import Link from 'next/link';
 
 export function Header() {
   return (
-    <header className="border-b border-guard-border bg-guard-surface">
+    <ProjectHeader product="guard" compact>
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-guard-accent flex items-center justify-center">
@@ -45,6 +46,6 @@ export function Header() {
           </Link>
         </nav>
       </div>
-    </header>
+    </ProjectHeader>
   );
 }

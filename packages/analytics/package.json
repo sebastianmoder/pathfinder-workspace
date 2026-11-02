@@ -1,0 +1,16 @@
+{
+  "name": "@pathfinder/analytics",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.tsx",
+    "./policy": "./policy.mjs"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "next": "^16"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0"
+  }
+}

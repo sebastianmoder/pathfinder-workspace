@@ -1,4 +1,5 @@
 'use client';
+import { track } from '@pathfinder/analytics';
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
@@ -104,6 +105,7 @@ export const useLabSessionStore = create<LabSessionStore>()(
   session: null,
 
   startLab: (labId, totalIterations) => {
+    track('lab_start', labId);
     const iterations: Record<number, IterationState> = {};
     for (let i = 1; i <= totalIterations; i++) {
       iterations[i] = createIterationState(i);
@@ -271,6 +273,7 @@ export const useLabSessionStore = create<LabSessionStore>()(
   completeLab: () => {
     const { session } = get();
     if (!session) return;
+    if (!session.iterations[session.currentIteration]?.isComplete) track('lab_complete', session.labId);
     const updatedIterations = { ...session.iterations };
     updatedIterations[session.currentIteration] = {
       ...updatedIterations[session.currentIteration],

@@ -1,15 +1,13 @@
+import { ProjectHeader, ProjectFooter } from '@pathfinder/brand';
+import { Analytics } from '@pathfinder/analytics';
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
-import { Atkinson_Hyperlegible_Next, Atkinson_Hyperlegible_Mono, Zilla_Slab } from "next/font/google";
 import { SessionProvider } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import "./globals.css";
+import '@pathfinder/brand/styles.css';
 
 // Chosen for this brief: unambiguous letterforms suit learners and passwords, and the slab is workshop-stamped.
-const atkinson = Atkinson_Hyperlegible_Next({ variable: "--font-atkinson", subsets: ["latin"] });
-const atkinsonMono = Atkinson_Hyperlegible_Mono({ variable: "--font-atkinson-mono", subsets: ["latin"] });
-const zilla = Zilla_Slab({ variable: "--font-zilla", subsets: ["latin"], weight: ["600"] });
 
 export const metadata: Metadata = {
   title: { default: "ARTISAN", template: "%s · ARTISAN" },
@@ -18,22 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${atkinson.variable} ${atkinsonMono.variable} ${zilla.variable} h-full antialiased`}>
-      <head>
-        <Script id="google-analytics" strategy="beforeInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-KFMFQE4CDW');
-          `}
-        </Script>
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-KFMFQE4CDW"
-          strategy="beforeInteractive"
-        />
-      </head>
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col overflow-x-clip">
         <a
           href="#main"
@@ -41,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           {t.skipToContent}
         </a>
-        <header className="no-print border-b border-border">
+        <ProjectHeader product="artisan" compact>
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
             <Link href="/" className="font-[family-name:var(--font-zilla)] text-xl font-semibold">
               {t.appName}
@@ -58,12 +41,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Link>
             </nav>
           </div>
-        </header>
+        </ProjectHeader>
         <SessionProvider>
           <main id="main" className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8">
             {children}
           </main>
         </SessionProvider>
+        <ProjectFooter compact />
+      <Analytics product="artisan" measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} production={process.env.CONTEXT === "production"} />
       </body>
     </html>
   );

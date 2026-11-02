@@ -1,3 +1,4 @@
+import { products } from '@pathfinder/brand/products';
 import React from "react";
 import Headings from "@/components/DoubleHeadings";
 
@@ -21,7 +22,7 @@ export default function Guard() {
           <p className="mb-8">
             GUARD is now open for beta testing at{" "}
             <a
-              href="https://guard.ai-pathfinder.eu"
+              href={products[2].url}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-eu-blue hover:underline">

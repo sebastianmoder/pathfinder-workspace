@@ -1,3 +1,4 @@
+import { withPathfinder } from '@pathfinder/config/next'
 import nextra from 'nextra'
 
 const withNextra = nextra({
@@ -6,4 +7,4 @@ const withNextra = nextra({
   }
 })
 
-export default withNextra()
+export default withNextra(withPathfinder())

@@ -5,7 +5,6 @@ import * as mammoth from 'mammoth';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
-export const maxRequestBodySize = '20mb';
 
 export async function POST(request: Request) {
   try {

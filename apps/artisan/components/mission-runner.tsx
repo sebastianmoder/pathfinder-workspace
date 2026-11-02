@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from '@pathfinder/analytics';
 import { useEffect, useId, useRef } from "react";
 import Link from "next/link";
 import type { Mission, Step } from "@/content/types";
@@ -47,8 +48,9 @@ export function MissionRunner({ mission, password, next }: Props) {
 
   const advance = () => {
     if (step.kind === "debrief") return;
+    if (stepIndex === 0) track('mission_start', mission.id);
     session.goTo(mission.id, stepIndex + 1);
-    if (mission.steps[stepIndex + 1]?.kind === "debrief") session.complete(mission.id);
+    if (mission.steps[stepIndex + 1]?.kind === "debrief") { if (!session.isCompleted(mission.id)) track('mission_complete', mission.id); session.complete(mission.id); }
     window.scrollTo({ top: 0 });
   };
 

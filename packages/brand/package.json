@@ -1,0 +1,17 @@
+{
+  "name": "@pathfinder/brand",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.tsx",
+    "./styles.css": "./styles.css",
+    "./products": "./products.ts"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "next": "^16"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0"
+  }
+}

@@ -1,3 +1,5 @@
+import { ProjectHeader } from '@pathfinder/brand'
+import { Analytics } from '@pathfinder/analytics';
 import { Banner, Head } from 'nextra/components'
 import { Layout, Navbar } from 'nextra-theme-docs'
 import { getPageMap } from 'nextra/page-map'
@@ -6,14 +8,8 @@ import Footer from '../components/footer'
 import 'nextra-theme-docs/style.css'
 import '../styles/globals.css'
 import '../styles/chat.css'
+import '@pathfinder/brand/styles.css';
 
-function HeaderLogo() {
-  return (
-    <div className="text-lg font-extrabold">
-      <span style={{ color: '#004494' }}>Pathfinder SAGE</span>
-    </div>
-  )
-}
 
 export const metadata = {
   title: {
@@ -26,13 +22,9 @@ export const metadata = {
   generator: 'Next.js'
 }
 
+
 export default async function RootLayout({ children }) {
-  const navbar = (
-    <Navbar
-      logo={<HeaderLogo />}
-      projectLink="https://github.com/Sebstep/pathfinder-sage"
-    />
-  )
+  const navbar = <><ProjectHeader product="sage" /><Navbar logo={<span>SAGE · Teaching with AI</span>} /></>
   const pageMap = await getPageMap()
 
   return (
@@ -40,14 +32,7 @@ export default async function RootLayout({ children }) {
       <Head>
         <link rel="icon" href="/icon.ico" type="image/x-icon" />
       </Head>
-      <body>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-6DRGEDEGZ2"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-6DRGEDEGZ2');`}
-        </Script>
+      <body >
         <Script
           src="https://kit.fontawesome.com/6a5bc08ebc.js"
           strategy="afterInteractive"
@@ -74,6 +59,7 @@ export default async function RootLayout({ children }) {
         >
           {children}
         </Layout>
+      <Analytics product="sage" measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} production={process.env.CONTEXT === "production"} />
       </body>
     </html>
   )

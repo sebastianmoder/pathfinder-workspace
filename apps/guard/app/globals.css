@@ -15,8 +15,8 @@
   --guard-blue-800: #243b53;
   --guard-blue-900: #102a43;
 
-  --guard-accent: #3b82f6;
-  --guard-accent-hover: #2563eb;
+  --guard-accent: #004494;
+  --guard-accent-hover: #003574;
   --guard-accent-light: #dbeafe;
 
   --guard-success: #10b981;
@@ -64,14 +64,14 @@
   --color-guard-phase-pending: var(--guard-phase-pending);
   --color-eu-blue: #004494;
   --color-eu-yellow: #ffd617;
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-atkinson);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-atkinson), Arial, Helvetica, sans-serif;
 }
 
 /* Slot fill highlight animation */

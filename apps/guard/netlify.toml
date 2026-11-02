@@ -1,5 +1,13 @@
 [build]
-  command = "pnpm run build"
+  command = "pnpm --filter @pathfinder/guard build"
+  publish = "apps/guard/.next"
+
+[build.environment]
+  NODE_VERSION = "22.22.0"
+
+[functions]
+  directory = "apps/guard/netlify/functions"
+
 
 [[redirects]]
   from = "https://pathfinder-guard.netlify.app/*"

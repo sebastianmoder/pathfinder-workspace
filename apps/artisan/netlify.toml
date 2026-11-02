@@ -1,0 +1,8 @@
+[build]
+  command = "pnpm --filter @pathfinder/artisan build"
+  publish = "apps/artisan/.next"
+
+[build.environment]
+  NODE_VERSION = "22.22.0"
+
+

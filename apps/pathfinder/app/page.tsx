@@ -1,3 +1,4 @@
+import { products } from '@pathfinder/brand/products';
 import Image from "next/image";
 import Link from "next/link";
 import { GiWizardStaff, GiBorderedShield, GiBroadsword } from "react-icons/gi";
@@ -16,9 +17,9 @@ const projectDeliverables = [
         aria-hidden="true"
       />
     ),
-    link: "https://sage.ai-pathfinder.eu",
+    link: products[1].url,
     target: "_blank",
-    status: "Live" as const,
+    status: products[1].status,
     audience: "Educators",
     ctaLabel: "Visit SAGE",
   },
@@ -32,9 +33,9 @@ const projectDeliverables = [
         aria-hidden="true"
       />
     ),
-    link: "https://guard.ai-pathfinder.eu",
+    link: products[2].url,
     target: "_blank",
-    status: "Beta testing" as const,
+    status: products[2].status,
     audience: "Educators",
     ctaLabel: "Try GUARD",
   },
@@ -49,10 +50,10 @@ const projectDeliverables = [
         aria-hidden="true"
       />
     ),
-    link: "/artisan",
-    status: "Coming soon" as const,
+    link: products[3].url,
+    status: products[3].status,
     audience: "Educators and Students",
-    ctaLabel: "Learn about ARTISAN",
+    ctaLabel: "Visit ARTISAN",
   },
 ];
 

@@ -1,5 +1,4 @@
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { LabCard } from "@/components/landing/LabCard";
 import { HowItWorks } from "@/components/landing/HowItWorks";
@@ -20,7 +19,6 @@ export default function Home() {
         </section>
         <HowItWorks />
       </main>
-      <Footer />
     </div>
   );
 }
