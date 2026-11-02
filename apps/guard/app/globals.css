@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafbfc;
+  --foreground: #1a1a2e;
+
+  --guard-blue-50: #f0f4f8;
+  --guard-blue-100: #d9e2ec;
+  --guard-blue-200: #bcccdc;
+  --guard-blue-300: #9fb3c8;
+  --guard-blue-400: #829ab1;
+  --guard-blue-500: #627d98;
+  --guard-blue-600: #486581;
+  --guard-blue-700: #334e68;
+  --guard-blue-800: #243b53;
+  --guard-blue-900: #102a43;
+
+  --guard-accent: #3b82f6;
+  --guard-accent-hover: #2563eb;
+  --guard-accent-light: #dbeafe;
+
+  --guard-success: #10b981;
+  --guard-warning: #f59e0b;
+  --guard-error: #ef4444;
+
+  --guard-surface: #ffffff;
+  --guard-surface-elevated: #f8fafc;
+  --guard-border: #e2e8f0;
+
+  --guard-slot-filled: #dbeafe;
+  --guard-slot-empty: #f1f5f9;
+
+  --guard-phase-active: #3b82f6;
+  --guard-phase-complete: #10b981;
+  --guard-phase-pending: #cbd5e1;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-guard-accent: var(--guard-accent);
+  --color-guard-accent-hover: var(--guard-accent-hover);
+  --color-guard-accent-light: var(--guard-accent-light);
+  --color-guard-success: var(--guard-success);
+  --color-guard-warning: var(--guard-warning);
+  --color-guard-error: var(--guard-error);
+  --color-guard-surface: var(--guard-surface);
+  --color-guard-surface-elevated: var(--guard-surface-elevated);
+  --color-guard-border: var(--guard-border);
+  --color-guard-blue-50: var(--guard-blue-50);
+  --color-guard-blue-100: var(--guard-blue-100);
+  --color-guard-blue-200: var(--guard-blue-200);
+  --color-guard-blue-300: var(--guard-blue-300);
+  --color-guard-blue-400: var(--guard-blue-400);
+  --color-guard-blue-500: var(--guard-blue-500);
+  --color-guard-blue-600: var(--guard-blue-600);
+  --color-guard-blue-700: var(--guard-blue-700);
+  --color-guard-blue-800: var(--guard-blue-800);
+  --color-guard-blue-900: var(--guard-blue-900);
+  --color-guard-slot-filled: var(--guard-slot-filled);
+  --color-guard-slot-empty: var(--guard-slot-empty);
+  --color-guard-phase-active: var(--guard-phase-active);
+  --color-guard-phase-complete: var(--guard-phase-complete);
+  --color-guard-phase-pending: var(--guard-phase-pending);
+  --color-eu-blue: #004494;
+  --color-eu-yellow: #ffd617;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Slot fill highlight animation */
+@keyframes slot-fill {
+  0% { background-color: var(--guard-accent-light); box-shadow: 0 0 0 2px var(--guard-accent); }
+  100% { background-color: var(--guard-slot-filled); box-shadow: none; }
+}
+
+.animate-slot-fill {
+  animation: slot-fill 0.6s ease-out;
+}
+
+/* Phase content fade-in */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
