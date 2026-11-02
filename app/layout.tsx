@@ -28,12 +28,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/" className="text-lg font-semibold tracking-wide">
               {t.appName}
             </Link>
-            <nav aria-label="Main" className="flex gap-4 text-sm">
+            <nav aria-label="Main" className="flex flex-wrap justify-end gap-x-4 text-sm">
               <Link href="/map" className="underline-offset-4 hover:underline">
                 {t.nav.map}
               </Link>
               <Link href="/continue" className="underline-offset-4 hover:underline">
                 {t.nav.continue}
+              </Link>
+              <Link href="/summary" className="underline-offset-4 hover:underline">
+                {t.nav.summary}
               </Link>
             </nav>
           </div>

@@ -19,6 +19,7 @@ interface MissionProgress {
 interface SessionState {
   missions: Record<string, MissionProgress>;
   completed: string[];
+  orientation: Record<string, string>;
 }
 
 interface SessionApi {
@@ -31,13 +32,15 @@ interface SessionApi {
   setStepState(missionId: string, stepId: string, value: unknown): void;
   complete(missionId: string): void;
   restart(missionId: string): void;
+  orientation: Record<string, string>;
+  setOrientation(questionId: string, choiceId: string): void;
 }
 
 const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {} };
 const SessionContext = createContext<SessionApi | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<SessionState>({ missions: {}, completed: [] });
+  const [state, setState] = useState<SessionState>({ missions: {}, completed: [], orientation: {} });
 
   const update = useCallback((missionId: string, fn: (p: MissionProgress) => MissionProgress) => {
     setState((s) => ({
@@ -73,6 +76,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       complete: (id) =>
         setState((s) => (s.completed.includes(id) ? s : { ...s, completed: [...s.completed, id] })),
       restart: (id) => update(id, () => empty),
+      orientation: state.orientation,
+      setOrientation: (questionId, choiceId) =>
+        setState((s) => ({ ...s, orientation: { ...s.orientation, [questionId]: choiceId } })),
     }),
     [state, update],
   );

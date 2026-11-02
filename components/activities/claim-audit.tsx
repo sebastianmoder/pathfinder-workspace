@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import type { AuditSpec, Claim, ClaimAction, ClaimStatus, Source } from "@/content/types";
 import { gradeClaim, isComplete, NO_EVIDENCE, type ClaimAnswer } from "@/lib/audit";
 import { useSession } from "@/lib/session/session";
@@ -242,6 +242,7 @@ function JudgmentPanel({
   onOpenSources: () => void;
   onCheck: () => void;
 }) {
+  const group = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const [hintShown, setHintShown] = useState(false);
   const linked = sources.flatMap((s) => s.passages.map((p) => ({ ...p, source: s }))).find((p) => p.id === answer.evidence);
 
@@ -271,7 +272,7 @@ function JudgmentPanel({
         <div className="mt-2 space-y-1">
           {STATUSES.map((s) => (
             <label key={s} className="flex cursor-pointer gap-2 text-sm">
-              <input type="radio" name={`status-${claim.id}`} checked={answer.status === s} onChange={() => onChange({ status: s })} className="mt-1" />
+              <input type="radio" name={`${group}-status`} checked={answer.status === s} onChange={() => onChange({ status: s })} className="mt-1" />
               <span><strong>{t.audit.status[s].label}.</strong> {t.audit.status[s].help}</span>
             </label>
           ))}
@@ -283,7 +284,7 @@ function JudgmentPanel({
         <div className="mt-2 flex flex-wrap gap-3">
           {ACTIONS.map((a) => (
             <label key={a} className="flex cursor-pointer items-center gap-2 text-sm">
-              <input type="radio" name={`action-${claim.id}`} checked={answer.action === a} onChange={() => onChange({ action: a })} />
+              <input type="radio" name={`${group}-action`} checked={answer.action === a} onChange={() => onChange({ action: a })} />
               {t.audit.action[a]}
             </label>
           ))}
@@ -328,7 +329,8 @@ function ClaimFeedback({ claim, answer }: { claim: Claim; answer: ClaimAnswer })
   );
 }
 
-function SourceDrawer({ sources, linked, hasClaim, onLink }: { sources: Source[]; linked?: string; hasClaim: boolean; onLink: (id: string) => void }) {
+/** Without `onLink` it is a read-only source pack. */
+export function SourceDrawer({ sources, linked, hasClaim, onLink }: { sources: Source[]; linked?: string; hasClaim?: boolean; onLink?: (id: string) => void }) {
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
       <h3 className="font-medium">{t.audit.sourcesHeading}</h3>
@@ -341,7 +343,7 @@ function SourceDrawer({ sources, linked, hasClaim, onLink }: { sources: Source[]
               {s.passages.map((p, i) => (
                 <li key={p.id} className="text-sm">
                   <p>{p.text}</p>
-                  <button
+                  {onLink && <button
                     type="button"
                     disabled={!hasClaim}
                     aria-pressed={linked === p.id}
@@ -351,8 +353,8 @@ function SourceDrawer({ sources, linked, hasClaim, onLink }: { sources: Source[]
                   >
                     {linked === p.id && <span aria-hidden="true">✔ </span>}
                     {!hasClaim ? t.audit.selectFirst : linked === p.id ? t.audit.linkedPassage : t.audit.linkPassage}
-                    <span className="sr-only">: {s.title}, passage {i + 1}</span>
-                  </button>
+                    <span className="sr-only">: {s.title}, {s.date}, passage {i + 1}</span>
+                  </button>}
                 </li>
               ))}
             </ul>

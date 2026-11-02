@@ -88,7 +88,11 @@ body {
 }
 
 @media print {
-  .no-print {
+  .no-print,
+  header {
+    display: none !important;
+  }
+  body:has(dialog[open]) #main > * > :not(dialog) {
     display: none !important;
   }
   body {

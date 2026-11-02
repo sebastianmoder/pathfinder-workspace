@@ -284,12 +284,12 @@ export const m04: Mission = {
       id: "debrief",
       takeaway: "A citation tells you where to look. Read the passage, check the date and the numbers, then decide whether to keep, qualify, correct or remove the claim.",
       skills: [
-        "Traced claims to specific passages",
-        "Kept claims that the evidence supports",
-        "Spotted a real citation that does not support its claim",
-        "Applied the method to a new case without hints",
+        "Tracing claims to specific passages",
+        "Keeping claims that the evidence supports",
+        "Spotting a real citation that does not support its claim",
+        "Applying the method to a new case without hints",
       ],
-      nextMissionId: null,
+      nextMissionId: "m05-argument",
     },
   ],
 };

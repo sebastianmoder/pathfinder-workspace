@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Step } from "@/content/types";
 import { t } from "@/lib/i18n/en";
 
@@ -8,6 +8,7 @@ type SortStep = Extract<Step, { kind: "sort" }>;
 
 /** Select-and-place: each item gets a labelled <select>. No dragging needed. */
 export function SortActivity({ step, onContinue }: { step: SortStep; onContinue: () => void }) {
+  const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
 
@@ -22,9 +23,9 @@ export function SortActivity({ step, onContinue }: { step: SortStep; onContinue:
           const right = placed[item.id] === item.categoryId;
           return (
             <li key={item.id} className="rounded-lg border border-border bg-surface p-3">
-              <label htmlFor={`sort-${item.id}`} className="font-medium">{item.label}</label>
+              <label htmlFor={`${uid}-${item.id}`} className="font-medium">{item.label}</label>
               <select
-                id={`sort-${item.id}`}
+                id={`${uid}-${item.id}`}
                 value={placed[item.id] ?? ""}
                 onChange={(e) => {
                   setPlaced((p) => ({ ...p, [item.id]: e.target.value }));

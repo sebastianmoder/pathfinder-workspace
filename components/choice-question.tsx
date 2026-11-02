@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Choice, Hint } from "@/content/types";
 import { t } from "@/lib/i18n/en";
 
@@ -34,6 +34,8 @@ export function ChoiceQuestion({
   onCommit,
   onContinue,
 }: Props) {
+  // Next keeps recent pages in the DOM while hidden, and radios with the same name interfere across them.
+  const group = `${useId()}-${name}`;
   const [selected, setSelected] = useState<string | undefined>(initialChoiceId);
   const [confidence, setConfidence] = useState<number | undefined>(initialConfidence);
   const [committed, setCommitted] = useState(false);
@@ -51,7 +53,7 @@ export function ChoiceQuestion({
             <label key={c.id} className="flex cursor-pointer gap-3 rounded-lg border border-border bg-surface p-3 has-[:checked]:border-accent">
               <input
                 type="radio"
-                name={name}
+                name={group}
                 value={c.id}
                 checked={selected === c.id}
                 onChange={() => {
@@ -72,7 +74,7 @@ export function ChoiceQuestion({
           <div className="mt-2 flex flex-wrap gap-2">
             {t.mission.confidence.map((label, i) => (
               <label key={label} className="flex cursor-pointer items-center gap-1 rounded border border-border px-2 py-1 text-sm has-[:checked]:border-accent">
-                <input type="radio" name={`${name}-confidence`} checked={confidence === i} onChange={() => setConfidence(i)} />
+                <input type="radio" name={`${group}-confidence`} checked={confidence === i} onChange={() => setConfidence(i)} />
                 {label}
               </label>
             ))}

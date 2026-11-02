@@ -1,28 +1,7 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { auditClaim, narrow } from "./helpers";
 
-const narrow = (page: Page) => (page.viewportSize()?.width ?? 1280) < 1024;
-
-/** Audits one claim, working through the labelled views that narrow screens use. */
-async function auditClaim(
-  page: Page,
-  claim: RegExp,
-  opts: { source?: string; passage?: string; status: string; action: string },
-) {
-  if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();
-  await page.getByRole("button", { name: claim }).click();
-  if (opts.passage) {
-    if (narrow(page)) await page.getByRole("button", { name: "Open sources" }).click();
-    const details = page.locator("details", { has: page.locator(`[data-passage="${opts.passage}"]`) });
-    if (!(await details.evaluate((d: HTMLDetailsElement) => d.open))) await details.locator("summary").click();
-    await page.locator(`[data-passage="${opts.passage}"]`).click();
-  } else {
-    await page.getByRole("button", { name: "No source addresses this claim" }).click();
-  }
-  await page.getByRole("radio", { name: new RegExp(`^${opts.status}\\.`) }).check();
-  await page.getByRole("radio", { name: opts.action, exact: true }).check();
-  await page.getByRole("button", { name: "Check this claim" }).click();
-}
 
 test("M04 is completable, with claim-level feedback and a real before/after", async ({ page }) => {
   await page.goto("/missions/m04-evidence");

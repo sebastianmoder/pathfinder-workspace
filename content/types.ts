@@ -66,6 +66,37 @@ export interface AuditSpec {
   briefing: (string | { claimId: string })[][];
 }
 
+export type DialogueStrategy = "evidence" | "assumption" | "alternative" | "concede" | "restate";
+
+export interface DialogueChoice {
+  id: string;
+  label: string;
+  strategy: DialogueStrategy;
+  /** What this move did. Shown after the choice and kept separate from the character's speech. */
+  note: string;
+  next: string;
+}
+
+export interface DialogueNode {
+  id: string;
+  speakerId: string;
+  text: string;
+  /** Ids of discoveries the learner gains by reaching this node. */
+  reveals?: string[];
+  /** Empty means the conversation ends here. */
+  choices: DialogueChoice[];
+}
+
+export interface DialogueSpec {
+  characters: { id: string; name: string; role: string; knows: string; wants: string }[];
+  /** Used when the initial judgment does not select an opening. */
+  start: string;
+  /** Opening node per initial-judgment choice, so a character can oppose the learner's position. */
+  starts: Record<string, string>;
+  nodes: DialogueNode[];
+  discoveries: { id: string; label: string; lookIn: string }[];
+}
+
 export type Step =
   | { kind: "brief"; id: string; title: string; body: string }
   | { kind: "refresher"; id: string; title: string; body: string }
@@ -117,6 +148,25 @@ export type Step =
   | { kind: "transfer"; id: string; title: string; prompt: string; choices: Choice[]; hints?: Hint[] }
   | { kind: "transfer"; id: string; title: string; prompt: string; audit: AuditSpec }
   | { kind: "claimAudit"; id: string; title: string; intro: string; audit: AuditSpec }
+  | {
+      kind: "dialogue";
+      id: string;
+      title: string;
+      intro: string;
+      initialStepId: string;
+      sources: Source[];
+      reflectionPrompt: string;
+      dialogue: DialogueSpec;
+    }
+  | {
+      kind: "argumentMap";
+      id: string;
+      title: string;
+      prompt: string;
+      proposal: string;
+      slots: { id: string; label: string; help: string }[];
+      cards: { id: string; text: string; slotId: string; defensibleSlotIds?: string[]; explanation: string }[];
+    }
   | {
       kind: "debrief";
       id: string;

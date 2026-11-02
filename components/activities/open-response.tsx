@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import type { Step } from "@/content/types";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
@@ -16,7 +17,7 @@ export function OpenResponse({ missionId, step, onContinue }: { missionId: strin
   const session = useSession();
   const state = (session.progress(missionId).stepState[step.id] as State | undefined) ?? { text: "", revealed: false, met: [] };
   const set = (patch: Partial<State>) => session.setStepState(missionId, step.id, { ...state, ...patch });
-  const fieldId = `open-${step.id}`;
+  const fieldId = useId(); // unique across hidden kept-alive pages, which stay in the DOM
 
   return (
     <div>

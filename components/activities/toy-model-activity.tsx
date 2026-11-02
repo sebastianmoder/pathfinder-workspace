@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import type { Step } from "@/content/types";
 import { buildModel, predict } from "@/lib/toy-model";
 import { t } from "@/lib/i18n/en";
@@ -8,6 +8,7 @@ import { t } from "@/lib/i18n/en";
 type ToyStep = Extract<Step, { kind: "toyModel" }>;
 
 export function ToyModelActivity({ step, onContinue }: { step: ToyStep; onContinue: () => void }) {
+  const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const [corpusId, setCorpusId] = useState(step.corpora[0].id);
   const [guess, setGuess] = useState("");
   const [ran, setRan] = useState<Record<string, string>>({}); // corpusId → top word
@@ -43,7 +44,7 @@ export function ToyModelActivity({ step, onContinue }: { step: ToyStep; onContin
         <div className="mt-2 space-y-2">
           {step.corpora.map((c) => (
             <label key={c.id} className="flex cursor-pointer gap-3 rounded-lg border border-border bg-surface p-3 has-[:checked]:border-accent">
-              <input type="radio" name="corpus" checked={corpusId === c.id} onChange={() => setCorpusId(c.id)} className="mt-1" />
+              <input type="radio" name={`${uid}-corpus`} checked={corpusId === c.id} onChange={() => setCorpusId(c.id)} className="mt-1" />
               <span>
                 <strong>{c.label}</strong>
                 <br />
@@ -66,9 +67,9 @@ export function ToyModelActivity({ step, onContinue }: { step: ToyStep; onContin
       </fieldset>
 
       <div className="mt-4">
-        <label htmlFor="guess" className="font-medium">{t.toy.predictFirst}</label>
+        <label htmlFor={`${uid}-guess`} className="font-medium">{t.toy.predictFirst}</label>
         <input
-          id="guess"
+          id={`${uid}-guess`}
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
           autoComplete="off"

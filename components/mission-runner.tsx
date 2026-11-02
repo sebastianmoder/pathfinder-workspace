@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import Link from "next/link";
 import type { Mission, Step } from "@/content/types";
 import { useSession } from "@/lib/session/session";
@@ -12,6 +12,8 @@ import { SortActivity } from "./activities/sort-activity";
 import { ToyModelActivity } from "./activities/toy-model-activity";
 import { ClaimAudit } from "./activities/claim-audit";
 import { OpenResponse } from "./activities/open-response";
+import { DialogueActivity, DialogueReplay } from "./activities/dialogue";
+import { ArgumentMap } from "./activities/argument-map";
 
 interface Props {
   mission: Mission;
@@ -22,6 +24,7 @@ interface Props {
 export function MissionRunner({ mission, password, next }: Props) {
   const session = useSession();
   const pauseRef = useRef<HTMLDialogElement>(null);
+  const pauseTitleId = useId();
   const { stepIndex, answers } = session.progress(mission.id);
   const step = mission.steps[stepIndex];
   const total = mission.steps.length;
@@ -81,11 +84,11 @@ export function MissionRunner({ mission, password, next }: Props) {
 
       <dialog
         ref={pauseRef}
-        aria-labelledby="pause-title"
+        aria-labelledby={pauseTitleId}
         className="m-auto w-[min(32rem,calc(100%-2rem))] rounded-lg border border-border bg-background p-5 text-foreground backdrop:bg-black/50"
       >
-        <h2 id="pause-title" className="text-lg font-semibold">{t.pause.title}</h2>
-        <p className="my-3 text-sm">{t.pause.body(password, mission.title)}</p>
+        <h2 id={pauseTitleId} className="text-lg font-semibold">{t.pause.title}</h2>
+        <p className="my-3 text-sm">{t.pause.body(password, mission.title)} {t.pause.refreshNote}</p>
         <PasswordCard code={password} />
         <form method="dialog" className="mt-4">
           <button className="rounded bg-accent px-4 py-2 font-medium text-accent-foreground">{t.pause.close}</button>
@@ -149,7 +152,7 @@ function StepView({
           {"audit" in step ? (
             <>
               <p className="mb-4">{step.prompt}</p>
-              <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={false} onContinue={onContinue} />
+              <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onContinue={onContinue} />
             </>
           ) : (
             <ChoiceQuestion name={step.id} prompt={step.prompt} choices={step.choices} hints={step.hints} onCommit={onAnswer} onContinue={onContinue} />
@@ -204,6 +207,19 @@ function StepView({
     case "toyModel":
       return <ToyModelActivity step={step} onContinue={onContinue} />;
 
+    case "dialogue":
+      return (
+        <DialogueActivity
+          missionId={mission.id}
+          step={step}
+          initialChoiceId={answers[step.initialStepId]?.choiceId}
+          onContinue={onContinue}
+        />
+      );
+
+    case "argumentMap":
+      return <ArgumentMap missionId={mission.id} step={step} onContinue={onContinue} />;
+
     case "sort":
       return <SortActivity step={step} onContinue={onContinue} />;
 
@@ -217,12 +233,17 @@ function StepView({
           <ul className="list-disc pl-5">
             {step.skills.map((s) => <li key={s}>{s}</li>)}
           </ul>
+          {mission.steps.map((s) =>
+            s.kind === "dialogue" ? (
+              <DialogueReplay key={s.id} missionId={mission.id} step={s} initialChoiceId={answers[s.initialStepId]?.choiceId} />
+            ) : null,
+          )}
           <div className="mt-6 space-y-4">
             {next ? (
               <div>
                 <h3 className="font-medium">{t.debrief.next}: {next.title}</h3>
                 <PasswordCard code={next.password} />
-                <Link href={`/missions/${next.missionId}`} className="mt-2 inline-block underline">{next.title}</Link>
+                <Link href={`/missions/${next.missionId}`} className="mt-3 inline-block rounded bg-accent px-4 py-2 font-medium text-accent-foreground">{next.title}</Link>
               </div>
             ) : (
               <p>{t.debrief.endOfContent}</p>
@@ -231,10 +252,13 @@ function StepView({
               <h3 className="font-medium">{t.debrief.thisMission}</h3>
               <PasswordCard code={replayPassword} />
             </div>
-            <button type="button" onClick={() => session.restart(mission.id)} className="rounded border border-border px-4 py-2">
-              {t.debrief.replay}
-            </button>{" "}
-            <Link href="/map" className="underline">{t.map.title}</Link>
+            <div className="flex flex-wrap items-center gap-4">
+              <button type="button" onClick={() => session.restart(mission.id)} className="rounded border border-border px-4 py-2">
+                {t.debrief.replay}
+              </button>
+              <Link href="/map" className="underline">{t.map.title}</Link>
+              <Link href="/summary" className="underline">{t.debrief.summary}</Link>
+            </div>
           </div>
         </>
       );
