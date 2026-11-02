@@ -37,6 +37,33 @@ export type Step =
     }
   | { kind: "quiz"; id: string; prompt: string; choices: Choice[]; hints?: Hint[] }
   | { kind: "openResponse"; id: string; prompt: string; rubric: Rubric }
+  | {
+      kind: "flow";
+      id: string;
+      title: string;
+      /** Step-through diagram; every stage is plain text so no visual is required. */
+      stages: { title: string; text: string }[];
+    }
+  | {
+      kind: "toyModel";
+      id: string;
+      title: string;
+      /** Text the toy machine continues. */
+      promptText: string;
+      /** What the fictional case actually says is true; the toy model never sees this. */
+      intendedMeaning: string;
+      corpora: { id: string; label: string; description: string; sentences: string[] }[];
+      /** Must try at least this many training sets before continuing. */
+      minRuns: number;
+      takeaway: string;
+    }
+  | {
+      kind: "sort";
+      id: string;
+      prompt: string;
+      categories: { id: string; label: string }[];
+      items: { id: string; label: string; categoryId: string; explanation: string }[];
+    }
   | { kind: "revision"; id: string; initialStepId: string; prompt: string; choices: Choice[] }
   | { kind: "transfer"; id: string; title: string; prompt: string; choices: Choice[]; hints?: Hint[] }
   | {

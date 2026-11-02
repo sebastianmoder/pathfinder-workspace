@@ -68,6 +68,27 @@ export const en = {
     restartNote: "The mission starts from the beginning. Earlier answers are not saved.",
   },
 
+  toy: {
+    label: "Simplified toy model: it only counts which words followed the same words in its training sentences. Real AI systems are far more complex.",
+    chooseData: "Choose what the machine learns from",
+    seeSentences: (label: string) => `See the training sentences: ${label}`,
+    predictFirst: "First, what word do you expect next?",
+    run: "Run the machine",
+    result: (label: string) => `Result after learning from: ${label}`,
+    nothing: "No training sentence matched, so the machine has nothing to predict.",
+    context: (c: string) => `It matched the words “${c}” in its training sentences.`,
+    tableCaption: "Words that followed, with counts and share",
+    word: "Next word",
+    count: "Times seen",
+    share: "Share",
+    yourGuess: "Your guess",
+    intended: "What the case says is true",
+    tried: (n: number, min: number) => `Training sets tried: ${n} of at least ${min}.`,
+    needMore: (min: number) => `Try at least ${min} different training sets to compare.`,
+  },
+  sort: { choose: "Choose a function", fits: "Fits.", tryAnother: "Try another.", fixSome: "Change the items marked and check again." },
+  flow: { back: "Back", nextStage: "Next stage" },
+
   debrief: {
     title: "Debrief",
     takeaway: "Practical takeaway",

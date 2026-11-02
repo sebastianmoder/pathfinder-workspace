@@ -42,6 +42,25 @@ describe.each(missions)("mission $id", (mission) => {
     }
   });
 
+  it("sort items point at real categories", () => {
+    for (const s of mission.steps)
+      if (s.kind === "sort") {
+        const cats = s.categories.map((c) => c.id);
+        for (const i of s.items) {
+          expect(cats, i.id).toContain(i.categoryId);
+          expect(i.explanation.trim(), i.id).not.toBe("");
+        }
+      }
+  });
+
+  it("toy model needs at least two training sets and a reachable minRuns", () => {
+    for (const s of mission.steps)
+      if (s.kind === "toyModel") {
+        expect(s.corpora.length).toBeGreaterThanOrEqual(2);
+        expect(s.minRuns).toBeLessThanOrEqual(s.corpora.length);
+      }
+  });
+
   it("gives open responses a rubric with at least two examples", () => {
     for (const s of mission.steps)
       if (s.kind === "openResponse") expect(s.rubric.examples.length).toBeGreaterThanOrEqual(2);

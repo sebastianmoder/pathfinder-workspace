@@ -1,12 +1,15 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import type { Mission, Step } from "@/content/types";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { ChoiceQuestion } from "./choice-question";
 import { PasswordCard } from "./password-card";
+import { FlowStepper } from "./activities/flow-stepper";
+import { SortActivity } from "./activities/sort-activity";
+import { ToyModelActivity } from "./activities/toy-model-activity";
 
 interface Props {
   mission: Mission;
@@ -20,6 +23,16 @@ export function MissionRunner({ mission, password, next }: Props) {
   const { stepIndex, answers } = session.progress(mission.id);
   const step = mission.steps[stepIndex];
   const total = mission.steps.length;
+
+  // Move focus to the new step when it changes, so keyboard and screen-reader users keep their place.
+  const stepRef = useRef<HTMLElement>(null);
+  const previousIndex = useRef(stepIndex);
+  useEffect(() => {
+    if (previousIndex.current !== stepIndex) {
+      stepRef.current?.focus({ preventScroll: true });
+      previousIndex.current = stepIndex;
+    }
+  }, [stepIndex]);
 
   const advance = () => {
     if (step.kind === "debrief") return;
@@ -47,7 +60,7 @@ export function MissionRunner({ mission, password, next }: Props) {
           {t.mission.step(stepIndex + 1, total)}
           <progress className="ml-3 align-middle" value={stepIndex + 1} max={total} aria-label={t.mission.step(stepIndex + 1, total)} />
         </p>
-        <section key={step.id} className="mt-4">
+        <section key={step.id} ref={stepRef} tabIndex={-1} aria-label={t.mission.step(stepIndex + 1, total)} className="mt-4 outline-offset-8">
           <StepView
             step={step}
             mission={mission}
@@ -152,6 +165,15 @@ function StepView({
 
     case "openResponse":
       return <p>Open responses arrive with M05.</p>;
+
+    case "flow":
+      return <FlowStepper step={step} onContinue={onContinue} />;
+
+    case "toyModel":
+      return <ToyModelActivity step={step} onContinue={onContinue} />;
+
+    case "sort":
+      return <SortActivity step={step} onContinue={onContinue} />;
 
     case "debrief":
       return (
