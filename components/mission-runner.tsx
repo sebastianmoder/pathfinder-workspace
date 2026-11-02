@@ -3,13 +3,15 @@
 import { useEffect, useId, useRef } from "react";
 import Link from "next/link";
 import type { Mission, Step } from "@/content/types";
+import type { EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { ChoiceQuestion } from "./choice-question";
 import { PasswordCard } from "./password-card";
-import { FlowStepper } from "./activities/flow-stepper";
+import { DebriefSkills } from "./debrief-skills";
 import { SortActivity } from "./activities/sort-activity";
-import { ToyModelActivity } from "./activities/toy-model-activity";
+import { SandboxActivity } from "./activities/sandbox";
+import { FaultTrace } from "./activities/fault-trace";
 import { ClaimAudit } from "./activities/claim-audit";
 import { OpenResponse } from "./activities/open-response";
 import { DialogueActivity, DialogueReplay } from "./activities/dialogue";
@@ -141,6 +143,8 @@ function StepView({
   replayPassword: string;
 }) {
   const session = useSession();
+  const record = (item: string, result: EvidenceResult) => session.recordEvidence(mission.id, item, result);
+  const recordStep = (result: EvidenceResult) => record(step.id, result);
 
   switch (step.kind) {
     case "brief":
@@ -166,6 +170,7 @@ function StepView({
           withConfidence={step.kind === "initialJudgment"}
           recordOnly={step.kind === "initialJudgment"}
           onCommit={onAnswer}
+          onEvidence={recordStep}
           onContinue={onContinue}
         />
       );
@@ -177,10 +182,10 @@ function StepView({
           {"audit" in step ? (
             <>
               <p className="mb-4">{step.prompt}</p>
-              <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onContinue={onContinue} />
+              <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onEvidence={record} onContinue={onContinue} />
             </>
           ) : (
-            <ChoiceQuestion name={step.id} prompt={step.prompt} choices={step.choices} hints={step.hints} onCommit={onAnswer} onContinue={onContinue} />
+            <ChoiceQuestion name={step.id} prompt={step.prompt} choices={step.choices} hints={step.hints} onCommit={onAnswer} onEvidence={recordStep} onContinue={onContinue} />
           )}
         </>
       );
@@ -190,7 +195,7 @@ function StepView({
         <>
           <h2 className="text-2xl">{step.title}</h2>
           <p className="mb-4 mt-1">{step.intro}</p>
-          <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal onContinue={onContinue} />
+          <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal onEvidence={record} onContinue={onContinue} />
         </>
       );
 
@@ -214,6 +219,7 @@ function StepView({
             choices={step.choices}
             withConfidence={step.withConfidence}
             onCommit={onAnswer}
+            onEvidence={recordStep}
             onContinue={onContinue}
           />
           {step.withConfidence && now?.confidence !== undefined && first?.confidence !== undefined && (
@@ -224,13 +230,13 @@ function StepView({
     }
 
     case "openResponse":
-      return <OpenResponse missionId={mission.id} step={step} onContinue={onContinue} />;
+      return <OpenResponse missionId={mission.id} step={step} onEvidence={recordStep} onContinue={onContinue} />;
 
-    case "flow":
-      return <FlowStepper step={step} onContinue={onContinue} />;
+    case "sandbox":
+      return <SandboxActivity missionId={mission.id} step={step} onEvidence={record} onContinue={onContinue} />;
 
-    case "toyModel":
-      return <ToyModelActivity step={step} onContinue={onContinue} />;
+    case "faultTrace":
+      return <FaultTrace step={step} onEvidence={record} onContinue={onContinue} />;
 
     case "dialogue":
       return (
@@ -238,15 +244,16 @@ function StepView({
           missionId={mission.id}
           step={step}
           initialChoiceId={answers[step.initialStepId]?.choiceId}
+          onEvidence={record}
           onContinue={onContinue}
         />
       );
 
     case "argumentMap":
-      return <ArgumentMap missionId={mission.id} step={step} onContinue={onContinue} />;
+      return <ArgumentMap missionId={mission.id} step={step} onEvidence={record} onContinue={onContinue} />;
 
     case "sort":
-      return <SortActivity step={step} onContinue={onContinue} />;
+      return <SortActivity step={step} onEvidence={record} onContinue={onContinue} />;
 
     case "debrief":
       return (
@@ -256,10 +263,7 @@ function StepView({
             <h3 className="text-sm font-normal">{t.debrief.takeaway}</h3>
             <p className="mt-1 max-w-3xl font-[family-name:var(--font-zilla)] text-2xl font-semibold leading-tight sm:text-3xl">{step.takeaway}</p>
           </div>
-          <h3 className="mt-4 font-bold">{t.debrief.skills}</h3>
-          <ul className="list-disc pl-5">
-            {step.skills.map((s) => <li key={s}>{s}</li>)}
-          </ul>
+          <DebriefSkills missionId={mission.id} skills={step.skills} />
           {mission.steps.map((s) =>
             s.kind === "dialogue" ? (
               <DialogueReplay key={s.id} missionId={mission.id} step={s} initialChoiceId={answers[s.initialStepId]?.choiceId} />

@@ -66,6 +66,54 @@ export interface AuditSpec {
   claims: Claim[];
   /** Paragraphs of plain text and references to claims. */
   briefing: (string | { claimId: string })[][];
+  /** Asks for a written reason before any feedback, so the explanation can't just repeat the feedback. */
+  reasonPrompt?: string;
+}
+
+export type EvidenceKind = "knowledge" | "action" | "reasoning" | "transfer";
+
+/** A skill the debrief can recognise, tied to the work that would show it (PRD §9, §12). */
+export interface DebriefSkill {
+  id: string;
+  label: string;
+  kind: EvidenceKind;
+  /** Ledger items that show this skill. See `evidenceItems` in lib/evidence.ts. */
+  items: string[];
+  /** A fresh example, offered when this skill is worth another look. */
+  practice?: { prompt: string; choices: Choice[] };
+}
+
+export interface SandboxSentence {
+  id: string;
+  text: string;
+  group: string;
+}
+
+/** Every field that is present must hold for the task's goal to be met. */
+export interface SandboxGoal {
+  word?: string;
+  /** Sentences that must be in the data the machine was trained on. */
+  include?: string[];
+  afterSaying?: boolean;
+}
+
+export interface SandboxTask {
+  id: string;
+  title: string;
+  instruction: string;
+  /** Applied when the task opens. Resets the board so that each task starts from a known state. */
+  setup?: { on?: string[]; train?: boolean; reveal?: string[] };
+  /** A line the learner can say to the trained machine. Asking waits until it has been said. */
+  say?: string;
+  /** What is true in the fictional case during this task. The machine never sees it. */
+  truth: { word: string; text: string };
+  goal: SandboxGoal;
+  success: string;
+  /** A board that meets the goal, offered as "Show me a way" so nobody gets stuck. */
+  solution?: string[];
+  /** What the ledger records: solving on the first ask, or predicting the first answer correctly. */
+  evidence?: "firstAsk" | "prediction";
+  showCount?: boolean;
 }
 
 export type DialogueStrategy = "evidence" | "assumption" | "alternative" | "concede" | "restate";
@@ -110,26 +158,38 @@ export type Step =
       hints?: Hint[];
     }
   | { kind: "quiz"; id: string; prompt: string; choices: Choice[]; hints?: Hint[] }
-  | { kind: "openResponse"; id: string; prompt: string; rubric: Rubric }
   | {
-      kind: "flow";
+      kind: "openResponse";
       id: string;
-      title: string;
-      /** Step-through diagram; every stage is plain text so no visual is required. */
-      stages: { title: string; text: string }[];
+      prompt: string;
+      rubric: Rubric;
+      /** Shows the reason the learner wrote in an earlier audit, before that audit's feedback. */
+      priorReason?: { stepId: string; claimId: string };
     }
   | {
-      kind: "toyModel";
+      kind: "sandbox";
       id: string;
       title: string;
+      intro: string;
       /** Text the toy machine continues. */
       promptText: string;
-      /** What the fictional case actually says is true; the toy model never sees this. */
-      intendedMeaning: string;
-      corpora: { id: string; label: string; description: string; sentences: string[] }[];
-      /** Must try at least this many training sets before continuing. */
-      minRuns: number;
-      takeaway: string;
+      /** How a word appears as an assistant reply, with {word} for the machine's answer. */
+      replyTemplate: string;
+      /** Words offered as predictions. */
+      words: string[];
+      /** The pipeline, lit up as the learner reaches each stage. Plain text, so no visual is required. */
+      stages: { id: "data" | "training" | "model" | "input" | "output"; title: string; text: string }[];
+      groups: { id: string; label: string }[];
+      sentences: SandboxSentence[];
+      tasks: SandboxTask[];
+    }
+  | {
+      kind: "faultTrace";
+      id: string;
+      title: string;
+      prompt: string;
+      stages: { id: string; label: string; help: string }[];
+      cases: { id: string; text: string; stageId: string; explanation: string }[];
     }
   | {
       kind: "sort";
@@ -175,7 +235,7 @@ export type Step =
       kind: "debrief";
       id: string;
       takeaway: string;
-      skills: string[];
+      skills: DebriefSkill[];
       nextMissionId: MissionId | null;
     };
 

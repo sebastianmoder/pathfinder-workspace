@@ -1,8 +1,10 @@
 import type { Choice, Mission, Step } from "@/content/types";
+import { assessSkill, type EvidenceLedger } from "./evidence";
 
 export interface MissionInput {
   stepIndex: number;
   answers: Record<string, { choiceId?: string; confidence?: number } | undefined>;
+  evidence: EvidenceLedger;
 }
 
 export interface MissionSummary {
@@ -11,7 +13,9 @@ export interface MissionSummary {
   completed: boolean;
   /** Only present once the mission is finished: unfinished work has not shown these. */
   takeaway: string | null;
-  skills: string[];
+  shown: string[];
+  selfAssessed: string[];
+  review: string[];
   before: { label: string; confidence: number | null } | null;
   after: { label: string; confidence: number | null } | null;
 }
@@ -28,12 +32,17 @@ export function summarizeMission(mission: Mission, input: MissionInput, complete
   if (!started && !completed) return null;
   const debrief = mission.steps.find((s) => s.kind === "debrief");
   const finished = completed && debrief?.kind === "debrief";
+  const skills = finished ? debrief.skills : [];
+  const withStatus = (status: "shown" | "selfAssessed" | "review") =>
+    skills.filter((s) => assessSkill(s, input.evidence).status === status).map((s) => s.label);
   return {
     id: mission.id,
     title: mission.title,
     completed,
     takeaway: finished ? debrief.takeaway : null,
-    skills: finished ? debrief.skills : [],
+    shown: withStatus("shown"),
+    selfAssessed: withStatus("selfAssessed"),
+    review: withStatus("review"),
     before: answerOf(mission.steps.find((s) => s.kind === "initialJudgment"), input.answers),
     after: answerOf(mission.steps.find((s) => s.kind === "revision"), input.answers),
   };
@@ -47,7 +56,9 @@ export interface SummaryText {
   missions: MissionSummary[];
   labels: {
     takeaway: string;
-    skills: string;
+    shown: string;
+    selfAssessed: string;
+    review: string;
     before: string;
     after: string;
     notFinished: string;
@@ -72,7 +83,9 @@ export function summaryToText(s: SummaryText): string {
     if (m.before) lines.push(`${s.labels.before}: ${m.before.label}${conf(m.before.confidence)}`);
     if (m.after) lines.push(`${s.labels.after}: ${m.after.label}${conf(m.after.confidence)}`);
     if (m.takeaway) lines.push(`${s.labels.takeaway}: ${m.takeaway}`);
-    if (m.skills.length) lines.push(`${s.labels.skills}: ${m.skills.join("; ")}`);
+    if (m.shown.length) lines.push(`${s.labels.shown}: ${m.shown.join("; ")}`);
+    if (m.selfAssessed.length) lines.push(`${s.labels.selfAssessed}: ${m.selfAssessed.join("; ")}`);
+    if (m.review.length) lines.push(`${s.labels.review}: ${m.review.join("; ")}`);
     lines.push("");
   }
   lines.push(s.labels.passwords);

@@ -7,6 +7,8 @@ export interface ClaimAnswer {
   evidence?: string;
   status?: ClaimStatus;
   action?: ClaimAction;
+  /** Written before any feedback, where the audit asks for it. Never graded. */
+  reason?: string;
 }
 
 export interface ClaimGrade {

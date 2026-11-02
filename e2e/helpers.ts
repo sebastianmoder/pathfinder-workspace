@@ -16,7 +16,7 @@ export async function recordJudgment(page: Page, answer: RegExp | string, confid
 export async function auditClaim(
   page: Page,
   claim: RegExp,
-  opts: { passage?: string; status: string; action: string },
+  opts: { passage?: string; status: string; action: string; reason?: string },
 ) {
   if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();
   await page.getByRole("button", { name: claim }).click();
@@ -30,27 +30,69 @@ export async function auditClaim(
   }
   await page.getByRole("radio", { name: new RegExp(`^${opts.status}\\.`) }).check();
   await page.getByRole("radio", { name: new RegExp(`^${opts.action}`) }).check();
+  if (opts.reason) await page.getByLabel(/Before you check/).fill(opts.reason);
   await page.getByRole("button", { name: "Check this claim" }).click();
+}
+
+/** Trains the machine on the board as it stands, then predicts and asks. */
+export async function trainAndAsk(page: Page, expected: string, opts: { train?: boolean } = {}) {
+  if (opts.train !== false) await page.getByRole("button", { name: "Train the machine" }).click();
+  await page.getByRole("radio", { name: expected, exact: true }).check();
+  await page.getByRole("button", { name: "Ask the machine" }).click();
+}
+
+export const nextTask = (page: Page) => page.getByRole("button", { name: "Next task" }).click();
+
+/** Switches off every sentence, then on only the ones named. */
+export async function setBoard(page: Page, sentences: string[]) {
+  for (const box of await page.getByRole("checkbox").all()) await box.uncheck();
+  for (const sentence of sentences) await page.getByRole("checkbox", { name: sentence, exact: true }).check();
+}
+
+export async function runMachine(page: Page) {
+  await trainAndAsk(page, "nine");
+  await nextTask(page);
+  await setBoard(page, ["the school library opens at ten", "the bank opens at ten"]);
+  await trainAndAsk(page, "ten");
+  await nextTask(page);
+  await setBoard(page, ["the club opens at midnight"]);
+  await trainAndAsk(page, "midnight");
+  await nextTask(page);
+  await page.getByRole("button", { name: "Say it" }).click();
+  await trainAndAsk(page, "nine", { train: false });
+  await nextTask(page);
+  await page.getByRole("checkbox", { name: "from january the library opens at ten" }).check();
+  await trainAndAsk(page, "nine");
+  await nextTask(page);
+  await setBoard(page, ["from january the library opens at ten"]);
+  await trainAndAsk(page, "ten");
+  await cont(page);
+}
+
+export const FAULTS: [RegExp, string][] = [
+  [/health chatbot/, "Training data"],
+  [/corrects a model/, "Trained model"],
+  [/swimming pool/, "Your input"],
+  [/quotation/, "Output"],
+];
+
+export async function traceFaults(page: Page) {
+  for (const [text, stage] of FAULTS) {
+    await page.getByRole("group", { name: text }).getByRole("radio", { name: stage, exact: true }).check();
+  }
+  await check(page);
+  await cont(page);
 }
 
 export async function completeM01(page: Page) {
   await cont(page);
   await cont(page);
-  await recordJudgment(page, "It is probably correct.", "Very");
-  for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Next stage" }).click();
-  await cont(page);
-  await page.getByLabel("First, what word do you expect next?").fill("nine");
-  await page.getByRole("button", { name: "Run the machine" }).click();
-  await page.getByLabel(/Shop and café notices/).check();
-  await page.getByLabel("First, what word do you expect next?").fill("eight");
-  await page.getByRole("button", { name: "Run the machine" }).click();
-  await cont(page);
-  await page.getByLabel(/Its answer depends on the patterns/).check();
+  await recordJudgment(page, /It is probably correct/, "Very");
+  await runMachine(page);
+  await page.getByLabel(/It follows the patterns in its data/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel("Typing a question and reading its reply.").check();
-  await check(page);
-  await cont(page);
+  await traceFaults(page);
   const place: Record<string, string> = {
     "A phone unlocks when it sees your face": "Recognise (images, speech)",
     "A chatbot drafts an email for you": "Generate (text, images)",
@@ -66,7 +108,7 @@ export async function completeM01(page: Page) {
   await page.getByLabel("Somewhat", { exact: true }).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/Treat the year and branch count/).check();
+  await page.getByLabel(/Hold both figures/).check();
   await check(page);
   await cont(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M01-ANSWER");
@@ -89,16 +131,13 @@ export async function completeM04(page: Page) {
   await auditClaim(page, /Tuesday trial/, { passage: "attendance-tuesday", status: "Supported", action: "Retain" });
   await page.getByRole("button", { name: "See the final briefing" }).click();
   await cont(page);
-  await page.getByLabel(/does not say what the claim says/).check();
-  await check(page);
-  await cont(page);
   await page.getByLabel(/It tells me where to look/).check();
   await page.getByLabel("Fairly", { exact: true }).check();
   await check(page);
   await cont(page);
-  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", status: "Incorrect", action: "Correct" });
+  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", status: "Incorrect", action: "Correct", reason: "PRIVATE-M04-REASON" });
   await cont(page);
-  await page.getByRole("button", { name: "Skip writing and see the criteria" }).click();
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
@@ -170,7 +209,7 @@ export async function completeT01(page: Page) {
   await page.getByLabel(/a course twice the size/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/Check the specific claims/).check();
+  await page.getByLabel(/Check its claims against the sources/).check();
   await page.getByLabel("Very", { exact: true }).check();
   await check(page);
   await cont(page);

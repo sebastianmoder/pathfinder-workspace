@@ -30,7 +30,7 @@ test("password returns to the mission in a fresh browser context", async ({ brow
   await expect(p2.getByText("This password opens: Inside the Machine")).toBeVisible();
   await p2.getByRole("link", { name: "Start mission" }).click();
   await expect(p2).toHaveURL(/\/missions\/m01-foundations$/);
-  await expect(p2.getByText("Step 1 of 12")).toBeVisible();
+  await expect(p2.getByText("Step 1 of 11")).toBeVisible();
   await second.close();
 });
 
@@ -46,10 +46,10 @@ test("invalid password keeps the entry and offers the map", async ({ page }) => 
 test("a password opens the mission from the beginning even mid-visit", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
   await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page.getByText("Step 2 of 12")).toBeVisible();
+  await expect(page.getByText("Step 2 of 11")).toBeVisible();
   await page.getByRole("link", { name: "Continue" }).click(); // client-side navigation keeps the visit's state
   await page.getByLabel("Mission password").fill("hazel beacon 47");
   await page.getByRole("button", { name: "Find mission" }).click();
   await page.getByRole("link", { name: "Start mission" }).click();
-  await expect(page.getByText("Step 1 of 12")).toBeVisible();
+  await expect(page.getByText("Step 1 of 11")).toBeVisible();
 });

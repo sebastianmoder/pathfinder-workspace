@@ -43,10 +43,6 @@ test("M04 is completable, with claim-level feedback and a real before/after", as
   await expect(page.getByText("€12,000 for 2026–27")).toBeVisible();
   await cont();
 
-  await page.getByLabel(/does not say what the claim says/).check();
-  await page.getByRole("button", { name: "Check my answer" }).click();
-  await cont();
-
   // The first answer is still on record, unchanged by anything since.
   await expect(page.getByText(/Your first answer:.*Quite far.*\(Very\)/)).toBeVisible();
   await page.getByLabel(/It tells me where to look/).check();
@@ -57,13 +53,19 @@ test("M04 is completable, with claim-level feedback and a real before/after", as
 
   // Transfer: no hints, different case; the wrong "doubled" passage is a plausible trap.
   await expect(page.getByRole("button", { name: "Need a hint?" })).toHaveCount(0);
-  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", status: "Incorrect", action: "Correct" });
+  // The reason comes before any feedback, and the explanation step shows it back unchanged.
+  await auditClaim(page, /Repair café visits doubled/, { passage: "report-visits", status: "Incorrect", action: "Correct", reason: "Written before feedback." });
+  await expect(page.getByLabel(/Before you check/)).not.toBeEditable();
   await cont();
-
-  await page.getByRole("button", { name: "Skip writing and see the criteria" }).click();
+  await expect(page.getByText("Written before feedback.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Skip writing and see the criteria" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await page.getByLabel(/Says what an accurate version would state/).check();
   await cont();
 
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your own assessment" })).toBeVisible();
+  await expect(page.getByText("you ticked 1 of 3 criteria")).toBeVisible();
 });
 
 test("claims and sources work by keyboard", async ({ page }) => {

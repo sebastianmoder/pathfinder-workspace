@@ -1,7 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import type { Choice, Hint } from "@/content/types";
+import type { EvidenceResult } from "@/lib/evidence";
+import { useSession } from "@/lib/session/session";
+import { seededShuffle } from "@/lib/shuffle";
 import { t } from "@/lib/i18n/en";
 import { useHintLadder } from "./hint-ladder";
 
@@ -19,10 +22,15 @@ interface Props {
   initialChoiceId?: string;
   initialConfidence?: number;
   onCommit: (choiceId: string, confidence: number | undefined) => void;
-  onContinue: () => void;
+  onEvidence?: (result: EvidenceResult) => void;
+  /** Without this, no Continue button appears, for a question that sits inside another step. */
+  onContinue?: () => void;
 }
 
-/** Commit first, then reveal explanations for every option. Retry is always allowed. */
+/**
+ * Commit first, then explain. A weaker answer explains only itself, so a retry still takes thought;
+ * the full comparison follows a sound answer, or at any time through "Show the answer" (PRD §8).
+ */
 export function ChoiceQuestion({
   name,
   prompt,
@@ -33,24 +41,29 @@ export function ChoiceQuestion({
   initialChoiceId,
   initialConfidence,
   onCommit,
+  onEvidence,
   onContinue,
 }: Props) {
   // Next keeps recent pages in the DOM while hidden, and radios with the same name interfere across them.
   const group = `${useId()}-${name}`;
+  const { orderSeed } = useSession();
+  const ordered = useMemo(() => seededShuffle(choices, orderSeed, name), [choices, orderSeed, name]);
   const [selected, setSelected] = useState<string | undefined>(initialChoiceId);
   const [confidence, setConfidence] = useState<number | undefined>(initialConfidence);
   const [committed, setCommitted] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const ladder = useHintLadder(hints);
 
   const picked = choices.find((c) => c.id === selected);
   const acceptable = picked && (recordOnly || picked.verdict !== "weaker");
+  const showAll = !recordOnly && (revealed || (committed && !!acceptable));
 
   return (
     <div>
       <fieldset disabled={committed && !!acceptable}>
         <legend className="text-xl font-bold">{prompt}</legend>
         <div className="mt-4 space-y-2">
-          {choices.map((c) => (
+          {ordered.map((c) => (
             <label key={c.id} className="option">
               <input
                 type="radio"
@@ -91,6 +104,7 @@ export function ChoiceQuestion({
             onClick={() => {
               setCommitted(true);
               onCommit(selected!, confidence);
+              if (!recordOnly) onEvidence?.({ right: picked?.verdict !== "weaker", assisted: ladder.used || revealed });
             }}
             className="btn btn-primary"
           >
@@ -98,7 +112,7 @@ export function ChoiceQuestion({
           </button>
         )}
         {!committed && ladder.button}
-        {committed && acceptable && (
+        {committed && acceptable && onContinue && (
           <button type="button" onClick={onContinue} className="btn btn-primary">
             {t.mission.next}
           </button>
@@ -111,9 +125,9 @@ export function ChoiceQuestion({
         <p role="status" className="mt-4 text-sm">{t.mission.recorded}</p>
       )}
 
-      {committed && !recordOnly && (
+      {showAll && (
         <div role="status" className="mt-5 space-y-2">
-          {choices.map((c) => (
+          {ordered.map((c) => (
             <p key={c.id} className="border-l-4 border-border py-1 pl-3">
               <strong>
                 <span aria-hidden="true" className={c.verdict === "weaker" ? "mark-no" : "mark-yes"}>{VERDICT_MARK[c.verdict]} </span>
@@ -124,6 +138,23 @@ export function ChoiceQuestion({
             </p>
           ))}
           {!acceptable && <p className="font-bold">{t.mission.retryChoice}</p>}
+        </div>
+      )}
+
+      {!showAll && committed && !recordOnly && picked && (
+        <div role="status" className="mt-5 space-y-2">
+          <p className="border-l-4 border-border py-1 pl-3">
+            <strong>
+              <span aria-hidden="true" className="mark-no">{VERDICT_MARK.weaker} </span>
+              {picked.label} {t.mission.verdict.weaker}.
+            </strong>
+            <br />
+            {picked.explanation}
+          </p>
+          <p className="font-bold">{t.mission.retryChoice}</p>
+          <button type="button" onClick={() => setRevealed(true)} className="btn btn-secondary btn-small">
+            {t.mission.showAnswer}
+          </button>
         </div>
       )}
     </div>

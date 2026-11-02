@@ -9,6 +9,7 @@ export function useHintLadder(hints: Hint[]) {
   const [shown, setShown] = useState(0);
   const exhausted = shown >= hints.length;
   return {
+    used: shown > 0,
     button:
       hints.length > 0 ? (
         <button

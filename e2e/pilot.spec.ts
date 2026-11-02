@@ -39,7 +39,7 @@ test("criterion 1: a new learner completes P0 to P5 with no account", async ({ p
   // P5.
   await page.getByRole("link", { name: "See your session summary" }).click();
   await expect(page.locator("strong", { hasText: "Open the source and read the relevant part" })).toBeVisible();
-  await expect(page.getByText(/It is probably correct\. \(Very\)/)).toBeVisible();
+  await expect(page.getByText(/It is probably correct.*\(Very\)/)).toBeVisible();
   await expect(page.getByText(/It tells me little; I need evidence\. \(Somewhat\)/)).toBeVisible();
   for (const code of ["HAZEL-BEACON-47", "CEDAR-COMPASS-37", "ALDER-THIMBLE-26", "BIRCH-HARBOUR-58"])
     await expect(page.locator("li").getByText(code).locator("visible=true")).toBeVisible();
@@ -154,7 +154,7 @@ test("regression: pages kept alive in the background do not interfere with the v
   await page.getByRole("link", { name: /Open mission.*Inside the Machine/ }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByLabel("It is probably correct.").check();
+  await page.getByLabel(/It is probably correct/).check();
 
   await page.getByRole("link", { name: "Mission map", exact: true }).click();
   await page.getByRole("link", { name: /Open mission.*The Evidence Bureau/ }).click();
@@ -167,7 +167,7 @@ test("regression: pages kept alive in the background do not interfere with the v
   // Back in M01, the earlier selection is intact, and ids in the document are unique.
   await page.getByRole("link", { name: "Mission map", exact: true }).click();
   await page.getByRole("link", { name: /Open mission.*Inside the Machine/ }).click();
-  await expect(page.getByLabel("It is probably correct.")).toBeChecked();
+  await expect(page.getByLabel(/It is probably correct/)).toBeChecked();
   const duplicates = await page.evaluate(() => {
     const ids = [...document.querySelectorAll("[id]")].map((e) => e.id);
     return ids.filter((id, i) => ids.indexOf(id) !== i);

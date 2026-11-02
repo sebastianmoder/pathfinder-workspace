@@ -9,9 +9,9 @@ import type { AuditSpec, Choice, Mission } from "../../types";
 const approachQuestion =
   "The newsletter goes out today. An AI draft of the lead article reads well and cites its sources. What is the most useful thing to do with the time you have?";
 const approachChoices: Choice[] = [
-  { id: "send", label: "Send it. It reads well and it has citations.", verdict: "weaker", explanation: "Good writing and citations do not show that it is right. Several of the draft's claims did not survive a check." },
-  { id: "check", label: "Check the specific claims against the sources, then keep, fix or qualify them.", verdict: "correct", explanation: "This takes less time than rewriting, and it keeps what was accurate. Some of the draft was fine, and other parts only needed qualifying." },
-  { id: "scrap", label: "Scrap it and write something from memory.", verdict: "weaker", explanation: "That throws away accurate work, and writing from memory is no better checked than the draft." },
+  { id: "send", label: "Send it, since it reads well and has citations, and print a correction later if needed.", verdict: "weaker", explanation: "Good writing and citations do not show that it is right. Several of the draft's claims did not survive a check, and a correction doesn't reach everyone who read the error." },
+  { id: "check", label: "Check its claims against the sources, then keep, fix or qualify each one.", verdict: "correct", explanation: "This takes less time than rewriting, and it keeps what was accurate. Some of the draft was fine, and other parts only needed qualifying." },
+  { id: "scrap", label: "Scrap it and write a shorter piece from memory, so that you know what it says.", verdict: "weaker", explanation: "That throws away accurate work, and writing from memory is no better checked than the draft." },
 ];
 
 const audit: AuditSpec = {
@@ -143,7 +143,7 @@ export const t01: Mission = {
     "You are the editor of the newsletter at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted the lead article about a digital skills course, and a colleague has added an argument for expanding it.",
   approxMinutes: 9,
   meta: {
-    version: "1.0",
+    version: "1.1",
     reviewedOn: "2026-11-02",
     reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
     sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale.", "The next-course date (12 January 2027) is in the fictional case; move it forward if the pilot runs past that date."],
@@ -175,9 +175,9 @@ export const t01: Mission = {
       title: "Check the argument",
       prompt: "Your colleague adds: “People felt more confident after the course, so we should double its size next year.” Which unstated assumption matters most?",
       choices: [
-        { id: "a", label: "That a course twice the size would get the same result, and that enough people want it and enough tutors can run it.", verdict: "correct", explanation: "The evidence is about one course, and only about those who finished and answered. Doubling needs all of this to hold, and the argument states none of it." },
+        { id: "a", label: "That a course twice the size would get the same result, with enough learners and tutors.", verdict: "correct", explanation: "The evidence is about one course, and only about those who finished and answered. Doubling needs all of this to hold, and the argument states none of it." },
         { id: "b", label: "That the newsletter will be read by people who want to enrol.", verdict: "weaker", explanation: "This matters for publicity, but the argument for doubling does not rest on it." },
-        { id: "c", label: "That confidence can never be measured.", verdict: "weaker", explanation: "Self-reported confidence was measured. The argument's gap is in going from that result to a larger course." },
+        { id: "c", label: "That self-reported confidence can never be measured reliably, so the questionnaire can't be used.", verdict: "weaker", explanation: "Self-reported confidence was measured, and the argument relies on that result. Its gap is in going from that result to a larger course." },
       ],
     },
     {
@@ -209,9 +209,54 @@ export const t01: Mission = {
       id: "debrief",
       takeaway: "Check the claims and then check the argument built on them. An accurate fact can still be asked to carry more than it can bear.",
       skills: [
-        "Auditing a new draft without hints",
-        "Keeping what the evidence supported",
-        "Finding the assumption behind an argument",
+        {
+          id: "audit-new-draft",
+          label: "Auditing a new draft without hints",
+          kind: "transfer",
+          items: audit.claims.flatMap((c) => [`audit/${c.id}/evidence`, `audit/${c.id}/status`]),
+          practice: {
+            prompt: "A draft says “Everyone who joined the walking group now walks every day [Group survey]”. The survey says 18 of the 25 members who replied, out of 60, walk most days. What is the claim's status?",
+            choices: [
+              { id: "a", label: "Unsupported, because a survey can't say anything about members.", verdict: "weaker", explanation: "A survey can support claims about those who answered. The trouble is how far this claim goes beyond them." },
+              { id: "b", label: "Misleading: the finding is real, but “everyone” and “every day” overstate it.", verdict: "correct", explanation: "There is a real finding behind it, but “everyone” and “every day” go well beyond the 18 of 25 who replied and said “most days”." },
+              { id: "c", label: "Outdated, since habits may have changed since then.", verdict: "weaker", explanation: "Nothing newer replaces the survey. The problem is what the claim says about it." },
+            ],
+          },
+        },
+        {
+          id: "keep-supported",
+          label: "Keeping what the evidence supported",
+          kind: "transfer",
+          items: ["enrolled", "next"].map((id) => `audit/${id}/action`),
+          practice: {
+            prompt: "An AI draft says “The hall holds 120 people [Fire certificate, 2026]”. The 2026 certificate says the hall's maximum capacity is 120. What should happen to the claim?",
+            choices: [
+              { id: "a", label: "Qualify it by adding that the figure came from an AI draft.", verdict: "weaker", explanation: "You have checked it, and it holds. A warning would suggest a doubt that the evidence doesn't support." },
+              { id: "b", label: "Remove it, as readers can contact the hall themselves.", verdict: "weaker", explanation: "The claim is accurate and useful, so there's no reason to lose it." },
+              { id: "c", label: "Retain it, as the current certificate says exactly this.", verdict: "correct", explanation: "The current source says exactly this. Justified trust matters as much as justified doubt." },
+            ],
+          },
+        },
+        {
+          id: "find-assumption",
+          label: "Finding the assumption behind an argument",
+          kind: "transfer",
+          items: ["assumption"],
+          practice: {
+            prompt: "A manager says: “The evening class was full last term, so we should run three of them next term.” Which assumption matters most?",
+            choices: [
+              { id: "a", label: "That the evening class was full last term, with a waiting list for places.", verdict: "weaker", explanation: "That the class was full is stated. A waiting list would be useful to know, but tripling needs much more." },
+              { id: "b", label: "That demand and staffing would stretch to three classes.", verdict: "correct", explanation: "One full class doesn't show that there are enough learners or tutors for three, and the argument never says so." },
+              { id: "c", label: "That the building will be open in the evenings during the whole of next term.", verdict: "weaker", explanation: "This needs checking, but it applies to one class as much as three, so it isn't what the jump depends on." },
+            ],
+          },
+        },
+        {
+          id: "note-to-colleague",
+          label: "Separating what evidence shows from what it does not",
+          kind: "reasoning",
+          items: ["note"],
+        },
       ],
       nextMissionId: null,
     },

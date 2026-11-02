@@ -104,7 +104,7 @@ export const m05: Mission = {
     "You are advising the Riverside Learning Commons, a fictional community learning centre, on a proposal to replace a volunteer homework drop-in with an AI tutor. You will take a position, test it in a conversation, and then decide whether it still stands.",
   approxMinutes: 14,
   meta: {
-    version: "1.0",
+    version: "1.1",
     reviewedOn: "2026-11-02",
     reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
     sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
@@ -332,9 +332,9 @@ export const m05: Mission = {
       title: "A new case, with no hints",
       prompt: "A town's transport office says: “Most riders have a smartphone, so an AI chatbot can replace the bus information desk and will serve everyone.” Which missing premise does this argument depend on most?",
       choices: [
-        { id: "a", label: "That having a smartphone means a rider can and will use the chatbot, and that “most” is close enough to “everyone”.", verdict: "correct", explanation: "The conclusion says “everyone”, but the reason only covers most people, and only says they own a phone. Those two gaps are what the argument leaves unsaid." },
-        { id: "b", label: "That the buses run on time.", verdict: "weaker", explanation: "Punctuality matters to riders, but the argument about replacing the desk does not depend on it." },
-        { id: "c", label: "That AI chatbots can never answer questions correctly.", verdict: "weaker", explanation: "That would be an objection to the argument, and an overstated one. A premise is something the argument itself needs." },
+        { id: "a", label: "That having a smartphone means a rider can and will use the chatbot.", verdict: "correct", explanation: "The conclusion says “everyone”, but the reason only covers most people, and only says they own a phone. Getting from one to the other is what the argument leaves unsaid." },
+        { id: "b", label: "That the chatbot will cost less than staff at the desk.", verdict: "weaker", explanation: "Cost may be why the office wants this, but the argument as stated says nothing about money. Its conclusion is that the chatbot will serve everyone." },
+        { id: "c", label: "That its answers are as accurate as the desk staff's.", verdict: "defensible", explanation: "This is a real gap, and worth testing. But the office's stated reason is smartphones, so the step it leans on most is from owning a phone to being served." },
       ],
     },
     {
@@ -358,10 +358,52 @@ export const m05: Mission = {
       id: "debrief",
       takeaway: "A position is only as strong as what it assumes and what it can answer. Ask what would have to be true, and what would change your mind.",
       skills: [
-        "Testing a position against an opposing case",
-        "Separating reasons, evidence, objections and assumptions",
-        "Stating what evidence would change your view",
-        "Finding a missing premise in a new case without hints",
+        {
+          id: "question-the-case",
+          label: "Uncovering what a case leaves out by questioning it",
+          kind: "action",
+          items: ["selection", "errors", "purpose", "privacy"].map((id) => `forge/${id}`),
+        },
+        {
+          id: "argument-parts",
+          label: "Separating reasons, evidence, objections and assumptions",
+          kind: "action",
+          items: ["shrink", "hours", "trial", "numbers", "wrong", "terms", "credit", "homework", "faster"].map((id) => `map/${id}`),
+          practice: {
+            prompt: "Someone argues: “The new timetable will cut queues, because the pilot branch's queues fell by a third.” Which of these is an unstated assumption of that argument?",
+            choices: [
+              { id: "a", label: "That the pilot's queues fell by a third.", verdict: "weaker", explanation: "The argument states this openly. It is the evidence, so it isn't unstated." },
+              { id: "b", label: "That other branches would respond as the pilot branch did.", verdict: "correct", explanation: "The argument needs this to get from one branch to all of them, and it never says so." },
+              { id: "c", label: "That the new timetable will cut queues.", verdict: "weaker", explanation: "This is the conclusion. The assumption is what connects the evidence to it." },
+            ],
+          },
+        },
+        {
+          id: "own-argument",
+          label: "Writing a position that answers its strongest objection",
+          kind: "reasoning",
+          items: ["argument"],
+        },
+        {
+          id: "missing-premise",
+          label: "Finding a missing premise in a new case without hints",
+          kind: "transfer",
+          items: ["transfer"],
+          practice: {
+            prompt: "A school says: “Pupils who use the homework app get better marks, so giving it to every pupil will raise marks across the school.” Which missing premise does this depend on most?",
+            choices: [
+              { id: "a", label: "That the app causes the better marks.", verdict: "correct", explanation: "Pupils who choose the app may already do better. The argument needs the app to be the cause, and it never shows that." },
+              { id: "b", label: "That teachers will all set homework through the app.", verdict: "weaker", explanation: "This could matter in practice, but the argument is about marks rising, and it doesn't rest on this first." },
+              { id: "c", label: "That licences are affordable.", verdict: "weaker", explanation: "Cost is a fair question to ask about the plan, but it isn't the gap in the reasoning." },
+            ],
+          },
+        },
+        {
+          id: "change-your-mind",
+          label: "Stating what evidence would change your view",
+          kind: "reasoning",
+          items: ["strengthen"],
+        },
       ],
       nextMissionId: "t01-transfer",
     },

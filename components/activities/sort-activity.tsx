@@ -2,13 +2,22 @@
 
 import { useId, useState } from "react";
 import type { Step } from "@/content/types";
+import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { useHintLadder } from "../hint-ladder";
 
 type SortStep = Extract<Step, { kind: "sort" }>;
 
 /** Select-and-place: each item gets a labelled <select>. No dragging needed. */
-export function SortActivity({ step, onContinue }: { step: SortStep; onContinue: () => void }) {
+export function SortActivity({
+  step,
+  onEvidence,
+  onContinue,
+}: {
+  step: SortStep;
+  onEvidence: (item: string, result: EvidenceResult) => void;
+  onContinue: () => void;
+}) {
   const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
@@ -55,7 +64,12 @@ export function SortActivity({ step, onContinue }: { step: SortStep; onContinue:
         <button
           type="button"
           disabled={!allPlaced}
-          onClick={() => setChecked(true)}
+          onClick={() => {
+            for (const i of step.items) {
+              onEvidence(itemKey(step.id, i.id), { right: placed[i.id] === i.categoryId, assisted: ladder.used });
+            }
+            setChecked(true);
+          }}
           className="btn btn-primary"
         >
           {t.mission.commit}

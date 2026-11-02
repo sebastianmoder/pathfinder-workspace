@@ -37,7 +37,9 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
       missions: rows,
       labels: {
         takeaway: t.summary.takeaway,
-        skills: t.summary.skills,
+        shown: t.summary.shown,
+        selfAssessed: t.summary.selfAssessed,
+        review: t.summary.review,
         before: t.summary.before,
         after: t.summary.after,
         notFinished: t.summary.notFinished,
@@ -98,11 +100,13 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
                 {m.takeaway && (
                   <div><dt className="font-semibold">{t.summary.takeaway}</dt><dd>{m.takeaway}</dd></div>
                 )}
-                {m.skills.length > 0 && (
-                  <div>
-                    <dt className="font-semibold">{t.summary.skills}</dt>
-                    <dd><ul className="list-disc pl-5">{m.skills.map((s) => <li key={s}>{s}</li>)}</ul></dd>
-                  </div>
+                {([["shown", m.shown], ["selfAssessed", m.selfAssessed], ["review", m.review]] as const).map(([key, labels]) =>
+                  labels.length > 0 ? (
+                    <div key={key}>
+                      <dt className="font-semibold">{t.summary[key]}</dt>
+                      <dd><ul className="list-disc pl-5">{labels.map((s) => <li key={s}>{s}</li>)}</ul></dd>
+                    </div>
+                  ) : null,
                 )}
               </dl>
             </section>

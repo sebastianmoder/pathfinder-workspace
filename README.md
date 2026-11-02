@@ -23,6 +23,7 @@ pnpm lint
 | `content/passwords.ts` | Password registry. Append-only once learners hold codes |
 | `lib/i18n/en.ts` | All interface wording |
 | `components/activities/` | The reusable interaction patterns |
+| `lib/evidence.ts` | What the learner did this visit, which the debrief reads. Each debrief skill in the content names the items that show it |
 | `app/globals.css` | Design tokens and shared classes (`.mat`, `.sheet`, `.claim`, `.btn`, `.ruler`) |
 
 ## Adding a module

@@ -8,9 +8,9 @@ import type { AuditSpec, Choice, Mission } from "../../types";
 
 const trustQuestion = "A claim in an AI-written briefing has a citation attached. How far should that make you trust it?";
 const trustChoices: Choice[] = [
-  { id: "a", label: "Quite far. A cited claim can usually be relied on.", verdict: "weaker", explanation: "A citation only tells you where to look. In this briefing, a real source was attached to a claim it does not support." },
+  { id: "a", label: "Quite far, if the source is real and on topic.", verdict: "weaker", explanation: "A citation only tells you where to look. In this briefing, a real source on the right topic was attached to a claim it does not support." },
   { id: "b", label: "It tells me where to look. I still need to read the passage.", verdict: "correct", explanation: "This matches what the audit showed: some cited claims held up exactly and others did not. The passage decides, not the citation." },
-  { id: "c", label: "Not at all. I should disregard AI-written briefings.", verdict: "weaker", explanation: "Several claims in this briefing were accurate and were worth keeping. Justified trust matters as much as justified doubt." },
+  { id: "c", label: "Not at all. AI-written briefings should be rewritten from scratch using the sources.", verdict: "weaker", explanation: "Several claims in this briefing were accurate and were worth keeping. Justified trust matters as much as justified doubt." },
 ];
 
 const audit: AuditSpec = {
@@ -190,6 +190,7 @@ const transferAudit: AuditSpec = {
     },
   ],
   briefing: [["Summary for the Northgate grant application: ", { claimId: "doubled" }]],
+  reasonPrompt: "In a sentence or two, why does the passage you chose decide this, and what should the application say?",
   claims: [
     {
       id: "doubled",
@@ -213,7 +214,7 @@ export const m04: Mission = {
     "You are the researcher at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted a briefing for tomorrow's board meeting on the Saturday Homework Club. You have the source pack, and your job is to audit the draft.",
   approxMinutes: 14,
   meta: {
-    version: "1.0",
+    version: "1.1",
     reviewedOn: "2026-11-02",
     reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
     sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
@@ -229,25 +230,15 @@ export const m04: Mission = {
       kind: "refresher",
       id: "refresher",
       title: "A quick refresher",
-      body: "AI systems produce text that fits patterns in what they learned, and that text reads fluently whether or not it is right. A claim is a statement that could be checked. Evidence is what lets you check it: a specific passage you have read, not just the name of a source.",
+      body: "AI systems produce text that fits patterns in what they learned, and that text reads fluently whether or not it is right. A claim is a statement that could be checked. Evidence is what lets you check it.",
     },
     { kind: "initialJudgment", id: "initial", prompt: trustQuestion, choices: trustChoices },
     {
       kind: "claimAudit",
       id: "audit",
       title: "Audit the briefing",
-      intro: "Select each underlined claim in turn. You can check as often as you like, and moving on is always allowed.",
+      intro: "Select each underlined claim in turn. Evidence here means a specific passage you have read, not just the name of a source. You can check as often as you like, and moving on is always allowed.",
       audit,
-    },
-    {
-      kind: "quiz",
-      id: "citation",
-      prompt: "The claim about grades cited the Regional Education Review. The Review is real and is about homework clubs. What was the problem?",
-      choices: [
-        { id: "a", label: "Nothing. The source is real and on topic, so the citation holds.", verdict: "weaker", explanation: "Being real and on topic is not enough. The passage has to say what the claim says." },
-        { id: "b", label: "The passage does not say what the claim says.", verdict: "correct", explanation: "The Review reports more time on homework and says it does not establish an effect on grades." },
-        { id: "c", label: "The source is too old to use.", verdict: "weaker", explanation: "Age was the problem with the funding letter. The Review's date is not the issue here." },
-      ],
     },
     {
       kind: "revision",
@@ -267,7 +258,8 @@ export const m04: Mission = {
     {
       kind: "openResponse",
       id: "explain",
-      prompt: "In your own words, explain why the passage you chose does or does not support the Northgate claim, and what the application should say instead.",
+      prompt: "Why does the passage you chose decide the Northgate claim, and what should the application say instead?",
+      priorReason: { stepId: "transfer", claimId: "doubled" },
       rubric: {
         criteria: [
           { id: "passage", text: "Refers to the specific passage about visits, not just to the report as a whole." },
@@ -285,10 +277,68 @@ export const m04: Mission = {
       id: "debrief",
       takeaway: "A citation tells you where to look. Read the passage, check the date and the numbers, then decide whether to keep, qualify, correct or remove the claim.",
       skills: [
-        "Tracing claims to specific passages",
-        "Keeping claims that the evidence supports",
-        "Spotting a real citation that does not support its claim",
-        "Applying the method to a new case without hints",
+        {
+          id: "trace-to-passage",
+          label: "Tracing claims to specific passages",
+          kind: "action",
+          items: audit.claims.map((c) => `audit/${c.id}/evidence`),
+          practice: {
+            prompt: "A report says a town's recycling rate “rose to 52%” and cites a council report. The report has three passages: one gives the 2025 recycling rate, one gives the budget for bins, and one quotes a councillor praising recycling. Where should you look first?",
+            choices: [
+              { id: "a", label: "The councillor's quote, because a named official is likely to have the right figure.", verdict: "weaker", explanation: "A quote can be useful, but the claim is about a rate, and a passage gives that rate directly." },
+              { id: "b", label: "The passage giving the rate.", verdict: "correct", explanation: "Go to the passage that speaks to the specific claim, then compare the wording and the number." },
+              { id: "c", label: "The whole report, since a citation to the report as a whole is good enough here.", verdict: "weaker", explanation: "A citation only tells you where to look. The check happens in the passage." },
+            ],
+          },
+        },
+        {
+          id: "justified-trust",
+          label: "Keeping claims that the evidence supports",
+          kind: "action",
+          items: ["attendance", "growth", "tuesday"].map((id) => `audit/${id}/action`),
+          practice: {
+            prompt: "An AI draft says “membership grew by about 20%”. The source says membership rose from 500 to 604. What should you do with the claim?",
+            choices: [
+              { id: "a", label: "Retain it, since the figures support “about 20%”.", verdict: "correct", explanation: "104 on a base of 500 is about 21%, so “about 20%” is a fair summary. Keeping a sound claim is good judgment." },
+              { id: "b", label: "Remove it; AI figures need a rewrite.", verdict: "weaker", explanation: "It has been checked and it holds. Where it came from no longer matters." },
+              { id: "c", label: "Correct it to “about 21%”.", verdict: "weaker", explanation: "“About 20%” is fair, and it says that it is rounded. Nothing here needs correcting." },
+            ],
+          },
+        },
+        {
+          id: "citation-mismatch",
+          label: "Spotting a real citation that does not support its claim",
+          kind: "action",
+          items: ["audit/research/status"],
+          practice: {
+            prompt: "A draft says “Studies prove that tutoring doubles reading scores” and cites a real study. The study reports that tutored pupils read more often, and did not test reading scores. What is the problem?",
+            choices: [
+              { id: "a", label: "The study was probably done in another country.", verdict: "weaker", explanation: "Nothing here is about the country. The problem is in what the study measured." },
+              { id: "b", label: "One study cannot prove anything, so a claim based on a single study always fails.", verdict: "weaker", explanation: "Overstating one study is a concern, but a single study can still support a claim that matches it." },
+              { id: "c", label: "The study never tested reading scores, so it can't back this.", verdict: "correct", explanation: "The source is real and on topic, but it never tested reading scores, so it can't back the claim." },
+            ],
+          },
+        },
+        {
+          id: "new-case",
+          label: "Applying the method to a new case without hints",
+          kind: "transfer",
+          items: ["transfer/doubled/evidence", "transfer/doubled/status"],
+          practice: {
+            prompt: "A summary says “Bookings tripled in 2025”. The annual report says bookings rose from 300 to 450, and that the number of rooms tripled, from 2 to 6. What is the status of the claim?",
+            choices: [
+              { id: "a", label: "Supported, because “tripled” appears in the same report.", verdict: "weaker", explanation: "The word is there, but it describes rooms. Read which number each passage is about." },
+              { id: "b", label: "Incorrect: 300 to 450 is not tripling.", verdict: "correct", explanation: "300 to 450 is a 50% rise. The evidence contradicts “tripled”, and the real figures can still be stated." },
+              { id: "c", label: "Outdated, since newer figures are likely to exist.", verdict: "weaker", explanation: "The claim is about 2025, and nothing newer replaces the report. The problem is the number." },
+            ],
+          },
+        },
+        {
+          id: "explain-reason",
+          label: "Explaining why evidence decides a claim",
+          kind: "reasoning",
+          items: ["explain"],
+        },
       ],
       nextMissionId: "m05-argument",
     },

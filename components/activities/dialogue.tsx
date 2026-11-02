@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef } from "react";
 import type { DialogueSpec, Step } from "@/content/types";
 import { startNodeId, walk, type Walk } from "@/lib/dialogue";
+import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { SourceDrawer } from "./claim-audit";
@@ -127,11 +128,13 @@ export function DialogueActivity({
   missionId,
   step,
   initialChoiceId,
+  onEvidence,
   onContinue,
 }: {
   missionId: string;
   step: DialogueStep;
   initialChoiceId: string | undefined;
+  onEvidence: (item: string, result: EvidenceResult) => void;
   onContinue: () => void;
 }) {
   const session = useSession();
@@ -178,7 +181,16 @@ export function DialogueActivity({
       </div>
 
       {path.ended && (
-        <button type="button" onClick={onContinue} className={`mt-6 ${primary}`}>{t.dialogue.next}</button>
+        <button
+          type="button"
+          onClick={() => {
+            for (const d of spec.discoveries) onEvidence(itemKey(step.id, d.id), { right: path.discovered.includes(d.id) });
+            onContinue();
+          }}
+          className={`mt-6 ${primary}`}
+        >
+          {t.dialogue.next}
+        </button>
       )}
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Step } from "@/content/types";
+import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { useHintLadder } from "../hint-ladder";
@@ -19,7 +20,17 @@ interface MapState {
 const primary = "btn btn-primary";
 
 /** Select-and-place: choose a card, then a slot. Nothing needs dragging. */
-export function ArgumentMap({ missionId, step, onContinue }: { missionId: string; step: MapStep; onContinue: () => void }) {
+export function ArgumentMap({
+  missionId,
+  step,
+  onEvidence,
+  onContinue,
+}: {
+  missionId: string;
+  step: MapStep;
+  onEvidence: (item: string, result: EvidenceResult) => void;
+  onContinue: () => void;
+}) {
   const session = useSession();
   const state = (session.progress(missionId).stepState[step.id] as MapState | undefined) ?? {
     placed: {},
@@ -144,7 +155,20 @@ export function ArgumentMap({ missionId, step, onContinue }: { missionId: string
       {ladder.list}
       <div className="mt-4 flex flex-wrap gap-3">
         {!state.checked && ladder.button}
-        <button type="button" disabled={!allPlaced} onClick={() => set({ checked: true })} className={primary}>{t.argumentMap.check}</button>
+        <button
+          type="button"
+          disabled={!allPlaced}
+          onClick={() => {
+            for (const c of step.cards) {
+              const slot = state.placed[c.id];
+              onEvidence(itemKey(step.id, c.id), { right: slot === c.slotId || !!c.defensibleSlotIds?.includes(slot), assisted: ladder.used });
+            }
+            set({ checked: true });
+          }}
+          className={primary}
+        >
+          {t.argumentMap.check}
+        </button>
         {state.checked && (
           <button type="button" onClick={onContinue} className={primary}>{t.mission.next}</button>
         )}

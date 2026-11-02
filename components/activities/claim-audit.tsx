@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useId, useRef, useState } from "react";
 import type { AuditSpec, Claim, ClaimAction, ClaimStatus, Source } from "@/content/types";
 import { gradeClaim, isComplete, NO_EVIDENCE, type ClaimAnswer } from "@/lib/audit";
+import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 
@@ -32,10 +33,11 @@ interface Props {
   audit: AuditSpec;
   /** Show the annotated final briefing after the last claim. */
   showFinal: boolean;
+  onEvidence: (item: string, result: EvidenceResult) => void;
   onContinue: () => void;
 }
 
-export function ClaimAudit({ missionId, stepId, audit, showFinal, onContinue }: Props) {
+export function ClaimAudit({ missionId, stepId, audit, showFinal, onEvidence, onContinue }: Props) {
   const session = useSession();
   const single = audit.claims.length === 1 ? audit.claims[0].id : null;
   const state = (session.progress(missionId).stepState[stepId] as AuditState | undefined) ?? {
@@ -179,17 +181,24 @@ export function ClaimAudit({ missionId, stepId, audit, showFinal, onContinue }: 
                 sources={audit.sources}
                 answer={state.answers[claim.id] ?? {}}
                 showFeedback={state.showFeedback.includes(claim.id)}
+                reasonPrompt={audit.reasonPrompt}
+                reasonLocked={state.done.includes(claim.id)}
                 onChange={updateAnswer}
                 onOpenSources={() => {
                   pendingFocus.current = true;
                   set({ view: "sources" });
                 }}
-                onCheck={() =>
+                onCheck={(assisted) => {
+                  const grade = gradeClaim(claim, state.answers[claim.id] ?? {});
+                  const key = (field: string) => itemKey(stepId, claim.id, field);
+                  onEvidence(key("evidence"), { right: grade.evidence, assisted });
+                  onEvidence(key("status"), { right: grade.status, assisted });
+                  onEvidence(key("action"), { right: grade.action !== "weaker", assisted });
                   set({
                     done: state.done.includes(claim.id) ? state.done : [...state.done, claim.id],
                     showFeedback: [...state.showFeedback, claim.id],
-                  })
-                }
+                  });
+                }}
               />
             ) : (
               <p className="rounded-lg border border-border bg-surface p-4">{t.audit.selectClaim}</p>
@@ -243,6 +252,8 @@ function JudgmentPanel({
   sources,
   answer,
   showFeedback,
+  reasonPrompt,
+  reasonLocked,
   onChange,
   onOpenSources,
   onCheck,
@@ -251,12 +262,16 @@ function JudgmentPanel({
   sources: Source[];
   answer: ClaimAnswer;
   showFeedback: boolean;
+  reasonPrompt?: string;
+  /** Once feedback has been seen, the reason stays as it was written before it. */
+  reasonLocked: boolean;
   onChange: (patch: Partial<ClaimAnswer>) => void;
   onOpenSources: () => void;
-  onCheck: () => void;
+  onCheck: (assisted: boolean) => void;
 }) {
   const group = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const [hintShown, setHintShown] = useState(false);
+  const needsReason = !!reasonPrompt && !reasonLocked;
   const linked = sources.flatMap((s) => s.passages.map((p) => ({ ...p, source: s }))).find((p) => p.id === answer.evidence);
 
   return (
@@ -304,8 +319,32 @@ function JudgmentPanel({
         </div>
       </fieldset>
 
+      {reasonPrompt && (
+        <div className="mt-4">
+          <label htmlFor={`${group}-reason`} className="font-bold">{t.audit.reasonHeading}: {reasonPrompt}</label>
+          <textarea
+            id={`${group}-reason`}
+            rows={3}
+            value={answer.reason ?? ""}
+            readOnly={reasonLocked}
+            onChange={(e) => onChange({ reason: e.target.value })}
+            className="mt-1 w-full rounded border border-border bg-background px-3 py-2"
+          />
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button type="button" disabled={!isComplete(answer)} onClick={onCheck} className={primary}>{t.audit.checkClaim}</button>
+        <button
+          type="button"
+          disabled={!isComplete(answer) || (needsReason && !answer.reason?.trim())}
+          onClick={() => onCheck(hintShown)}
+          className={primary}
+        >
+          {t.audit.checkClaim}
+        </button>
+        {needsReason && (
+          <button type="button" disabled={!isComplete(answer)} onClick={() => onCheck(hintShown)} className={secondary}>{t.audit.checkWithoutReason}</button>
+        )}
         {claim.hint && !hintShown && (
           <button type="button" onClick={() => setHintShown(true)} className={secondary}>{t.audit.hint}</button>
         )}

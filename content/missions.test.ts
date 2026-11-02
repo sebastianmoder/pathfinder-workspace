@@ -3,7 +3,8 @@ import { missions } from "./missions";
 import { modules } from "./journey";
 import { passwords } from "./passwords";
 import { hasCycle, reachableNodes } from "@/lib/dialogue";
-import { buildModel, predict } from "@/lib/toy-model";
+import { evidenceItems } from "@/lib/evidence";
+import { askMachine, goalMet } from "@/lib/sandbox";
 import type { AuditSpec, Choice, Step } from "./types";
 
 const REQUIRED_KINDS: Step["kind"][] = [
@@ -139,11 +140,39 @@ describe.each(missions)("mission $id", (mission) => {
       }
   });
 
-  it("toy model needs at least two training sets and a reachable minRuns", () => {
+  it("fault traces point at real stages, with an explanation", () => {
     for (const s of mission.steps)
-      if (s.kind === "toyModel") {
-        expect(s.corpora.length).toBeGreaterThanOrEqual(2);
-        expect(s.minRuns).toBeLessThanOrEqual(s.corpora.length);
+      if (s.kind === "faultTrace") {
+        const stages = s.stages.map((x) => x.id);
+        for (const c of s.cases) {
+          expect(stages, c.id).toContain(c.stageId);
+          expect(c.explanation.trim(), c.id).not.toBe("");
+        }
+      }
+  });
+
+  it("every debrief skill rests on work this mission can actually record", () => {
+    const debrief = mission.steps.at(-1);
+    if (debrief?.kind !== "debrief") throw new Error("no debrief");
+    const possible = new Set(mission.steps.flatMap(evidenceItems));
+    expect(debrief.skills.length).toBeGreaterThan(0);
+    expect(new Set(debrief.skills.map((s) => s.id)).size).toBe(debrief.skills.length);
+    for (const skill of debrief.skills) {
+      expect(skill.items.length, skill.id).toBeGreaterThan(0);
+      for (const item of skill.items) expect(possible, `${skill.id}: ${item}`).toContain(item);
+      for (const c of skill.practice?.choices ?? []) expect(c.explanation.trim(), `${skill.id}/${c.id}`).not.toBe("");
+      if (skill.practice) expect(skill.practice.choices.some((c) => c.verdict === "correct"), skill.id).toBe(true);
+    }
+  });
+
+  it("an open response's earlier reason comes from a real audit claim that asks for one", () => {
+    for (const s of mission.steps)
+      if (s.kind === "openResponse" && s.priorReason) {
+        const { stepId, claimId } = s.priorReason;
+        const source = mission.steps.find((x) => x.id === stepId);
+        const audit = source ? auditOf(source) : null;
+        expect(audit?.reasonPrompt, s.id).toBeTruthy();
+        expect(audit?.claims.map((c) => c.id), s.id).toContain(claimId);
       }
   });
 
@@ -174,18 +203,96 @@ describe("M04 required case types (PRD §7)", () => {
   });
 });
 
-describe("M01 toy model tells the story the mission tells", () => {
+describe("M01 sandbox tells the story the mission tells", () => {
   const m01 = missions.find((m) => m.id === "m01-foundations")!;
-  const toy = m01.steps.find((s) => s.kind === "toyModel");
-  it.each([
-    ["library", "nine"],
-    ["shops", "eight"],
-    ["night", "midnight"],
-    ["closing", "six"],
-  ])("%s training set predicts %s", (id, word) => {
-    if (toy?.kind !== "toyModel") throw new Error("no toy step");
-    const corpus = toy.corpora.find((c) => c.id === id)!;
-    expect(predict(buildModel(corpus.sentences), toy.promptText).ranked[0].word).toBe(word);
+  const step = m01.steps.find((s) => s.kind === "sandbox");
+  if (step?.kind !== "sandbox") throw new Error("no sandbox step");
+  const ids = new Set(step.sentences.map((s) => s.id));
+  const LIBRARY = step.sentences.filter((s) => s.group === "library").map((s) => s.id);
+  const ask = (trained: string[], afterSaying = false) => askMachine(step.sentences, trained, step.promptText, "nine", afterSaying);
+  const task = (id: string) => step.tasks.find((x) => x.id === id)!;
+
+  it("every id it uses exists, and every group and word is usable", () => {
+    for (const s of step.sentences) expect(step.groups.map((g) => g.id), s.id).toContain(s.group);
+    for (const x of step.tasks) {
+      for (const id of [...(x.setup?.on ?? []), ...(x.setup?.reveal ?? []), ...(x.solution ?? []), ...(x.goal.include ?? [])])
+        expect(ids, `${x.id}: ${id}`).toContain(id);
+      if (x.goal.word) expect(step.words, x.id).toContain(x.goal.word);
+      expect(step.words, x.id).toContain(x.truth.word);
+    }
+  });
+
+  it("every word the machine can say from any single group can be predicted", () => {
+    for (const g of step.groups) {
+      const word = ask(step.sentences.filter((s) => s.group === g.id).map((s) => s.id)).word;
+      expect(step.words, g.id).toContain(word);
+    }
+  });
+
+  it("every task that asks for a particular board can be solved by its worked solution", () => {
+    for (const x of step.tasks) {
+      if (x.solution) expect(goalMet(x.goal, ask(x.solution, !!x.say)), x.id).toBe(true);
+      else expect(x.goal.word, `${x.id} needs a worked solution`).toBeUndefined();
+    }
+  });
+
+  it("the library notices give the true answer, by counting alone", () => {
+    expect(ask(LIBRARY).word).toBe("nine");
+    expect(ask(LIBRARY).word).toBe(task("first-run").truth.word);
+  });
+
+  it("one sentence is enough for midnight, as the task says", () => {
+    expect(task("make-midnight").solution).toHaveLength(1);
+    expect(ask(task("make-midnight").solution!).ranked[0].share).toBe(1);
+  });
+
+  it("the machine stays out of date after the news, and after one new notice", () => {
+    const truth = task("tell-it").truth.word;
+    expect(ask(LIBRARY, true).word).not.toBe(truth); // telling it changes nothing
+    expect(ask([...LIBRARY, "new"]).word).not.toBe(truth); // older sentences outnumber the new one
+    expect(ask(["new"]).word).toBe(truth);
+  });
+
+  it("nothing is scored against the worked solution for a task with no learner choice", () => {
+    expect(task("tell-it").solution).toBeUndefined();
+    expect(task("tell-it").evidence).toBe("prediction");
+  });
+});
+
+describe("answer keys don't give themselves away", () => {
+  // Revisions repeat their initial question, so each question counts once.
+  const keyed = missions.flatMap((m) =>
+    m.steps.flatMap((s) => {
+      const fromDebrief = s.kind === "debrief" ? s.skills.flatMap((k) => (k.practice ? [k.practice.choices] : [])) : [];
+      const own = "choices" in s && s.kind !== "revision" ? [s.choices] : [];
+      return [...own, ...fromDebrief].filter((cs) => cs.some((c) => c.verdict === "correct"));
+    }),
+  );
+  const correctLength = (cs: Choice[]) => cs.find((c) => c.verdict === "correct")!.label.length;
+  const share = (test: (cs: Choice[]) => boolean) => keyed.filter(test).length / keyed.length;
+
+  // With three options, chance puts each position at about a third. Either extreme would be a usable tell.
+  it("the correct option is not reliably the longest", () => {
+    expect(keyed.length).toBeGreaterThan(10);
+    expect(share((cs) => correctLength(cs) === Math.max(...cs.map((c) => c.label.length)))).toBeLessThanOrEqual(0.45);
+  });
+
+  it("the correct option is not reliably the shortest", () => {
+    expect(share((cs) => correctLength(cs) === Math.min(...cs.map((c) => c.label.length)))).toBeLessThanOrEqual(0.45);
+  });
+
+  it("the correct option is not reliably the one in the middle", () => {
+    const middle = (cs: Choice[]) => {
+      const lengths = cs.map((c) => c.label.length);
+      return correctLength(cs) !== Math.max(...lengths) && correctLength(cs) !== Math.min(...lengths);
+    };
+    expect(share(middle)).toBeLessThanOrEqual(0.45);
+  });
+
+  it("no question offers an option that is less than a third of the length of the correct one", () => {
+    for (const cs of keyed) {
+      for (const c of cs) expect(c.label.length * 3, c.label).toBeGreaterThanOrEqual(correctLength(cs));
+    }
   });
 });
 

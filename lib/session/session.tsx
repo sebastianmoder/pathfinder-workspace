@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { mergeEvidence, type EvidenceLedger, type EvidenceResult } from "@/lib/evidence";
 
 /** In-memory only. Deliberately never written to storage (PRD §11). */
 export interface Answer {
@@ -14,6 +15,8 @@ interface MissionProgress {
   answers: Record<string, Answer>;
   /** Working state of longer activities, kept for the visit like everything else here. */
   stepState: Record<string, unknown>;
+  /** What the learner did, for the debrief. A restart clears it along with everything else. */
+  evidence: EvidenceLedger;
 }
 
 interface SessionState {
@@ -30,17 +33,27 @@ interface SessionApi {
   recordAttempt(missionId: string, stepId: string, choiceId: string): void;
   goTo(missionId: string, stepIndex: number): void;
   setStepState(missionId: string, stepId: string, value: unknown): void;
+  recordEvidence(missionId: string, item: string, result: EvidenceResult): void;
+  /** Fixes the order of answer options for this visit. Never rendered itself. */
+  orderSeed: number;
   complete(missionId: string): void;
   restart(missionId: string): void;
   orientation: Record<string, string>;
   setOrientation(questionId: string, choiceId: string): void;
 }
 
-const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {} };
+const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {}, evidence: {} };
 const SessionContext = createContext<SessionApi | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SessionState>({ missions: {}, completed: [], orientation: {} });
+  const [orderSeed, setOrderSeed] = useState(0);
+  // Pages are prerendered, so this has to wait until the browser. Answer options only appear after a
+  // learner has moved past a mission's first step, so nobody sees them reorder.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a one-time random value can't be read during render
+    setOrderSeed(Math.floor(Math.random() * 2 ** 31));
+  }, []);
 
   const update = useCallback((missionId: string, fn: (p: MissionProgress) => MissionProgress) => {
     setState((s) => ({
@@ -73,6 +86,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       goTo: (id, stepIndex) => update(id, (p) => ({ ...p, stepIndex })),
       setStepState: (id, stepId, value) =>
         update(id, (p) => ({ ...p, stepState: { ...p.stepState, [stepId]: value } })),
+      recordEvidence: (id, item, result) =>
+        update(id, (p) => ({ ...p, evidence: { ...p.evidence, [item]: mergeEvidence(p.evidence[item], result) } })),
+      orderSeed,
       complete: (id) =>
         setState((s) => (s.completed.includes(id) ? s : { ...s, completed: [...s.completed, id] })),
       restart: (id) => update(id, () => empty),
@@ -80,7 +96,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setOrientation: (questionId, choiceId) =>
         setState((s) => ({ ...s, orientation: { ...s.orientation, [questionId]: choiceId } })),
     }),
-    [state, update],
+    [state, update, orderSeed],
   );
 
   return <SessionContext value={api}>{children}</SessionContext>;
