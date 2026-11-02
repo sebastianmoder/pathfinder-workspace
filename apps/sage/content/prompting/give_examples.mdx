@@ -1,0 +1,82 @@
+import { Callout } from 'nextra/components'
+
+# Provide Examples to Guide the Output
+
+Examples can demonstrate a distinction, structure, tone, or level of detail that
+would be cumbersome to describe. This is often called few-shot prompting. It
+guides the current response; it does not retrain the model.[^Brown2020Language]
+
+## When examples help
+
+Use examples when:
+
+- categories depend on course-specific definitions;
+- a response must follow a particular format;
+- acceptable and unacceptable outputs differ subtly; or
+- the required tone is easier to show than describe.
+
+An example is unnecessary when the task and output are already unambiguous. One
+representative example may be enough; complex boundaries may need several.
+Quality and coverage matter more than a fixed number.
+
+## Build a useful example set
+
+- Keep the input and output labels consistent.
+- Use examples that resemble the real task.
+- Cover important boundaries, not only easy cases.
+- Check every example: the model may reproduce its errors and biases.
+- Separate examples clearly from the new input.
+- State which features should transfer and which are incidental.
+
+## Example: classifying feedback comments
+
+Suppose an educator wants to distinguish feedback grounded in observable work
+from unsupported judgments.
+
+```text
+Classify each comment as EVIDENCE-LINKED or UNSUPPORTED. Then give one sentence
+explaining the classification. Follow the distinctions in the examples.
+
+<example>
+Comment: "Your second paragraph states the conclusion but does not cite or
+analyse evidence for it."
+Classification: EVIDENCE-LINKED
+Reason: The comment points to a location and an observable omission.
+</example>
+
+<example>
+Comment: "You did not put enough effort into this assignment."
+Classification: UNSUPPORTED
+Reason: The comment infers motivation rather than describing evidence in the
+work.
+</example>
+
+<new_input>
+Comment: "The graph labels revenue in euros, but the explanation discusses the
+values as percentages."
+</new_input>
+
+Return exactly:
+Classification: [label]
+Reason: [one sentence]
+```
+
+The examples teach both the labels and the output pattern. The final format
+instruction prevents incidental features, such as quotation marks, from being
+mistaken for the important distinction.
+
+<Callout type="warning">
+  Do not paste identifiable student work merely to create examples. Use
+  synthetic excerpts unless the tool and workflow are institutionally approved
+  for the material.
+</Callout>
+
+## Specify format and style directly
+
+Examples work best alongside explicit requirements. State the intended length,
+structure, language, tone, and audience. Do not rely on the model to infer which
+features of an example matter.
+
+## References & Footnotes
+
+[^Brown2020Language]: Brown, T. B., Mann, B., Ryder, N., Subbiah, M., Kaplan, J., Dhariwal, P., Neelakantan, A., Shyam, P., Sastry, G., Askell, A., Agarwal, S., Herbert-Voss, A., Krueger, G., Henighan, T., Child, R., Ramesh, A., Ziegler, D. M., Wu, J., Winter, C., … Amodei, D. (2020). **Language models are few-shot learners**. *Advances in Neural Information Processing Systems, 33*. https://proceedings.neurips.cc/paper/2020/hash/1457c0d6bfcb4967418bfb8ac142f64a-Abstract.html

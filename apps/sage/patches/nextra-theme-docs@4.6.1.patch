@@ -1,0 +1,17 @@
+diff --git a/dist/layout.js b/dist/layout.js
+index 57a511faacf75820f822be305d66c61494ca998a..ef79dd90d3bef65c3fcf4df59fe644e74e7bb519 100644
+--- a/dist/layout.js
++++ b/dist/layout.js
+@@ -24,10 +24,11 @@ const Layout = (t0) => {
+   }
+   let data;
+   if ($[3] !== themeConfig) {
++    // Children are rendered separately and are not part of themeConfig.
+     const {
+       data: t12,
+       error
+-    } = LayoutPropsSchema.safeParse(themeConfig);
++    } = LayoutPropsSchema.omit({ children: true }).safeParse(themeConfig);
+     data = t12;
+     if (error) {
+       throw z.prettifyError(error);

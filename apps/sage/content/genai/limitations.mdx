@@ -1,0 +1,109 @@
+import { Callout } from 'nextra/components'
+
+# Limitations and Risks of Generative AI
+
+Generative AI can produce useful drafts, but polished output can conceal weak
+evidence, missing context, or inappropriate assumptions. The relevant question
+is not whether a model is “good” in general, but whether a particular workflow
+is reliable and fair enough for its educational purpose.
+
+<Callout type="warning">
+  For sensitive data, high-impact educational decisions, transparency,
+  copyright, and institutional approval, see [Responsible AI
+  use](/genai/responsible_use).
+</Callout>
+
+## Unsupported or fabricated content
+
+Models can produce false claims, quotations, calculations, code, and references
+that look credible. Retrieval or file upload can reduce some errors, but access
+to a source does not guarantee that the model found, interpreted, or cited it
+correctly.[^Huang2024Survey]
+
+Reduce the risk by:
+
+- supplying authoritative material and limiting factual claims to it;
+- requesting claim-to-source locations rather than a bare bibliography;
+- opening every important reference and checking that it supports the claim;
+- recalculating quantitative results with an appropriate tool; and
+- removing claims that a qualified reviewer cannot verify.
+
+Asking the same model whether its answer is correct is not independent
+verification. See [Plan, verify, and explain](/prompting/chain_of_thought_prompting)
+for checkable prompt patterns.
+
+## Outdated or misplaced knowledge
+
+A model’s training knowledge has a cutoff and may mix jurisdictions, versions,
+disciplines, or historical periods. Search-enabled products can still retrieve
+an outdated page or apply it incorrectly. Current law, policy, clinical
+guidance, product behaviour, and research require current authoritative sources.
+
+## Variability and reproducibility
+
+The same prompt may not return the same answer each time. Product updates,
+model changes, settings, retrieved sources, and conversation history can also
+change results. For a repeated workflow, record the tool and date, test several
+representative and difficult inputs, and define what human review must catch.
+Re-test after meaningful changes.
+
+## Incomplete context and instruction failures
+
+Models have limited context and may overlook a requirement buried in a long
+conversation or document. They can follow instructions found inside supplied
+content, confuse examples with the task, or satisfy one constraint while
+violating another.
+
+Separate instructions from sources, make success criteria explicit, and inspect
+the output against each criterion. Do not assume that a confident statement
+such as “all requirements were met” is itself evidence.
+
+## Bias and uneven performance
+
+Training data and product design reflect social and linguistic inequalities.
+Outputs can reproduce stereotypes, centre dominant perspectives, or perform
+unevenly across languages, dialects, disabilities, disciplines, and cultural
+contexts.[^Ntoutsi2020Bias]
+
+A generic request to “be unbiased” is insufficient. Use representative test
+cases, name perspectives the task must consider, inspect omissions as well as
+explicit stereotypes, and involve people with relevant contextual knowledge.
+Provide another way to complete a required activity when access or performance
+is not equitable.
+
+## Excessive agreement and automation bias
+
+A conversational model may accept a mistaken premise, mirror the user’s framing,
+or produce reasons for a preferred conclusion. Users can then give polished AI
+output more weight than equally strong human evidence.
+
+Ask for counterevidence, alternative interpretations, and assumptions, but keep
+the final evaluation with a person who can inspect the original sources. A
+human approval step is meaningful only when the reviewer has time, expertise,
+and authority to disagree.
+
+## Learning can be displaced
+
+An efficient output is not necessarily an educational benefit. If the model
+performs the thinking, writing, calculation, retrieval, or practice that a
+student is meant to develop, it can remove the learning opportunity. Begin with
+the outcome, then decide whether AI should be absent, limited, optional, or an
+explicit object of study.
+
+## A quick review checklist
+
+Before using an output, ask:
+
+- Which claims can I verify, and against what source?
+- What might be missing, simplified, or out of date?
+- Whose perspective or language is advantaged?
+- Did the model follow every important constraint?
+- Would a different run materially change the result?
+- What work did the model replace, and was that work part of the learning?
+- Who is accountable if the output is wrong?
+
+## References & Footnotes
+
+[^Huang2024Survey]: Huang, L., Yu, W., Ma, W., Zhong, W., Feng, Z., Wang, H., Chen, Q., Peng, W., Feng, X., Qin, B., & Liu, T. (2024). **A survey on hallucination in large language models: Principles, taxonomy, challenges, and open questions**. *ACM Transactions on Information Systems*. https://doi.org/10.1145/3703155
+
+[^Ntoutsi2020Bias]: Ntoutsi, E., Fafalios, P., Gadiraju, U., Iosifidis, V., Nejdl, W., Vidal, M., Ruggieri, S., Turini, F., Papadopoulos, S., Krasanakis, E., Kompatsiaris, I., Kinder‐Kurlanda, K., Wagner, C., Karimi, F., Fernandez, M., Alani, H., Berendt, B., Kruegel, T., Heinze, C., … Staab, S. (2020). **Bias in data‐driven artificial intelligence systems—an introductory survey**. *WIREs Data Mining and Knowledge Discovery, 10*(3), e1356. https://doi.org/10.1002/widm.1356

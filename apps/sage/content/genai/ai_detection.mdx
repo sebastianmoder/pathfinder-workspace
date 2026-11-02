@@ -1,0 +1,100 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Why AI Detection Does Not Prove Authorship
+
+AI-text detectors estimate whether writing resembles examples associated with a
+model. They do not observe how a document was produced and cannot establish who
+wrote it, which tools were used, or whether the use complied with an assignment.
+
+<Callout type="warning">
+  Do not use a detector score as proof of misconduct or as the sole basis for a
+  grade, penalty, or allegation. Treat any concern through the institution’s
+  normal evidence, conversation, and appeal procedures.
+</Callout>
+
+## What detector results mean
+
+Most detectors classify patterns in text. Some use statistical predictability
+or stylometric features; others use classifiers trained on samples of human and
+model-generated writing. A result such as “70% AI” is a product-specific score,
+not a measured percentage of sentences written by a machine.
+
+Performance changes with the model, subject, genre, length, language, editing,
+and decision threshold. A tool tested on long, unedited English prose may behave
+very differently on a short answer, translated work, code, technical writing,
+or text edited with an embedded writing assistant.[^Jawahar2024SurveyDetection]
+
+Even apparently low false-positive rates can cause harm when applied across a
+large cohort. A detector can also miss model-generated text after ordinary
+editing or paraphrasing. Independent testing found substantial variation among
+tools and large drops in detection accuracy after simple modifications; the
+authors concluded that the results did not support an overall benefit in
+education when the risks of false accusations were considered.[^Perkins2024Bypass]
+
+## Why the authorship question is harder than two labels
+
+Student writing can include brainstorming, translation, grammar correction,
+autocomplete, generated passages, human revision, peer feedback, or no AI at
+all. “Human” and “AI” are therefore often not mutually exclusive categories.
+The educational question is whether the student met the stated learning outcome
+and followed the published rules.
+
+Bias and unequal error rates are also serious concerns. Writing by multilingual
+students, concise genres, formulaic academic styles, and accessibility-supported
+writing may differ from a detector’s training data. No student should have to
+change a legitimate writing style merely to avoid a proprietary score.
+
+## Respond to a concern fairly
+
+<Steps>
+
+### Check the rule first
+
+Confirm what the assignment actually permitted and whether the instructions
+distinguished brainstorming, editing, translation, generation, and other uses.
+Ambiguous guidance should not be repaired retrospectively through enforcement.
+
+### Inspect educational evidence
+
+Look at the work itself, its sources, alignment with course concepts, earlier
+work where relevant, and the student’s ability to explain important choices.
+Drafts, notes, or version history can support a conversation when they were
+already required for a learning purpose; their absence is not proof.
+
+### Invite the student’s account
+
+Describe the concern without presenting a detector score as a verdict. Give the
+student a meaningful opportunity to explain their process, sources, and
+decisions and to correct factual assumptions.
+
+### Use normal procedures
+
+If concerns remain, follow the institution’s established academic-integrity
+process, evidentiary standard, confidentiality rules, and route of appeal. Keep
+the decision with qualified people who can justify it without treating the
+model or detector as the authority.
+
+</Steps>
+
+## Design assessment around evidence of learning
+
+The better long-term response is not surveillance but clearer assessment design:
+
+- state whether the task is AI-free, AI-limited, AI-permitted, or AI-integrated;
+- use staged drafts, annotated decisions, source checks, or reflection when
+  those activities genuinely support the learning outcome;
+- include oral or performance follow-up when students must demonstrate that
+  capability;
+- assess application to specific course material rather than generic fluency;
+- provide equivalent, accessible ways to demonstrate learning; and
+- avoid collecting complete AI transcripts or writing histories by default.
+
+See [Setting course and assignment AI rules](/teaching/course_ai_policy) for
+copyable policy blocks and [Assessing learning in the age of AI](/students/exams)
+for assessment redesign.
+
+## References & Footnotes
+
+[^Jawahar2024SurveyDetection]: Jawahar, G., Trivedi, J., Majumder, B. P., & McAuley, J. (2024). **A survey of AI-generated text detection from the lens of attribution: progress, challenges and future directions**. *arXiv*. https://arxiv.org/abs/2409.02640
+
+[^Perkins2024Bypass]: Perkins, M., Roe, J., Vu, B. H., Postma, D., Hickerson, D., McGaughran, J., & Khuat, H. Q. (2024). **Simple techniques to bypass GenAI text detectors: implications for inclusive education**. *International Journal of Educational Technology in Higher Education, 21*, 53. https://doi.org/10.1186/s41239-024-00487-w

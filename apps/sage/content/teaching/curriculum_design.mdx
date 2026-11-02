@@ -1,0 +1,126 @@
+import { Steps } from 'nextra/components'
+import { Callout } from 'nextra/components'
+
+# Using Generative AI for Curriculum Design
+
+Generative AI can organise supplied requirements, propose alternatives, and
+draft planning artefacts.[^Moundridou2024EducatorsAssistants] Curriculum quality
+still depends on constructive alignment, disciplinary judgment, institutional
+requirements, and knowledge of the students and program.
+
+<Steps>
+
+## Establish the Purpose of the Course
+
+Before using AI, clarify the course purpose and its place in the wider program.
+Constructive alignment connects intended outcomes with teaching activities and
+assessment evidence.[^Biggs1996Alignment]
+
+AI can generate lesson components quickly, but effective planning requires thoughtful input. Instead of accepting the first response an AI provides, approach the process with a commitment to quality and relevance. Ask yourself:
+- What do my students need to learn?
+- How does this course connect to larger program goals, learning outcomes, or standards?
+- What outcomes, knowledge, or skills will have the greatest impact on student growth?
+
+Provide approved requirements and context, then treat any generated structure as
+a draft to test against them.
+
+<Callout>
+   **Example prompt:** 
+   
+   `Using the supplied program outcomes and constraints, propose two possible structures for an advanced biology course focused on critical analysis of research papers. Map each unit and assessment to an outcome, flag missing information, and do not invent institutional requirements.`
+</Callout>
+
+## Begin with Program Requirements and Learning Outcomes
+
+Effective curriculum design begins with the approved program outcomes,
+qualification framework, professional or accreditation requirements, and local
+policies. AI can help organise supplied requirements into candidate course
+outcomes, but it should not invent or interpret authoritative requirements on
+its own.
+
+Review proposed outcomes for clarity, level, assessability, and coverage. Bloom’s
+Taxonomy can help describe cognitive demand, but higher levels are not
+automatically more appropriate; the level must fit the program and learner stage.
+
+<Callout>
+   **Example prompt:**
+   
+   `Using the supplied program outcomes, review these course outcomes for clarity, assessability, level, and coverage. Propose revisions without introducing requirements absent from the source. Return an outcome-to-program mapping and flag gaps.`
+</Callout>
+
+## Provide Course Context
+
+Provide the course title, credits or expected workload, learner level, duration,
+prerequisites, approved topics, assessment constraints, available resources, and
+accessibility requirements. Ask for an outcome-to-unit map before a detailed
+weekly schedule so gaps and unnecessary topics remain visible.
+
+## Create Course Materials and Reading Lists
+
+See [Creating Course Materials with AI](/teaching/course_materials).
+
+## Create Assessments and Quizzes
+
+See [Creating and Revising Exam Questions](/teaching/exam_questions).
+
+## Enhance Interactive Learning Experiences
+
+AI can propose discussions, cases, simulations, collaborative problems, or
+projects.[^Moundridou2024EducatorsAssistants] Request student actions and
+observable evidence, not merely “engaging activities”. Reject novelty that does
+not serve an outcome, cannot be completed with available resources, or creates
+avoidable participation barriers.
+
+<Callout>
+   **Example prompt:**
+   
+   `Using the supplied outcome and policy sources, propose a 30-minute role-play in which students compare competing environmental-policy perspectives. State what students do, what evidence of learning is observable, what preparation is required, and an accessible non-role-play alternative.`
+</Callout>
+
+</Steps>
+
+## Worked alignment example
+
+Suppose an outcome says: “Evaluate competing environmental-policy proposals
+using economic, distributional, and implementation evidence.” Instead of asking
+for generic engaging activities, supply the outcome and relevant course sources:
+
+```text
+Propose three activities for this outcome: one preparation task, one 30-minute
+class activity, and one formative check.
+
+For each activity, state:
+- what students do;
+- which part of the outcome they practise;
+- what evidence of learning the educator can observe;
+- required prior knowledge and materials;
+- accessibility or participation barriers; and
+- one feasible alternative.
+
+Use only the supplied course sources for factual content. Do not require an AI
+tool unless AI literacy is part of the outcome.
+```
+
+A suitable result might pair a short evidence-comparison task with a stakeholder
+negotiation and an individual written justification. The educator should reject
+ideas that are merely entertaining, cannot be assessed, duplicate another
+activity, or cannot be completed with the available time and access.
+
+Before finalising the curriculum, build a matrix linking every course outcome to
+learning activities and assessment evidence. Gaps in either column indicate
+that the curriculum is not yet constructively aligned.
+
+Use AI output to expose choices, not to approve the curriculum. The responsible
+course team must verify requirements, workload, progression, assessment,
+accessibility, and coherence and remain able to justify the final design.
+
+
+## Further Reading
+
+- Ayres, A. T. (2025, February 25). **A curriculum supervisor’s guide to AI-assisted lesson planning**. *Edutopia; George Lucas Educational Foundation*. https://www.edutopia.org/article/ai-generated-lesson-plans
+
+## References & Footnotes
+
+[^Biggs1996Alignment]: Biggs, J. (1996). **Enhancing teaching through constructive alignment**. *Higher Education*, *32*(3), 347–364. https://doi.org/10.1007/BF00138871
+
+[^Moundridou2024EducatorsAssistants]: Moundridou, M., Matzakos, N., & Doukakis, S. (2024). **Generative AI tools as educators' assistants: Designing and implementing inquiry-based lesson plans**. *Computers and Education: Artificial Intelligence*, *7*, 100277. https://doi.org/10.1016/j.caeai.2024.100277

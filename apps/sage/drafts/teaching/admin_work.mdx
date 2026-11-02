@@ -1,0 +1,36 @@
+import { Callout } from 'nextra/components'
+import Chat from '../../components/chat'
+
+# Automating Administrative Work
+
+<Callout emoji="️🚧">
+  Content coming soon…
+</Callout>
+
+{/* TODO:
+- emails
+- proposals
+- …
+ */}
+
+
+## Automating Emails
+
+Generative AI can draft personalized, polite, and clear email responses.
+
+<Chat 
+    userMessage="Draft a response to a student asking for an extension on their assignment due to illness. Be understanding but set clear expectations."
+    assistantMessage={`Dear [Student’s Name],
+
+Thank you for reaching out and letting me know about your situation. I’m sorry to hear that you’ve been unwell, and I hope you’re starting to feel better soon.
+
+Given the circumstances, I’m happy to grant you an extension. Please submit the assignment by [insert new reasonable deadline, e.g., three days from today], which should give you some additional time to recover and complete your work. If you find that your health doesn’t improve and you need more time, please provide a brief update along with any relevant documentation so we can reassess the situation together.
+
+In the meantime, focus on getting the rest you need. Don’t hesitate to reach out if you have any further questions or concerns.
+
+Best regards,
+[Your Full Name]
+[Your Position]
+[Your Contact Information]`}
+/>
+

@@ -1,0 +1,163 @@
+import { Callout } from 'nextra/components'
+import { Steps } from 'nextra/components'
+
+# Crafting Lesson Plans and Lecture Notes
+
+AI can help an educator compare structures, time-box activities, or draft parts
+of a lesson plan. It does not know the students, course sequence, available
+resources, or whether an activity will produce the intended learning.
+
+This guide outlines a systematic approach to using AI for lesson planning, focusing on evidence-based teaching strategies, efficient content generation, and adaptable formats.[^Dunlosky2013LearningTechniques] [^Freeman2014ActiveLearning] [^RoedigerKarpicke2006TestingEffect]
+
+## How to Prompt
+
+<Callout type="info">Provide the approved outcome, learner context, duration,
+prior knowledge, available resources, accessibility conditions, and source
+material. Ask how each activity produces observable evidence of learning.</Callout>
+
+<Steps>
+
+### Ground the plan in outcomes and evidence
+
+Before asking AI to create a lesson plan, provide the approved learning outcomes,
+relevant course context, and any teaching principles the plan should apply.
+Do not rely on the model to recover or accurately summarise pedagogical research
+from memory.
+
+For instance, if you want to use evidence-based strategies like active learning, problem-based learning, retrieval practice, elaboration, or analogies, provide an authoritative summary or source rather than relying on the model to recall the research.[^Dunlosky2013LearningTechniques] [^Freeman2014ActiveLearning] [^RoedigerKarpicke2006TestingEffect] Use [Plan, verify, and explain](/prompting/chain_of_thought_prompting) to define which principles the plan should apply and how you will check them.
+
+**Example prompt**:
+> Use the supplied learning outcomes and teaching-centre guidance to identify
+> which of these approaches are appropriate for this lesson. Map each proposed
+> approach to an outcome and cite the supporting passage. Flag any recommendation
+> that the supplied material does not support.
+
+### Generate a Structured Lesson Plan
+
+Next, request a reviewable lesson-plan draft. Provide:
+
+- The subject and specific topic (e.g., organizational behavior management)
+- The duration of the class (e.g., 90 minutes)
+- Activities you want included (e.g., small group work, case study analysis, simulations)
+- Cognitive goals or learning outcomes (e.g., critical thinking, application, synthesis)
+
+If structure or tone is difficult to describe, [provide an example](/prompting/give_examples/) of a strong plan. A useful lesson plan should include:
+
+- A brief introduction or framing of the topic
+- 2–3 main activities or teaching blocks, with time estimates
+- Embedded use of retrieval practice, group discussion, or real-world application
+- A conclusion or reflection activity to consolidate learning
+
+The result should be a structured yet adaptable plan that you can immediately use or modify further.
+
+**Example prompt**:
+
+> Draft a 90-minute lesson plan for **[learner group and topic]** using the
+> supplied outcome, course context, and teaching guidance. For each segment,
+> state the student action, purpose, evidence of learning, timing, materials, and
+> accessibility considerations. Use only the supplied material for factual and
+> pedagogical claims. Flag prerequisites or requirements that are missing, and
+> verify that the timings total 90 minutes.
+
+### Customize and Refine
+
+Compare the first draft with the outcome, class context, and available time.
+
+You can request adjustments such as:
+
+- Swapping a discussion activity for a case study
+- Adding formative assessment checkpoints or quizzes
+- Including guided questions for group work or Socratic dialogue
+- Introducing a specific example or demonstration relevant to your discipline
+
+Verify each revision yourself; repeated prompting can also introduce new errors
+or undo an earlier requirement.
+
+**Example Prompt**:
+> Replace the discussion in **activity 2** with a **case study** involving **[describe scenario]**, and include guided questions for students.
+
+### Generate Supporting Materials and Lecture Notes
+
+Once the structure is set, AI can draft supporting content from approved
+sources. Possible tasks include:
+
+- Draft lecture notes or explanations for key concepts (e.g., “Explain the difference between classical and operant conditioning”)
+- Generate key talking points, diagrams, or analogies
+- Provide short readings or case summaries
+- Create comprehension or reflection questions
+- Design student handouts or slides
+
+**Example Prompt**:
+> Now, provide a half-page lecture note on **[insert concept]**, to support the first activity.
+
+For distributable materials, use the source-grounding, accessibility, and
+copyright checks in [Creating course materials](/teaching/course_materials).
+
+</Steps>
+
+## Check alignment before using the plan
+
+Ask the model to produce an alignment table, then verify it yourself:
+
+| Learning outcome | Student activity | Observable evidence | Assessment or check | Time and resources |
+| --- | --- | --- | --- | --- |
+| What students should achieve | What students—not the educator or AI—will do | What would show progress | How evidence will be noticed or assessed | Whether the activity is feasible and accessible |
+
+Remove activities that do not serve an outcome. Add practice or assessment when
+an outcome lacks observable evidence. Confirm that the sequence activates
+necessary prior knowledge, allows students to practise, provides feedback, and
+fits the available time.
+
+For any required AI activity, also check tool approval, equitable access, and a
+non-AI alternative. See [Setting course and assignment AI
+rules](/teaching/course_ai_policy).
+
+
+## Example: Workshop Planning Prompt
+
+This prompt template works well when you need a time-boxed workshop plan with interactive activities and a clear, scannable schedule.
+
+```md copy
+You are an instructional designer supporting a university teaching and learning center.
+
+<workshop_context>
+Audience: 20 new teaching assistants (mixed disciplines)
+Duration: 2 hours
+Goal: Help TAs run engaging seminars that promote participation and comprehension.
+</workshop_context>
+
+<topics>
+- Active learning (think-pair-share, cold calling, small-group work)
+- Retrieval practice (low-stakes quizzing, exit tickets)
+- Inclusive facilitation (psychological safety, equitable participation)
+- Handling common issues (silence, dominant voices, off-topic discussions)
+</topics>
+
+<constraints>
+- Include at least 2 interactive elements that participants experience as learners.
+- Include 1 short break.
+- Balance theory (why) with practice (how) and concrete scripts.
+- Use plain language and avoid discipline-specific jargon.
+</constraints>
+
+<output_format>
+Return a schedule within <workshop_plan> tags. Use this format:
+
+<workshop_plan>
+1. [Segment Name] - [Duration] ([Cumulative Time])
+   Purpose:
+   Facilitator notes:
+   Materials:
+</workshop_plan>
+
+Include total cumulative time at the end of each segment and ensure the plan fits within 2 hours.
+</output_format>
+```
+
+## References & Footnotes
+
+[^Dunlosky2013LearningTechniques]: Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J., & Willingham, D. T. (2013). **Improving students’ learning with effective learning techniques: promising directions from cognitive and educational psychology**. *Psychological Science in the Public Interest*, *14*(1), 4–58. https://doi.org/10.1177/1529100612453266
+
+[^Freeman2014ActiveLearning]: Freeman, S., Eddy, S. L., McDonough, M., Smith, M. K., Okoroafor, N., Jordt, H., & Wenderoth, M. P. (2014). **Active learning increases student performance in science, engineering, and mathematics**. *Proceedings of the National Academy of Sciences*, *111*(23), 8410–8415. https://doi.org/10.1073/pnas.1319030111
+
+[^RoedigerKarpicke2006TestingEffect]: Roediger, H. L., III, & Karpicke, J. D. (2006). **Test-enhanced learning: taking memory tests improves long-term retention**. *Psychological Science*, *17*(3), 249–255. https://doi.org/10.1111/j.1467-9280.2006.01693.x

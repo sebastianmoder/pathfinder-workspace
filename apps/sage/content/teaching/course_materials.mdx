@@ -1,0 +1,179 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Creating Course Materials with AI
+
+Generative AI can help brainstorm or draft cases, slide outlines, examples,
+questions, and reading-list annotations. It should not decide what belongs in a
+course or supply facts and references that an educator cannot verify.
+
+<Callout type="warning">
+  Do not upload confidential assessment materials, identifiable student work,
+  unpublished research, or licensed content to an unapproved service. Check
+  copyright, licence, accessibility, and institutional requirements before
+  distributing any generated material.
+</Callout>
+
+## A reusable production workflow
+
+<Steps>
+
+### Begin with the learning purpose
+
+State the outcome, learner level, prior knowledge, teaching setting, available
+time, and how students will use the material. A polished artefact that does not
+serve an outcome creates work rather than saving it.
+
+### Supply approved source material
+
+Provide the definitions, data, readings, examples, or standards that factual
+content must follow. Ask the model to identify unsupported requirements rather
+than filling gaps. For recent or consequential information, use current primary
+sources.
+
+### Request a reviewable draft
+
+Choose a structure that exposes important decisions: a claim-to-source column,
+an outcome mapping, speaker notes, answer rationale, or accessibility notes.
+Generate alternatives when selection is useful; do not ask for unnecessary
+volume.
+
+### Review content and representation
+
+Check every claim, calculation, quotation, reference, example, and answer. Look
+for missing perspectives, stereotypes, invented detail, inappropriate reading
+level, and mismatch with terminology students have learned.
+
+### Make the material accessible
+
+Check headings, reading order, contrast, alt text, captions, transcripts, table
+structure, link text, and compatibility with assistive technology. Simplifying
+language is not a substitute for preserving disciplinary meaning.
+
+### Pilot and retain an editable source
+
+Test the material with representative learners or colleagues, record important
+changes, and retain the reviewed source—not only the generated version. Set a
+review date for content that can become outdated.
+
+</Steps>
+
+## Case studies
+
+Case-based learning can support application and decision-making when the case is
+aligned, credible, and followed by structured analysis.[^Thistlethwaite2012CBL]
+AI can propose scenarios and draft fictional details, but realistic-sounding
+data and stakeholders require careful review.
+
+### Case-study prompt
+
+```text
+Draft two alternative case outlines for [learner group].
+
+Learning outcome:
+[approved outcome]
+
+Students should have to:
+[decision, analysis, or skill]
+
+Use only the supplied source pack for factual claims. Clearly label invented
+names and fictional data. Each outline must include:
+- setting and decision point;
+- information students receive;
+- two plausible options with genuine trade-offs;
+- missing information students should ask for;
+- three discussion questions mapped to the outcome; and
+- an educator verification checklist.
+
+Do not resolve the dilemma or portray a protected group as the source of the
+problem. Flag anything the sources do not support.
+
+[source pack]
+```
+
+Select an outline, then verify and refine it. Ensure the case gives students
+enough evidence to reason without embedding the “correct” conclusion in the
+narrative. Label synthetic numbers so they cannot be mistaken for real data.
+
+## Lecture slides
+
+AI can turn an educator-approved outline into a slide plan, suggest examples,
+or identify where a visual might help. It cannot know what students already
+understand, whether a slide is overloaded, or whether a generated image is
+accurate and appropriately licensed.
+
+### Slide-outline prompt
+
+```text
+Create a slide outline for a [duration] session with [learner group].
+
+Use only the supplied learning outcomes and source material. For each slide,
+return:
+- one message-style title;
+- no more than three concise points;
+- a suggested visual only when it supports comprehension;
+- speaker notes with the source passage for factual claims; and
+- the student activity or learning check, if any.
+
+Include an opening retrieval question and a closing check mapped to the
+outcomes. Do not invent citations or image licences. Flag content that requires
+the educator to source or create a visual.
+
+[outcomes and source material]
+```
+
+Before use, remove decorative clutter, split overloaded slides, add meaningful
+alt text, check reading order and contrast, and verify that spoken explanation
+does not carry information unavailable to students using another format.
+
+## Reading lists
+
+Language models are unreliable bibliography generators: they can invent a
+publication or combine details from several real sources.[^AlkaissiMcFarlane2023Hallucinations]
+Use library databases, publisher records, DOI registries, disciplinary indexes,
+or an approved search system to discover and verify literature.
+
+AI can still assist **after sources are verified**. Supply the confirmed
+bibliographic records and abstracts or full text you are permitted to use, then
+ask it to compare coverage, propose an order, or draft annotations.
+
+### Reading-list audit prompt
+
+```text
+Using only the verified source records below, audit this reading list for:
+- coverage of the stated learning outcomes;
+- prerequisite difficulty and weekly workload;
+- duplicated contribution;
+- relevant perspectives or methods that are absent;
+- accessibility and lawful availability; and
+- records that lack enough information for a judgment.
+
+Return a table with source identifier, contribution, outcome, difficulty,
+availability, concern, and educator action. Do not add publications.
+
+[learning outcomes]
+[verified records and abstracts]
+```
+
+Open each item before publishing the list. Confirm authors, title, venue, year,
+DOI or stable link, access conditions, and that the source supports the
+annotation. Asking the same model “are these references real?” is not
+verification.
+
+## Final human review
+
+- The material serves a named learning outcome.
+- Facts and references were checked against authoritative sources.
+- Fictional and synthetic content is clearly labelled.
+- Examples do not reproduce stereotypes or exclude relevant perspectives.
+- Reading level, terminology, workload, and activity timing fit the learners.
+- Accessibility was checked in the final delivery format.
+- Copyright, licences, attribution, and image provenance were reviewed.
+- No protected information was entered into an unapproved tool.
+- Students are told when AI use is relevant to interpreting the material.
+- The educator remains able to revise and teach the material without the tool.
+
+## References & Footnotes
+
+[^AlkaissiMcFarlane2023Hallucinations]: Alkaissi, H., & McFarlane, S. I. (2023). **Artificial hallucinations in ChatGPT: implications in scientific writing**. *Cureus, 15*(2), e35179. https://doi.org/10.7759/cureus.35179
+
+[^Thistlethwaite2012CBL]: Thistlethwaite, J. E., Davies, D., Ekeocha, S., Kidd, J. M., MacDougall, C., Matthews, P., Purkis, D. J., & Clay, D. (2012). **The effectiveness of case-based learning in health professional education. A BEME systematic review**. *BMC Medical Education, 12*, 19. https://doi.org/10.1186/1472-6920-12-19

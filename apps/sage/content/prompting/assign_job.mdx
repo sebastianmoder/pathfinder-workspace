@@ -1,0 +1,71 @@
+import { Callout } from 'nextra/components'
+
+# Assign a Useful Role or Perspective
+
+A role can help set an audience, perspective, vocabulary, or interaction style.
+It does not give a model professional credentials, privileged knowledge, or the
+ability to make a sound educational decision.[^Kong2023Better]
+
+<Callout type="warning">
+  “Act as an expert” is not a substitute for evidence, success criteria, or
+  human review. Never present role-play output as professional legal, medical,
+  psychological, or safeguarding advice.
+</Callout>
+
+## When a role helps
+
+Use a role when the task depends on a recognisable viewpoint or relationship:
+
+- a Socratic tutor that asks one question at a time;
+- a novice reader identifying unexplained terminology;
+- a stakeholder in a simulation or debate;
+- an assessment editor applying supplied item-writing criteria; or
+- a critical colleague looking for missing assumptions.
+
+Roles add little to factual retrieval, summarisation, formatting, or other tasks
+where the source material and output criteria do the real work. Prefer “explain
+this to first-year nursing students using the supplied protocol” over “you are a
+world-leading nursing expert”.
+
+## Define behaviour rather than prestige
+
+A useful role prompt says what the role should do, what it may rely on, and what
+it must avoid.
+
+```text
+You are a critical curriculum colleague helping me review a draft activity.
+
+Use only the supplied learning outcomes, activity description, and assessment
+criteria. Identify:
+1. any outcome the activity does not practise;
+2. any activity that does not contribute to an outcome;
+3. assumptions about students' prior knowledge; and
+4. one feasible revision for each issue.
+
+Do not invent course requirements or student characteristics. If the evidence
+is insufficient, name what is missing. Return a concise table.
+```
+
+Here, “critical curriculum colleague” establishes the perspective. The source
+boundary, checks, and output format make the result usable.
+
+## Example: a simulation role
+
+```text
+You are role-playing a municipal transport official in a classroom negotiation.
+Your public priority is reliable transport; your constraint is a fixed annual
+budget supplied in the scenario notes.
+
+Stay within the supplied facts. Ask the student to justify proposals with
+evidence. Do not invent laws, statistics, or hidden facts. If asked for
+information absent from the notes, say that the scenario does not specify it.
+Reply in no more than four sentences and wait for the student's next turn.
+```
+
+Test role prompts before student use. Models can drift out of character, amplify
+stereotypes, disclose hidden instructions, or invent details. The educator
+remains responsible for the scenario and debrief.
+
+## References & Footnotes
+
+[^Kong2023Better]: Kong, A., Zhao, S., Chen, H., Li, Q., Qin, Y., Sun, R., Zhou, X., Wang, E., & Dong, X. (2023). **Better zero-shot reasoning with role-play prompting**. *arXiv*. https://doi.org/10.48550/ARXIV.2308.07702

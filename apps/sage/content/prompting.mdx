@@ -1,0 +1,52 @@
+# Basics of Prompting
+
+Prompting is the practice of describing a task so that a generative AI system
+can produce a useful draft or analysis. Clear prompts improve the odds of a good
+result, but they do not guarantee accuracy. The most reliable workflow combines
+a well-specified task, appropriate source material, explicit success criteria,
+and human verification.[^Lin2024EffectivePrompts]
+
+## Prompting guides
+
+- [Assign a useful role or perspective](/prompting/assign_job) explains when a role helps—and why it does not create expertise.
+- [Use explicit, actionable instructions](/prompting/instruct) turns background information into a checkable task.
+- [Separate instructions, sources, and output](/prompting/use_delimiters) uses headings, tags, or other boundaries to organise long prompts.
+- [Plan, verify, and explain](/prompting/chain_of_thought_prompting) replaces generic "think step by step" advice with checkable criteria and validation.
+- [Provide examples to guide the output](/prompting/give_examples) uses examples to demonstrate the intended structure, tone, or classification.
+- [Further resources](/prompting/further_resources) collects additional prompting material.
+
+## A practical default
+
+Start with a compact prompt containing:
+
+1. **Goal:** what you need and why.
+2. **Context:** audience, level, and relevant circumstances.
+3. **Source material:** the information the response should use.
+4. **Success criteria:** what must be true of the result.
+5. **Constraints:** scope, tone, length, and boundaries.
+6. **Output format:** headings, table columns, or another useful structure.
+7. **Verification:** checks to perform and uncertainty to report.
+
+For example:
+
+```text
+Draft three formative quiz questions for first-year economics students using
+only the supplied reading. Each question must test a different learning outcome.
+Return a table with the question, expected answer, learning outcome, difficulty,
+and the passage that supports the answer. Flag any learning outcome that the
+reading does not support; do not invent missing material.
+```
+
+## Review is part of prompting
+
+Treat the first response as a draft. Check claims and citations, compare the
+result with your criteria, look for missing perspectives, and revise the prompt
+based on observed failures. For consequential or repeated workflows, test
+several representative inputs and record what the human reviewer changed.
+
+Never include personal or confidential information merely to improve a prompt.
+See [When to use generative AI](/genai/when_to_use) and [Responsible AI use](/genai/responsible_use) before using real student material.
+
+## References & Footnotes
+
+[^Lin2024EffectivePrompts]: Lin, Z. (2024). **How to write effective prompts for large language models**. *Nature Human Behaviour, 8*, 611–615. https://doi.org/10.1038/s41562-024-01847-2

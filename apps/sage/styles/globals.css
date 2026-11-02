@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+.footnotes {
+    @apply text-sm text-gray-500;
+}
+
+/* Highlight Colors */
+mark,
+[mark-color] {
+    background-color: #ffe6ad;
+    color: #000;
+    border-radius: 0.2em;
+    padding: 0.1em 0.2em;
+}
+
+/* Variants */
+
+[mark-color='yellow'] {
+    background-color: #ffe6ad;
+}
+
+[mark-color='red'] {
+    background-color: #fec3c2;
+}
+
+[mark-color='green'] {
+    background-color: #98d0a5;
+}

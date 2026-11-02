@@ -1,0 +1,125 @@
+import { Callout } from 'nextra/components'
+
+# Plan, Verify, and Explain
+
+For a complex task, improve the prompt by defining the outcome, evidence,
+constraints, and checks. Ask for a useful explanation of the answer—not a
+transcript of hidden reasoning.
+
+<Callout type="warning">
+  A model's written step-by-step account is generated text. It may be convincing
+  without faithfully describing how the answer was produced, so it is not proof
+  that the answer is correct.[^Turpin2023Unfaithful]
+</Callout>
+
+## Use an outcome-first prompt
+
+A strong prompt normally specifies:
+
+1. **Goal:** the task and the decision or learning outcome it should support.
+2. **Context:** only the information needed to do the work.
+3. **Evidence:** the sources or supplied material the answer may rely on.
+4. **Success criteria:** what a good result must contain.
+5. **Constraints:** audience, scope, tone, length, and prohibited actions.
+6. **Output:** the exact structure you need.
+7. **Uncertainty:** what to do when information is missing or ambiguous.
+8. **Checks:** how the model should test the result before returning it.
+
+Current model guidance likewise recommends stating the outcome and success
+criteria clearly, then asking the model to validate its work.[^OpenAIModelGuidance]
+Long instructions about every reasoning step can make a prompt more brittle when
+the exact path does not matter.
+
+## Ask for checkable work
+
+The right kind of explanation depends on the task:
+
+| Task | Ask for | Verify independently |
+| --- | --- | --- |
+| Calculation | formula, substituted values, units, and final result | recalculate the result |
+| Literature summary | claim-to-source mapping and page or section locations | open every cited source |
+| Assessment design | mapping between each item, learning outcome, and rubric criterion | compare with the approved course documents |
+| Recommendation | criteria, evidence for each option, assumptions, and trade-offs | check evidence and test alternative assumptions |
+| Lesson plan | sequence, timings, prerequisites, and observable learning evidence | confirm feasibility with the class context |
+
+Ask for a **concise rationale** when it helps a reader judge the answer. Do not
+treat verbosity as rigor.
+
+## A reusable prompt pattern
+
+```text
+<goal>
+Create [deliverable] to support [learning or teaching outcome].
+</goal>
+
+<context>
+Audience: [learners and level]
+Course context: [relevant context]
+Available time/resources: [constraints]
+</context>
+
+<evidence>
+Use only the material below for factual claims:
+[paste approved material or provide sources]
+</evidence>
+
+<success_criteria>
+- [criterion 1]
+- [criterion 2]
+- [criterion 3]
+</success_criteria>
+
+<instructions>
+Produce [required format and length].
+Distinguish sourced facts from suggestions or inferences.
+If essential information is missing, ask up to three questions before drafting.
+Do not invent facts, quotations, references, or student information.
+</instructions>
+
+<verification>
+Before answering, check the draft against every success criterion.
+Return the deliverable, followed by a short verification table with one row per
+criterion and any uncertainty that remains.
+</verification>
+```
+
+Delimiters such as XML-style tags are optional; they mainly help separate
+instructions from source material in longer prompts. See [Separate instructions,
+sources, and output](/prompting/use_delimiters).
+
+## Decompose only where it helps
+
+Break a task into stages when later work depends on earlier results. For example:
+
+1. extract the relevant learning outcomes from an approved course document;
+2. propose assessment items mapped to those outcomes;
+3. review coverage and difficulty; and
+4. revise the set after the educator's feedback.
+
+This creates useful checkpoints. It does not make an unreliable source reliable,
+and asking the same model to "double-check" itself is not independent
+verification.
+
+## Make uncertainty actionable
+
+Replace "do not make assumptions" with instructions the model can follow:
+
+```text
+List assumptions that materially affect the result. If an essential input is
+missing, ask me before continuing. If a minor detail is missing, choose a
+reasonable default, label it, and explain how changing it would affect the
+answer.
+```
+
+## Test and iterate
+
+Evaluate prompts on several representative examples, including difficult and
+edge cases. Record the model and settings used, the failure patterns, and the
+human corrections. Re-test important workflows when the model, tool, source
+material, or task changes.
+
+## References & Footnotes
+
+[^OpenAIModelGuidance]: OpenAI. **Prompting guidance for current models**. https://developers.openai.com/api/docs/guides/latest-model
+
+[^Turpin2023Unfaithful]: Turpin, M., Michael, J., Perez, E., & Bowman, S. R. (2023). **Language models don't always say what they think: Unfaithful explanations in chain-of-thought prompting**. *Advances in Neural Information Processing Systems, 36*. https://arxiv.org/abs/2305.04388

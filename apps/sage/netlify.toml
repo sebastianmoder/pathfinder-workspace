@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "https://pathfinder-sage.netlify.app/*"
+  to = "https://sage.ai-pathfinder.eu/:splat"
+  status = 301
+  force = true

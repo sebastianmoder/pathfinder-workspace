@@ -1,0 +1,87 @@
+import { Callout } from 'nextra/components'
+
+# Using Generative AI to Create Effective Assessment Rubrics
+
+<Callout type="warning">
+  Build the rubric from approved outcomes and the assignment—not from student
+  submissions. Do not upload identifiable work to an unapproved tool, and do
+  not let the model determine a grade.
+</Callout>
+
+## The Role of Rubrics in Effective Assessment
+
+Rubrics are more than just grading tools. They are foundational to transparent and effective assessment. In essence, a rubric is a matrix that articulates evaluation criteria, a scoring scale, and descriptive performance levels for each criterion.[^JonssonSvingby2007Rubrics]
+
+Well-designed rubrics can benefit both instructors and students. For educators, rubrics can support more consistent grading and more targeted feedback.[^JonssonSvingby2007Rubrics] For students, rubrics can clarify expectations and support self-regulated learning by making success criteria explicit.[^PanaderoJonsson2013Rubrics] [^Panadero2023RubricsSRL]
+
+One barrier is that designing a high-quality rubric takes time and careful thought.[^JonssonSvingby2007Rubrics] Criteria must align with the learning outcomes of the course, and descriptors need to be specific enough that performance levels are meaningfully distinguishable.
+
+## Why Use Generative AI for Rubric Creation?
+
+LLMs can help with the front-end workload of rubric drafting by generating a structured first draft you can then review and refine. Instead of starting from a blank page, you can input the details of an assignment and ask the model to propose criteria and performance descriptors. This can save time and spark ideas for wording and structure.
+
+Importantly, using AI in this manner keeps the educator in control. Treat the model as a drafting partner that generates suggestions, while you remain the expert who curates and edits the final rubric. After generating a draft, you can iterate by asking for changes in tone (e.g. simpler language) or format (e.g. table form).
+
+## What LLMs Can and Can’t Do in Rubric Design
+
+LLMs are good at generating structured text and imitating rubric formats. Given a well-crafted prompt, an AI can produce a rubric draft with criteria and performance level descriptions that looks polished and complete.
+
+However, LLMs do not know your course goals unless you tell them, and they cannot judge whether a proposed criterion is valid, fair, or assessable in your specific context. In practice, this means an AI-generated rubric can look professional while still being misaligned, overly generic, or missing what you care about most.
+
+### A practical workflow
+
+1. Prepare key information: Clarify the purpose of the assignment, the learning outcomes it targets, and what excellent performance looks like.
+2. Prompt for a first draft: Ask for criteria and level descriptors, and specify the number of levels and any required dimensions (e.g. evidence, reasoning, methodology, reflection).
+3. Review and revise: Remove irrelevant criteria, tighten vague descriptors, and ensure the rubric matches your course language and standards.
+4. Sanity-check: Ask a colleague to read the rubric, or test it on 1–2 sample submissions to see if the levels are distinguishable and the criteria are assessable.
+
+## Copyable rubric-drafting prompt
+
+```text
+Draft an analytic rubric using only the supplied assignment, learning outcomes,
+and required standards.
+
+For each criterion:
+- map it to one or more learning outcomes;
+- describe observable evidence rather than personality, effort, or intent;
+- write four performance levels with differences that another qualified grader
+  could distinguish; and
+- flag overlap, missing evidence, or requirements unsupported by the assignment.
+
+Return:
+1. an outcome-to-criterion mapping;
+2. the draft rubric table;
+3. questions the educator must resolve; and
+4. a checklist for testing the rubric on synthetic anchor responses.
+
+Do not add presentation, language, citation, or formatting criteria unless the
+supplied outcomes or assignment require them. Do not assign weights when their
+relative importance has not been provided.
+
+[assignment]
+[learning outcomes]
+[required standards]
+```
+
+After drafting, apply the rubric to several educator-created or appropriately
+authorised anchor responses. Revise descriptors when graders cannot identify
+the same evidence or when adjacent levels are not meaningfully distinct.
+
+## Best Practices for AI-Assisted Rubric Development
+
+- Always align with learning outcomes: The rubric should reflect what you want students to learn and demonstrate. If the AI suggests a criterion that isn’t relevant, replace or remove it. Conversely, add any criterion the AI missed but is crucial for your context.
+- Emphasize higher-order thinking when appropriate: Include criteria that target analysis, evaluation, creation, and other higher-order cognitive skills, if those align with the assignment’s purpose.
+- Be specific and clear: Use concrete, observable terms rather than vague descriptors that are hard for students to act on and hard for instructors to apply consistently.
+- Check for bias and inclusivity: AI models may inadvertently carry biases present in their training data.[^Ntoutsi2020Bias] Examine rubric language to ensure it’s free of culturally specific assumptions that disadvantage some students.
+- Review for accuracy and feasibility: Ensure you (and students) can realistically observe the differences between levels, and that any referenced standards (e.g. APA format) are correct.
+- Maintain your role as educator: Use AI as a support tool, but you decide the final wording and standards.
+
+## References & Footnotes
+
+[^JonssonSvingby2007Rubrics]: Jonsson, A., & Svingby, G. (2007). **The use of scoring rubrics: Reliability, validity and educational consequences**. *Educational Research Review*, *2*(2), 130–144. https://doi.org/10.1016/j.edurev.2007.05.002
+
+[^Ntoutsi2020Bias]: Ntoutsi, E., Fafalios, P., Gadiraju, U., Iosifidis, V., Nejdl, W., Vidal, M., Ruggieri, S., Turini, F., Papadopoulos, S., Krasanakis, E., Kompatsiaris, I., Kinder‐Kurlanda, K., Wagner, C., Karimi, F., Fernandez, M., Alani, H., Berendt, B., Kruegel, T., Heinze, C., … Staab, S. (2020). **Bias in data‐driven artificial intelligence systems—an introductory survey**. *WIREs Data Mining and Knowledge Discovery*, *10*(3), e1356. https://doi.org/10.1002/widm.1356
+
+[^Panadero2023RubricsSRL]: Panadero, E., Fraile, J., de los Ángeles Sánchez-Romero, M., & Castilla-Estévez, D. (2023). **Do rubric-based interventions promote self-regulated learning? A systematic review**. *Educational Research Review*, *40*, 100538. https://doi.org/10.1016/j.edurev.2023.100538
+
+[^PanaderoJonsson2013Rubrics]: Panadero, E., & Jonsson, A. (2013). **The use of scoring rubrics for formative assessment purposes revisited: a review**. *Educational Research Review*, *9*, 129–144. https://doi.org/10.1016/j.edurev.2013.01.002

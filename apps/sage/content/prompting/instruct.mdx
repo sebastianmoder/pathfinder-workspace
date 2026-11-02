@@ -1,0 +1,67 @@
+import { Callout } from 'nextra/components'
+
+# Use Explicit, Actionable Instructions
+
+A prompt should tell the model what action to perform. Context without an action
+often produces a generic continuation; an action with no criteria produces a
+result that may look useful without meeting the teaching need.[^Lin2024EffectivePrompts]
+
+## Turn background into a task
+
+Compare these prompts:
+
+```text
+This is a draft activity about supply and demand for first-year students.
+[activity]
+```
+
+```text
+Review the draft activity for first-year economics students.
+
+Check whether students must apply both supply and demand, whether the necessary
+information is present, and whether the task can be completed in 20 minutes.
+For each problem, quote the relevant wording and propose one revision. Do not
+add concepts that have not been taught.
+
+[activity]
+```
+
+The second prompt identifies the action, criteria, evidence, constraint, and
+desired revision. These details matter more than polite phrasing or an elaborate
+persona.
+
+## Use instructions at the point of need
+
+- Introduce source material with an action: “Use the excerpt below to…”
+- State boundaries beside the task: “Use only these sources for factual claims.”
+- Define missing-information behaviour: “Ask if an essential input is absent.”
+- Specify an output that supports review: “Return a table mapping each claim to
+  its source passage.”
+- End with a check: “Compare the draft with every criterion before returning it.”
+
+Avoid vague instructions such as “make it better”, “be accurate”, or “ensure
+quality”. Name what better means and how you will verify it.
+
+<Callout type="warning">
+  Do not ask a model to score student work against improvised criteria. Supply
+  the approved assignment and rubric, protect student data, and keep the final
+  judgment with the educator. See [Providing feedback with AI
+  support](/teaching/feedback).
+</Callout>
+
+## A compact instruction pattern
+
+```text
+Action: [create, compare, extract, critique, transform, or check]
+Object: [the material or question]
+Criteria: [what a successful result must contain]
+Evidence: [what the response may rely on]
+Constraints: [audience, scope, length, and boundaries]
+Output: [the most useful structure]
+Uncertainty: [what to do when information is missing]
+Verification: [checks before returning the result]
+```
+
+## References & Footnotes
+
+[^Lin2024EffectivePrompts]: Lin, Z. (2024). **How to write effective prompts for large language models**. *Nature Human Behaviour, 8*, 611–615. https://doi.org/10.1038/s41562-024-01847-2

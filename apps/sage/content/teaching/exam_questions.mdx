@@ -1,0 +1,204 @@
+import { Callout } from 'nextra/components'
+import { Steps } from 'nextra/components'
+
+# Creating Quizzes and Exam Questions with AI
+
+AI can speed up assessment design: generating question pools, producing variants, drafting rubrics, and helping you review items for clarity. But it only becomes *good pedagogy* when you use it to support a deliberate assessment workflow: clear learning outcomes, appropriate cognitive level, and careful review for accuracy and fairness.[^TestingStandards2014]
+
+Well-designed quizzes also serve learning (not just grading). Frequent retrieval practice (“practice tests”) reliably improves long-term retention, especially when paired with feedback.[^RoedigerKarpicke2006] [^Dunlosky2013] [^KarpickeBlunt2011]
+
+<Callout type="warning">
+AI output is not automatically correct, aligned, or “valid”. Treat it as a drafting and editing partner: you decide what to assess, you check accuracy, and you control difficulty, coverage, and integrity.
+</Callout>
+
+## A Workflow That Works (and Scales)
+
+<Steps>
+
+### 1. Start with outcomes and cognitive level
+
+Write (or paste) 3–8 learning outcomes for the unit and label the intended cognitive level (e.g., remember/understand/apply/analyze/evaluate/create). Bloom’s taxonomy is a practical shorthand for describing cognitive demand and preventing “accidental recall-only exams”.[^CornellBloom]
+
+**What to ask AI for**
+
+Ask the model to identify the Bloom level for each outcome and propose one assessable, verb-based rewrite. Then ask it to suggest what *evidence* you would accept as “mastery” for each outcome (what would students do, say, or produce?).
+
+### 2. Build an assessment blueprint (coverage, weighting, constraints)
+
+Before generating questions, decide what proportion of points/time goes to each topic and skill. This reduces “AI drift” and helps you defend the exam as representative of what you taught (validity evidence for the intended use).[^TestingStandards2014]
+
+**What to ask AI for**
+
+Ask AI to create a blueprint table (outcome × item type × cognitive level × number of items × points), and to propose a balanced mix of formats (MCQ, short answer, problem solving, essay) given your grading capacity.
+
+### 3. Generate a question pool (then select, don’t accept)
+
+Generate *more* questions than you need, then curate. Your goal is not “one perfect prompt”, but a repeatable pipeline:
+
+1. Generate 2–4× the number of items you need
+2. Select the best items
+3. Revise and standardize style, difficulty, and scope
+
+### 4. Use AI as a reviewer (clarity, bias, construct-irrelevant difficulty)
+
+LLMs are often better at *editing* than *inventing* assessment items. Have the model critique your drafted questions against item-writing rules and flag problems like ambiguous wording, hidden assumptions, and irrelevant complexity.[^UWExamQuestionTypes]
+
+**What to ask AI for**
+
+Ask the model to rewrite stems for clarity and concision (without changing the construct), flag potential bias (cultural references, idioms, background knowledge not taught), and identify likely misinterpretations with proposed fixes.
+
+### 5. Create answer keys, rubrics, and feedback (especially for open-ended items)
+
+For short answers and essays, scoring guidance is part of assessment quality. Ask AI to draft a rubric with criteria aligned to your outcomes, generate example “anchor” responses at different performance levels, and list common incorrect approaches along with how you would award partial credit.
+
+### 6. Create variants safely (parallel forms and practice quizzes)
+
+If you need multiple versions (or you want a study quiz), generate *isomorphic* variants: same skills, different surface features. For MCQs, be cautious: plausible distractors can also plant misconceptions if students only see the options without feedback.[^RoedigerMarsh2005]
+
+<Callout type="info">
+For learning quizzes, include explanations for why the correct answer is correct and why distractors are wrong. This improves learning and reduces the risk of reinforcing errors.[^RoedigerKarpicke2006] [^Dunlosky2013]
+</Callout>
+
+</Steps>
+
+## Prompt Templates (Copy/Paste)
+
+Use these as “starter scaffolds”. Replace bracketed text.
+
+### 1) Blueprint first
+
+```md copy
+You are an assessment designer for a university course.
+
+<course_context>
+Discipline: [e.g., Intro economics]
+Learners: [e.g., 1st-year undergraduates]
+Assessment: [quiz/exam], duration: [e.g., 45 minutes]
+Allowed resources: [closed book / one page notes / open book]
+</course_context>
+
+<learning_outcomes>
+- [Outcome 1]
+- [Outcome 2]
+- [Outcome 3]
+</learning_outcomes>
+
+<constraints>
+- Coverage: include all outcomes, emphasize [topic X]
+- Cognitive level targets: [e.g., 30% remember/understand, 50% apply, 20% analyze]
+- Item mix: [e.g., 8 MCQ, 3 short answer, 1 problem]
+- No trick questions; avoid cultural references and idioms
+</constraints>
+
+Task:
+1) Create an assessment blueprint table with outcomes × item type × Bloom level × number of items × points.
+2) Briefly justify the blueprint in 5–7 bullet points.
+```
+
+### 2) Generate MCQs with rationales and misconception-based distractors
+
+Start with three plausible options. Add another only when it represents a meaningful misconception; weak distractors add noise without improving the question.[^UWExamQuestionTypes]
+
+```md copy
+Generate 12 multiple-choice questions aligned to this blueprint:
+[paste blueprint table]
+
+Rules:
+- Prefer 3 options per item unless there is a strong reason for 4.
+- Provide: stem, options (A–C), correct answer, and a 1–2 sentence rationale.
+- For each distractor, name the likely misconception it represents.
+- Avoid "all of the above" and "none of the above" unless necessary.
+- Keep reading load minimal; test the concept, not English fluency.
+
+Return as a table.
+```
+
+### 3) Audit and revise (AI as editor)
+
+```md copy
+Review the following questions for quality.
+
+Checks:
+- Alignment to the intended learning outcome and Bloom level
+- Clarity and single-interpretation stems
+- Construct-irrelevant difficulty (unnecessary complexity, tricky wording)
+- Bias and accessibility (idioms, culturally specific knowledge, screen-reader issues)
+- For MCQs: plausibility and distinctiveness of distractors
+
+For each item:
+1) Give a brief issue list (if any)
+2) Propose a revised version
+3) Explain what changed and why
+
+Questions:
+[paste questions]
+```
+
+## Question-Type Playbook (What to Ask AI For)
+
+### Multiple-choice questions (MCQ)
+
+Use MCQs when you want breadth of coverage and efficient grading. Strong MCQs can also assess application and analysis, not only recall.[^UWExamQuestionTypes]
+
+Ask AI to draft stems from scenarios or cases (application), generate distractors based on known misconceptions, write brief rationales for correct and incorrect options (useful for feedback and review), and spot unintended cues (grammatical agreement, option length patterns, absolute words).
+
+### Short-answer and problem-solving
+
+Use short answers when you want students to *produce* a response (not recognize it). They also work well for partial credit.
+
+Ask AI to create a scoring guide (key steps, points per step), propose common wrong turns and partial-credit rules, and generate 3–5 equivalent variants (numbers or context changed, same method).
+
+### Essay questions
+
+Essay prompts are powerful when you want synthesis, evaluation, and argumentation, but they require clear criteria and calibration.
+
+Ask AI to draft prompts that force tradeoffs (not “tell me everything”), create a rubric aligned to outcomes and cognitive demand, and generate anchor responses plus a grader calibration checklist.
+
+## Quality Checklist (Use Before You Publish an Exam)
+
+**Alignment:** Every item should map to a learning outcome and the intended Bloom level.[^CornellBloom]
+
+**Coverage:** The full set should match your blueprint, avoiding over-testing one lecture.
+
+**Clarity:** Students should be able to interpret each question in one reasonable way.[^UWExamQuestionTypes]
+
+**Fairness & accessibility:** Remove construct-irrelevant barriers and apply UDL principles (multiple ways to demonstrate learning, reduced irrelevant reading load, clear structure).[^CASTUDL30]
+
+**Security:** Remove details that reveal future assessments, and use variants or rotate pools when appropriate.
+
+**Scoring:** Ensure rubrics and answer keys are explicit enough that another grader could apply them consistently.[^TestingStandards2014]
+
+## Academic Integrity, Privacy, and Transparency
+
+Follow your institution’s policy for AI tools, and be explicit with students about what is allowed for studying versus graded work.
+
+Avoid pasting confidential exam banks, student work, or identifiable student data into third-party tools unless approved.
+
+If you use AI to generate assessment items, keep a “paper trail” from outcomes → blueprint → items → revisions. This supports quality review and defensibility.[^TestingStandards2014]
+
+For inclusive practice, prioritize proactive design (clear expectations, accessible formats) rather than relying only on accommodations.[^CASTUDL30]
+
+For broader guidance on responsible use of generative AI in education (including privacy and governance considerations), see UNESCO’s guidance.[^UNESCOGenAI]
+
+State the permitted AI level and disclosure requirements in each assessment
+brief. See [Setting course and assignment AI rules](/teaching/course_ai_policy).
+
+## References & Footnotes
+
+[^TestingStandards2014]: American Educational Research Association, American Psychological Association, & National Council on Measurement in Education. (2014). **Standards for Educational and Psychological Testing**. https://www.testingstandards.net/open-access-files.html
+
+[^CornellBloom]: Cornell University, Center for Teaching Innovation. **Bloom’s taxonomy**. https://teaching.cornell.edu/resource/blooms-taxonomy
+
+[^UWExamQuestionTypes]: University of Waterloo, Centre for Teaching Excellence. **Exam Questions: Types, Characteristics, and Suggestions**. https://uwaterloo.ca/centre-for-teaching-excellence/catalogs/tip-sheets/exam-questions-types-characteristics-and-suggestions
+
+[^RoedigerKarpicke2006]: Roediger, H. L., III, & Karpicke, J. D. (2006). **Test-enhanced learning: Taking memory tests improves long-term retention**. *Psychological Science*, *17*(3), 249–255. https://doi.org/10.1111/j.1467-9280.2006.01693.x
+
+[^KarpickeBlunt2011]: Karpicke, J. D., & Blunt, J. R. (2011). **Retrieval practice produces more learning than elaborative studying with concept mapping**. *Science*, *331*(6018), 772–775. https://doi.org/10.1126/science.1199327
+
+[^Dunlosky2013]: Dunlosky, J., Rawson, K. A., Marsh, E. J., Nathan, M. J., & Willingham, D. T. (2013). **Improving students’ learning with effective learning techniques: Promising directions from cognitive and educational psychology**. *Psychological Science in the Public Interest*, *14*(1), 4–58. https://doi.org/10.1177/1529100612453266
+
+[^RoedigerMarsh2005]: Roediger, H. L., III, & Marsh, E. J. (2005). **The positive and negative consequences of multiple-choice testing**. *Journal of Experimental Psychology: Learning, Memory, and Cognition*, *31*(5), 1155–1159. https://doi.org/10.1037/0278-7393.31.5.1155
+
+[^CASTUDL30]: CAST. (2024). **Universal Design for Learning Guidelines version 3.0**. https://udlguidelines.cast.org/
+
+[^UNESCOGenAI]: UNESCO. (2023). **Guidance for generative AI in education and research**. https://www.unesco.org/en/articles/guidance-generative-ai-education-and-research

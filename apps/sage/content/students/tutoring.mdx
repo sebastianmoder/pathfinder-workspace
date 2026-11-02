@@ -1,0 +1,187 @@
+import { Callout } from 'nextra/components'
+import { Steps } from 'nextra/components'
+
+# Using AI Chatbots as Personalized Tutors
+
+Students already turn to AI chatbots when they get stuck. The question for educators is not whether this will happen, but whether students will use these tools as coaches for learning or as answer machines.
+
+<mark>The goal is to turn the chatbot into a tutor that supports thinking, practice, and feedback — without replacing the student’s work.</mark>
+
+## What the evidence does—and does not—show
+
+Decades of research on purpose-built intelligent tutoring systems show that
+structured tutoring software can improve learning in some settings.[^VanLehn2011Tutoring]
+That evidence does not automatically transfer to a general-purpose chatbot.
+
+Newer GenAI research is promising but context-dependent. A 2025 university
+physics trial found stronger immediate learning with a carefully engineered,
+course-specific AI tutor than with an active-learning lesson; the tutor combined
+a model with structured materials, sequencing, and tested pedagogical rules—it
+was not an unrestricted chat session.[^Kestin2025Tutoring] A 2025 meta-analysis
+likewise found positive average outcomes with substantial variation by learner,
+tool, role, rules, context, and outcome measure.[^ChenCheung2025Meta]
+
+Use AI tutoring first for low-stakes, high-frequency tasks such as explanation,
+practice, and diagnosing gaps. Evaluate the actual implementation rather than
+assuming that the label “AI tutor” establishes quality.
+
+Key benefits:
+
+- **Availability**: help outside office hours and between classes.
+- **Adaptation**: multiple explanations, examples, and levels of detail on demand.
+- **Practice**: quizzes, worked examples, and targeted drills.
+- **Possible accessibility support**: alternative explanations, formats, or
+  languages, subject to testing with the learners who need them.
+
+## What an AI tutor should (and should not) do
+
+An AI tutor is most valuable when it helps students *learn how to get to an answer*, not when it provides the answer immediately.
+
+Encourage students to use it for:
+
+- Step-by-step explanations and hints.
+- Self-testing (flashcards, mini-quizzes, “explain this back to me”).
+- Checking understanding (“what assumption am I using here?”).
+- Feedback on reasoning or drafts, without rewriting the work.
+
+Be explicit that they should not use it for:
+
+- High-stakes decisions or “final authority” on correctness.
+- Generating submissions to hand in as their own work.
+- Fabricating sources or citations (which students must verify themselves).
+
+<Callout type="warning">
+  Required AI tutoring needs an institutionally approved tool, accessible
+  participation, and an equivalent alternative. Do not require students to
+  disclose personal circumstances or upload protected course material.
+</Callout>
+
+<mark>Students should treat AI outputs as drafts to evaluate, not facts to trust.</mark> If you want a dedicated activity for this, see [Teaching Students to Critically Evaluate AI Outputs](/students/ai_literacy/).
+
+## Getting Started: Setting Up Your AI Tutor
+
+<Steps>
+
+### Choose a platform
+
+Pick an institutionally approved tool that students can access and that supports
+the required languages and assistive technology. Check cost, account and age
+requirements, retention and training settings, export and deletion, and
+availability in students' locations. See [When to use AI](/genai/when_to_use/)
+and publish an equivalent alternative before making the activity required.
+
+### Define the tutor’s role and boundaries
+
+To create a good AI tutor requires [good prompting skills](/prompting/). Give the chatbot a clear teaching role and a clear boundary: it should help the student learn, not do the work.
+
+For instance, students can start with:
+
+> You are a supportive tutor for my Introduction to Biology course. Use the
+> supplied course material as the source for factual explanations. Begin by
+> asking what I am trying to understand and what I have attempted. Give one hint
+> or question at a time before showing a worked example. Ask me to explain the
+> idea back in my own words. If the course material does not support an answer,
+> say so rather than inventing one.
+
+Adjust the prompt to fit your discipline and the level of your students. The goal is to have the AI adopt a pedagogical style: it should not just give answers away, but engage the student in learning (for example, through hints, dialogue, or worked examples they can replicate).
+
+Share these guidelines with students so they know how to prompt effectively. Encourage them to include context (“I’m studying X, I don’t understand Y…”), and to specify the type of support they want (a hint, an analogy, a worked example, or a short quiz).
+
+To get you started, a [sample prompt](#example-prompt-general-tutor) is included below.
+
+### Ground it in course material (when appropriate)
+
+If the platform and licences allow it, provide approved course excerpts,
+definitions, problem statements, or worked examples. Do not tell students to
+upload an entire textbook, assessment bank, peer's work, or other protected
+material. Broad model knowledge may not match your syllabus, notation, or
+conventions.
+
+<mark>When students supply course context, the tutor becomes more aligned — and you get fewer confident-but-off-target explanations.</mark>
+
+### Pilot it yourself
+
+Test representative questions, misconceptions, ambiguous requests, attempts to
+obtain assessed answers, and cases beyond the supplied material. Check accuracy,
+sequencing, cognitive load, tone, accessibility, and whether the tutor gives away
+the target work. A prompt alone may not reliably scaffold a complex multi-part
+lesson; add educator-controlled sequencing or do not use the workflow.
+
+### Introduce it to students with norms
+
+Explain why you’re encouraging AI tutoring and how it fits your course expectations (including what students must not do). Provide access instructions and a few “good use” examples.
+
+It can help to do a short live demo showing how to ask for hints, how to ask follow-up questions, and how to verify claims.
+
+### Iterate based on student experience
+
+Consider a low-stakes activity where using an AI tutor is part of the process (for example: “use it to generate a quiz, then write a short reflection on what you missed and why”).
+
+Gather feedback: where did the tutor help, and where did it mislead? If students mostly use it as a shortcut, explicitly model better prompts (“give me a hint”, “ask me questions”, “help me check my work”).
+
+</Steps>
+
+## Adapting the AI Tutor to Different Subjects
+
+One advantage of AI tutors is that the same prompting patterns work across disciplines: ask for clarification, ask for practice, and ask for feedback. Below are concrete examples you can share with students.
+
+### Science & Engineering
+
+Examples:
+
+- `Explain this concept in three ways: intuitive, formal, and with an example.`
+- `Give me 5 practice questions on [topic], with answers hidden until I ask.`
+- `I tried this approach and got stuck here: [paste work]. Give me a hint, not the solution.`
+
+<mark>In quantitative subjects, students should verify steps and results independently.</mark>
+
+### Humanities & Social Sciences
+
+Examples:
+
+- `List three competing interpretations of [text/event], each with the strongest supporting reasons.`
+- `Ask me Socratic questions that help me refine my thesis about [topic].`
+- `Critique this paragraph’s argument and evidence. Do not rewrite it.`
+
+<mark>For writing tasks, use AI for critique and brainstorming — not ghostwriting.</mark>
+
+### Mathematics
+
+Examples:
+
+- `Ask me for my first step, then give one hint at a time. Show a worked example only after I have attempted the problem.`
+- `Here is my solution: [paste]. Check it and tell me the first step that is wrong (if any).`
+- `Explain why this substitution/assumption is valid in this step.`
+
+### Foreign Languages
+
+Examples:
+
+- `Only speak [language]. Correct my mistakes after each message, and explain the correction briefly.`
+- `Give me 10 sentences to translate that use the past tense and common idioms.`
+- `Role-play a [scenario]. Keep it at CEFR level [A2/B1/B2].`
+
+Frequent, low-pressure practice is a reasonable place to pilot an AI tutor,
+provided learners can verify corrections and are not penalised for tool errors.
+
+## Example Prompt: General Tutor
+
+<Callout>
+You are a supportive, encouraging tutor. Your job is to help me understand concepts by explaining ideas and asking me questions.
+
+Rules:
+
+1. Ask one question at a time.
+2. Start by asking what I want to learn. Then ask my level (beginner/intermediate/advanced). Then ask what I already know.
+3. Prefer hints, guiding questions, and worked examples I can follow — do not jump straight to final answers.
+4. If I get something wrong, point to the first mistake and give a hint for the next step.
+5. End most responses with a question that checks my understanding.
+</Callout>
+
+## References & Footnotes
+
+[^VanLehn2011Tutoring]: VanLehn, K. (2011). **The relative effectiveness of human tutoring, intelligent tutoring systems, and other tutoring systems**. *Educational Psychologist*, *46*(4), 197–221. https://doi.org/10.1080/00461520.2011.611369
+
+[^ChenCheung2025Meta]: Chen, S., & Cheung, A. C. K. (2025). **Effect of generative artificial intelligence on university students learning outcomes: A systematic review and meta-analysis**. *Educational Research Review, 49*, 100737. https://doi.org/10.1016/j.edurev.2025.100737
+
+[^Kestin2025Tutoring]: Kestin, G., Miller, K., Klales, A., Milbourne, T., & Ponti, G. (2025). **AI tutoring outperforms in-class active learning: an RCT introducing a novel research-based design in an authentic educational setting**. *Scientific Reports, 15*, 17458. https://doi.org/10.1038/s41598-025-97652-6

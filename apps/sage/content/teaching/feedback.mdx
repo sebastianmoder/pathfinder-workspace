@@ -1,0 +1,141 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Providing Feedback with AI Support
+
+AI can help an educator draft, organise, or vary feedback. It should not become
+the assessor. Effective feedback remains grounded in the student's actual work,
+the intended learning outcomes, and professional judgment.
+
+<Callout type="warning">
+  Do not upload identifiable student work to an unapproved tool. Do not use AI
+  output as the sole basis for a mark, progression decision, or misconduct
+  allegation. See [Responsible AI use](/genai/responsible_use) before working
+  with student data or consequential assessment.
+</Callout>
+
+## What useful feedback should do
+
+Strong feedback helps a learner answer three questions:
+
+- **Where am I going?** Restate the relevant goal or criterion.
+- **How am I doing?** Point to specific evidence in the work.
+- **What should I do next?** Give a feasible action the student can apply.
+
+Feedback is more useful when it addresses the task and the learner's process,
+not presumed personality or ability. It should prioritise a small number of
+changes rather than overwhelm the student with every possible correction.
+Research syntheses show that feedback effects vary substantially with its
+content and delivery; more feedback is not automatically better.[^Hattie2007Feedback]
+[^Wisniewski2020Power]
+
+## A safe drafting workflow
+
+<Steps>
+
+### Set the purpose and boundaries
+
+Decide whether AI is helping with phrasing, checking coverage, identifying
+patterns, or generating questions. Keep grading and final judgment with the
+educator. State the learning outcomes and rubric criteria that matter.
+
+### Check the data and tool
+
+Use an institutionally approved environment for student work. Share only what is
+necessary. If the tool is not approved for personal data, practise the workflow
+with synthetic work instead of a real submission. Removing a name may not be
+enough when a text contains distinctive experiences or other identifiers.
+
+### Supply the evidence
+
+Provide the relevant rubric, assignment instructions, and authorised student
+work. Tell the model to use only this material and to quote or locate the
+specific evidence behind each observation. Do not ask it to infer effort,
+motivation, disability, emotion, honesty, or likely authorship.
+
+### Request feedback, not a verdict
+
+Ask for observations and possible next steps. Where appropriate, ask for
+questions that prompt the student to revise. Avoid an AI-generated numerical
+score unless a qualified educator independently applies and verifies the rubric.
+
+### Review every comment
+
+Check that each comment is supported by the work, aligned with the criterion,
+accurate, proportionate, and expressed respectfully. Remove generic comments,
+false claims, and suggestions beyond what has been taught. Ensure your feedback
+does not reveal another student's work or confidential rubric material.
+
+### Personalise and invite action
+
+Select the highest-priority points, rewrite them in your own voice, and provide a
+realistic next step. Give students an opportunity to ask questions, correct a
+misreading, and use the feedback in a revision or future task.
+
+</Steps>
+
+## Copyable prompt for a feedback draft
+
+Use this only in an environment approved for the material you provide.
+
+```text
+You are helping me draft formative feedback. I remain the assessor and will
+review every comment.
+
+<assignment>
+[assignment instructions]
+</assignment>
+
+<learning_outcomes_and_criteria>
+[relevant learning outcomes and rubric criteria]
+</learning_outcomes_and_criteria>
+
+<student_work>
+[authorised student work or excerpt]
+</student_work>
+
+For each of the two highest-priority points:
+1. name the relevant criterion;
+2. identify the exact passage or feature in the work that supports the comment;
+3. describe one strength or successful choice, where supported;
+4. propose one specific next action; and
+5. offer one question that could help the student revise independently.
+
+Do not assign a grade. Do not infer motivation, effort, personal characteristics,
+misconduct, or AI authorship. Do not introduce requirements absent from the
+assignment or criteria. If the evidence is insufficient, write "insufficient
+evidence" and explain what I should inspect. Return a concise table.
+```
+
+## Human review checklist
+
+Before sending the feedback, confirm:
+
+- every observation points to evidence in this student's work;
+- the advice follows the published task, learning outcomes, and rubric;
+- any factual or disciplinary claim has been independently verified;
+- the tone is clear, respectful, and appropriate for the learner;
+- the priorities are achievable within the time and support available;
+- the feedback does not infer protected characteristics, intent, or authorship;
+- the grade, if any, was determined and checked by the responsible educator;
+- the student can ask for clarification or challenge a factual misreading; and
+- the feedback creates a chance to act, revise, or transfer learning.
+
+## Evaluate the workflow
+
+Test the process on a small, representative sample before wider use. Compare the
+AI-supported draft with educator-only feedback and inspect both false criticisms
+and missed issues. Check whether quality differs by language variety, topic, or
+student group. Record the time saved *after* review—not just draft-generation
+time—and stop if the workflow weakens feedback quality or fairness.
+
+Early studies of LLM-generated feedback show potential in particular settings,
+but this is still a developing evidence base and results do not transfer
+automatically across subjects, tools, or student groups.[^Banihashem2024Adaptive]
+
+## References & Footnotes
+
+[^Banihashem2024Adaptive]: Banihashem, S. K., Kerman, N. T., Noroozi, O., Moon, J., & Drachsler, H. (2024). **Feedback sources in essay writing: Peer-generated or AI-generated feedback?** *International Journal of Educational Technology in Higher Education, 21*. https://doi.org/10.1186/s41239-024-00455-4
+
+[^Hattie2007Feedback]: Hattie, J., & Timperley, H. (2007). **The power of feedback**. *Review of Educational Research, 77*(1), 81–112. https://doi.org/10.3102/003465430298487
+
+[^Wisniewski2020Power]: Wisniewski, B., Zierer, K., & Hattie, J. (2020). **The power of feedback revisited: A meta-analysis of educational feedback research**. *Frontiers in Psychology, 10*, 3087. https://doi.org/10.3389/fpsyg.2019.03087
