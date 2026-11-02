@@ -1,11 +1,11 @@
 {
 	"dependencies": {
-		"next": "^16.3.4",
+		"next": "^16.4.4",
 		"next-sitemap": "^4.2.3",
 		"nextra": "^4.6.1",
 		"nextra-theme-docs": "^4.6.1",
-		"react": "^19.2.8",
-		"react-dom": "^19.2.8",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
 		"react-icons": "^5.7.0"
 	},
 	"scripts": {
@@ -21,24 +21,28 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "^4.3.3",
-		"pagefind": "^1.5.2",
-		"postcss": "8.5.28",
+		"pagefind": "^1.6.0",
+		"postcss": "8.5.32",
 		"tailwindcss": "^4.3.3"
 	},
 	"pnpm": {
 		"overrides": {
 			"@xmldom/xmldom": "0.9.12",
-			"brace-expansion": "5.0.9",
-			"dompurify": "3.4.14",
+			"brace-expansion": "5.0.12",
+			"dompurify": "3.4.17",
+			"katex": "0.19.1",
 			"lodash-es": "4.18.1",
 			"mermaid": "11.17.2",
-			"minimatch": "10.2.6",
+			"minimatch": "11.0.4",
 			"micromatch>picomatch": "2.3.2",
-			"postcss": "8.5.28",
+			"postcss": "8.5.32",
 			"tinyglobby>picomatch": "4.0.7",
-			"uuid": "14.0.2",
-			"yaml": "2.9.0",
-			"zod": "4.3.6"
+			"uuid": "14.0.3",
+			"yaml": "2.9.1",
+			"zod": "4.6.7"
+		},
+		"patchedDependencies": {
+			"nextra-theme-docs@4.6.1": "patches/nextra-theme-docs@4.6.1.patch"
 		}
 	}
 }
