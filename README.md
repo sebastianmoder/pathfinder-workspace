@@ -147,6 +147,9 @@ npm run lint
 
 ## Notes
 
+- Keep both `package-lock.json` and `pnpm-lock.yaml` updated when changing dependencies. Audit both with `npm audit` and `pnpm audit`; use `npm audit --omit=dev` and `pnpm audit --prod` to check production dependencies separately.
+- Dependency review (2026-11-02): ESLint stays on 9 because the current React and import lint plugins do not declare ESLint 10 support. TypeScript stays on 6 because `typescript-eslint` requires TypeScript below 6.1. Node types stay on 22 to match the minimum supported runtime.
+- The development lint toolchain still reports [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) through `minimatch` 3 and 10. The fix requires `minimatch` 11.0.1 or newer, outside the upstream dependency ranges; revisit this when the lint packages add compatible releases. Avoid forcing a global major-version override because the older consumers expect a different API.
 - The default model is defined by `DEFAULT_MODEL_OPTION` in `lib/constants.ts`. Update that single object to change the built-in default model, its labels, and its position at the top of the BYOK selector.
 - On hosted deployments, a shared OpenRouter key can be supplied through environment configuration.
 - `netlify.toml` currently contains a redirect from the old Netlify domain to `guard.ai-pathfinder.eu`.
