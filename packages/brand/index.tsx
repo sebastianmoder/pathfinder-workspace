@@ -3,7 +3,8 @@ import { products, type Product } from './products';
 export { products, type Product } from './products';
 export function ProjectHeader({ product, compact = false, children }: { product: Product; compact?: boolean; children?: ReactNode }) {
  return <header className={`pf-header no-print ${compact ? 'pf-compact' : ''}`}>
-  <div className="pf-bar"><a className="pf-wordmark" href="https://ai-pathfinder.eu"><span aria-hidden="true">↗</span> Pathfinder</a>
+  <div className="pf-bar"><a className="pf-wordmark" href="https://ai-pathfinder.eu">{/* eslint-disable-next-line @next/next/no-img-element -- shared static emblem */}
+<img src="/brand/pathfinder.svg" alt="" width="44" height="44" /> <span>Pathfinder</span></a>
    <nav aria-label="Pathfinder products" className="pf-products">{products.map(p => <a key={p.id} href={p.id === product ? '/' : p.url} aria-current={p.id === product ? 'true' : undefined} data-pf-product={p.id}>{p.name}</a>)}</nav>
   </div>{children && <div className="pf-local">{children}</div>}
  </header>;

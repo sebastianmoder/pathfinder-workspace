@@ -1,38 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafbfc;
-  --foreground: #1a1a2e;
+  --background: #faf7ef;
+  --foreground: #093a43;
 
-  --guard-blue-50: #f0f4f8;
-  --guard-blue-100: #d9e2ec;
-  --guard-blue-200: #bcccdc;
-  --guard-blue-300: #9fb3c8;
-  --guard-blue-400: #829ab1;
-  --guard-blue-500: #627d98;
-  --guard-blue-600: #486581;
-  --guard-blue-700: #334e68;
-  --guard-blue-800: #243b53;
-  --guard-blue-900: #102a43;
+  --guard-blue-50: #f0f2e9;
+  --guard-blue-100: #e1e8da;
+  --guard-blue-200: #c8d7c4;
+  --guard-blue-300: #91aaa0;
+  --guard-blue-400: #58756d;
+  --guard-blue-500: #4b6c64;
+  --guard-blue-600: #42645f;
+  --guard-blue-700: #2b554f;
+  --guard-blue-800: #174943;
+  --guard-blue-900: #093a43;
 
-  --guard-accent: #004494;
-  --guard-accent-hover: #003574;
-  --guard-accent-light: #dbeafe;
+  --guard-accent: #17616c;
+  --guard-accent-hover: #093a43;
+  --guard-accent-light: #e0eee7;
 
-  --guard-success: #10b981;
-  --guard-warning: #f59e0b;
-  --guard-error: #ef4444;
+  --guard-success: #377348;
+  --guard-warning: #96600b;
+  --guard-error: #c03936;
 
   --guard-surface: #ffffff;
-  --guard-surface-elevated: #f8fafc;
-  --guard-border: #e2e8f0;
+  --guard-surface-elevated: #f5f3ec;
+  --guard-border: #ccd6ca;
 
-  --guard-slot-filled: #dbeafe;
-  --guard-slot-empty: #f1f5f9;
+  --guard-slot-filled: #e0eee7;
+  --guard-slot-empty: #f1f0e8;
 
-  --guard-phase-active: #3b82f6;
-  --guard-phase-complete: #10b981;
-  --guard-phase-pending: #cbd5e1;
+  --guard-phase-active: #17616c;
+  --guard-phase-complete: #377348;
+  --guard-phase-pending: #bac7ba;
 }
 
 @theme inline {
@@ -62,7 +62,7 @@
   --color-guard-phase-active: var(--guard-phase-active);
   --color-guard-phase-complete: var(--guard-phase-complete);
   --color-guard-phase-pending: var(--guard-phase-pending);
-  --color-eu-blue: #004494;
+  --color-eu-blue: #17616c;
   --color-eu-yellow: #ffd617;
   --font-sans: var(--font-atkinson);
   --font-mono: var(--font-geist-mono);
@@ -93,3 +93,23 @@ body {
 .animate-fade-in-up {
   animation: fade-in-up 0.3s ease-out;
 }
+
+/* The lab is a working notebook: clear hierarchy, quiet surfaces. */
+h1,h2,h3 { font-family:var(--font-zilla),Georgia,serif; }
+.guard-hero { display:grid; grid-template-columns:1.3fr 1fr; gap:4rem; padding:4.5rem 0; align-items:center; }
+.guard-hero h1 { font-size:clamp(2.7rem,4.5vw,4.2rem); margin:1.25rem 0; }
+.guard-intro { font-size:1.15rem; line-height:1.7; color:var(--guard-blue-600); max-width:48ch; margin-bottom:1.75rem; }
+.guard-fieldnote { padding:2rem; border:1px solid var(--guard-border); border-top:4px solid #8daa70; border-radius:.5rem; background:#f0eee2; }
+.guard-fieldnote ol { list-style:none; margin:1.5rem 0; padding:0; }
+.guard-fieldnote li { display:flex; gap:1rem; padding:.85rem 0; border-bottom:1px solid var(--guard-border); }
+.guard-fieldnote li > span { font-family:var(--font-atkinson-mono),monospace; color:#42645f; font-size:.8rem; padding-top:.2rem; }
+.guard-fieldnote strong { font-family:var(--font-zilla),Georgia,serif; font-size:1.3rem; }.guard-fieldnote li p { font-size:.9rem; line-height:1.5; color:#42645f; margin-top:.25rem; }
+.guard-note { font-size:.8rem; line-height:1.5; color:#42645f; }
+.guard-catalogue-heading { display:flex; justify-content:space-between; align-items:end; gap:1rem; margin-bottom:1.75rem; }.guard-catalogue-heading h2 { font-size:2.5rem; margin-top:.5rem; }.guard-catalogue-heading > p { font-size:.95rem; color:#42645f; }
+.guard-lab-card > div { border-top:3px solid #8daa70; transition:background .2s,border-color .2s; }.guard-lab-card:hover > div { background:#f4f5ec; border-color:#17616c; }
+.guard-start { display:flex; justify-content:space-between; margin-top:1.25rem; font-size:.9rem; font-weight:700; color:#17616c; }
+[aria-label="Lab phases"] { padding:.75rem; border:1px solid var(--guard-border); border-radius:.5rem; background:var(--guard-surface-elevated); flex-wrap:wrap; row-gap:.5rem; }
+[aria-label="Scaffolding panel"] { background:var(--guard-surface-elevated); min-height:0; min-width:0; }
+[aria-label="Chat panel"] { background:var(--guard-surface); min-height:0; min-width:0; }
+input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible { outline:2px solid #17616c; outline-offset:3px; }
+@media(max-width:800px) { .guard-hero { grid-template-columns:1fr; gap:2rem; padding-block:2.5rem; }.guard-catalogue-heading { display:block; }.guard-catalogue-heading > p { margin-top:.75rem; }.guard-fieldnote { padding:1.5rem; } }

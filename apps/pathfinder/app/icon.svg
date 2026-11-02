@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000" fill="none">
+  <title>Pathfinder — refined emblem</title>
+  <desc>A circular fantasy and technology emblem with a golden wizard hat, a winding ivory path, a circuit shield, and a sword. Rebuilt as editable vector geometry on a transparent background.</desc>
+  <defs>
+    <clipPath id="badge-clip"><circle cx="500" cy="500" r="440"/></clipPath>
+  </defs>
+  <g id="landscape" clip-path="url(#badge-clip)">
+    <circle cx="500" cy="500" r="440" fill="#F2AD48"/>
+    <path d="M500 50H950V950H500Z" fill="#17616C"/>
+    <path d="M55 699C235 492 458 462 660 555C795 616 894 717 950 811V950H55Z" fill="#8DAA70"/>
+    <path id="winding-path" d="M470 350C617 395 665 467 611 526C554 587 420 588 328 610C255 628 220 651 239 679C262 716 365 721 444 750C528 779 585 823 574 889C571 911 559 937 544 957H451C471 924 487 891 480 866C471 830 413 812 339 790C255 769 166 742 168 675C170 583 267 561 362 544C462 525 552 515 559 479C564 448 511 424 470 405Z" fill="#F3EAD8" stroke="#093A43" stroke-width="22" stroke-linejoin="round"/>
+  </g>
+  <circle id="badge-border" cx="500" cy="500" r="440" stroke="#093A43" stroke-width="24"/>
+  <g id="wizard-hat" stroke="#093A43" stroke-width="22" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M142 345L210 184C193 214 169 235 135 237C156 198 184 155 207 137C228 118 245 114 261 122C282 126 312 149 339 174C378 211 409 271 432 345C361 384 216 384 142 345Z" fill="#F2AD48"/>
+    <path d="M142 345C180 356 207 361 239 364C310 371 376 361 432 345C471 356 493 372 485 389C472 421 372 439 287 438C196 437 103 420 93 388C87 372 107 357 142 345Z" fill="#F2AD48"/>
+    <path d="M292 224C299 250 306 257 332 264C306 271 299 278 292 304C285 278 278 271 252 264C278 257 285 250 292 224Z" fill="#093A43" stroke="none"/>
+  </g>
+  <g id="circuit-shield" transform="translate(24 7) scale(0.95)" stroke="#093A43" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M600 230C646 219 692 199 735 172C778 199 824 219 870 230V333C870 432 816 505 735 549C654 505 600 432 600 333Z" fill="#58A0A0" stroke-width="22"/>
+    <path d="M735 184V537C811 494 859 427 859 333V239C815 227 772 208 735 184Z" fill="#17616C" stroke="none"/>
+    <path d="M735 184V267L780 312V409" stroke-width="16"/>
+    <path d="M609 324H665" stroke-width="16"/>
+    <circle cx="684" cy="324" r="21" fill="#58A0A0" stroke-width="16"/>
+    <path d="M626 431L674 383H704L735 352" stroke-width="16"/>
+    <path d="M735 537V453" stroke-width="16"/>
+    <circle cx="735" cy="434" r="21" fill="#58A0A0" stroke-width="16"/>
+    <path d="M811 378V291" stroke-width="16"/>
+    <circle cx="811" cy="270" r="21" fill="#17616C" stroke-width="16"/>
+  </g>
+  <g id="sword" stroke="#093A43" stroke-width="20" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M675 744V650C675 620 690 599 710 580C730 599 745 620 745 650V744Z" fill="#F3EAD8"/>
+    <path d="M710 594V744H745V650C745 620 730 608 710 594Z" fill="#8DAA70" stroke="none"/>
+    <path d="M675 744V650C675 620 690 599 710 580C730 599 745 620 745 650V744Z"/>
+    <path d="M685 806H735V864H685Z" fill="#17616C"/>
+    <path d="M627 744H793C791 783 760 805 710 805C660 805 629 783 627 744Z" fill="#8DAA70"/>
+    <circle cx="710" cy="878" r="29" fill="#17616C"/>
+  </g>
+  <g id="wayfinding-stars" fill="#F3EAD8">
+    <path d="M419 152C425 176 430 181 454 187C430 193 425 198 419 222C413 198 408 193 384 187C408 181 413 176 419 152Z"/>
+    <path d="M869 527C875 551 880 556 904 562C880 568 875 573 869 597C863 573 858 568 834 562C858 556 863 551 869 527Z"/>
+  </g>
+</svg>

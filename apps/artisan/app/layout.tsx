@@ -1,4 +1,4 @@
-import { ProjectHeader, ProjectFooter } from '@pathfinder/brand';
+import { ProjectFooter } from '@pathfinder/brand';
 import { Analytics } from '@pathfinder/analytics';
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           {t.skipToContent}
         </a>
-        <ProjectHeader product="artisan" compact>
+        <header className="border-b border-border bg-surface">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
             <Link href="/" className="font-[family-name:var(--font-zilla)] text-xl font-semibold">
               {t.appName}
@@ -41,7 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Link>
             </nav>
           </div>
-        </ProjectHeader>
+        </header>
         <SessionProvider>
           <main id="main" className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8">
             {children}

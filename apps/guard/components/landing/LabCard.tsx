@@ -43,7 +43,7 @@ export function LabCard({ lab }: LabCardProps) {
   return (
     <button
       onClick={() => startNewLab(lab.id)}
-      className="w-full text-left"
+      className="guard-lab-card w-full text-left rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-guard-accent"
     >
       <Card hoverable className="h-full flex flex-col">
         <div className="flex items-start gap-4 mb-4">
@@ -51,7 +51,7 @@ export function LabCard({ lab }: LabCardProps) {
             {iconMap[lab.icon] || iconMap.activity}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-guard-blue-900 mb-1">
+            <h3 className="font-semibold text-guard-blue-900 mb-1 text-xl">
               {lab.title}
             </h3>
             <Badge>{lab.estimatedTime}</Badge>
@@ -65,6 +65,7 @@ export function LabCard({ lab }: LabCardProps) {
             {lab.learningOutcome}
           </p>
         </div>
+        <span className="guard-start">Start lab <span aria-hidden="true">↗</span></span>
       </Card>
     </button>
   );

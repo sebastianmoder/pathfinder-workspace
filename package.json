@@ -6,6 +6,7 @@
     "node": ">=22.13 <23"
   },
   "scripts": {
+    "brand:generate": "node scripts/generate-brand-assets.mjs",
     "dev:pathfinder": "pnpm --filter @pathfinder/pathfinder dev --port 3000",
     "dev:sage": "pnpm --filter @pathfinder/sage dev --port 3001",
     "dev:guard": "pnpm --filter @pathfinder/guard dev --port 3002",

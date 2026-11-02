@@ -9,9 +9,9 @@ export function LabHeader({ labTitle }: LabHeaderProps) {
   return (
     <>
     <ProjectHeader product="guard" compact />
-    <header className="border-b border-guard-border bg-guard-surface">
-      <div className="px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <header className="shrink-0 border-b border-guard-border bg-guard-surface">
+      <div className="px-4 sm:px-6 min-h-14 py-2 flex items-center justify-between">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/"
             className="text-guard-blue-400 hover:text-guard-blue-600 transition-colors"

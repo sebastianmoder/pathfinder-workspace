@@ -19,6 +19,8 @@ pnpm test:smoke      # after pnpm build
 
 Apps live in `apps/`; shared brand components, tokens, product registry, analytics, and Next configuration live in `packages/`. App-specific content and state remain in their apps. Dependencies are declared by each consumer; the workspace owns the lockfile, runtime and package-manager versions. Material UI remains for existing homepage form components. Production builds use webpack consistently; development retains the default Next.js bundler. Shared fonts are vendored with licenses, so builds do not contact Google Fonts.
 
+The canonical emblem is `pathfinder-refined.svg` at the workspace root. After changing it, run `pnpm brand:generate` (requires `rsvg-convert` from librsvg and ImageMagick’s `magick`). This distributes the logo and generates SVG favicons, multi-size ICO fallbacks, and touch icons for all four independent apps. Pathfinder, SAGE, and GUARD share project navigation; ARTISAN keeps its local navigation and funding attribution.
+
 Edit product URLs/status in `packages/brand/products.ts`. Navigation uses canonical production URLs so previews never silently switch products to unrelated preview deployments. SAGE retains Nextra and Pagefind; GUARD retains its runtime functions; ARTISAN retains its in-memory learning state.
 
 See [deployment and analytics cutover](docs/cutover.md) before changing live hosting. Analytics is disabled unless a production Netlify context and a measurement ID are supplied, the host is canonical, and the visitor has consented.

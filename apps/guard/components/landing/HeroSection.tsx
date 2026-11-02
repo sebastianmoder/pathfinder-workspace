@@ -1,19 +1,6 @@
 export function HeroSection() {
-  return (
-    <section className="text-center py-16 px-6">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-guard-blue-900 mb-3">
-          Learn to Use AI Critically
-        </h1>
-        <p className="text-lg text-guard-blue-600 mb-2">
-          Generative Universal Assistant for Resourceful Development
-        </p>
-        <p className="text-guard-blue-500 max-w-xl mx-auto leading-relaxed">
-          Hands-on labs that teach educators to formulate effective prompts,
-          evaluate AI outputs, and recognize failure modes — through structured
-          experimentation with a real AI.
-        </p>
-      </div>
-    </section>
-  );
+  return <section className="guard-hero">
+    <div><p className="pf-eyebrow">GUARD / Guided AI labs for educators</p><h1 className="pf-display">Experiment with AI.<br />Build your judgment.</h1><p className="guard-intro">A space to try, question, and improve. Work through real teaching tasks, shape better prompts, and learn to evaluate what AI gives you.</p><a href="#labs" className="pf-action">Find your first lab <span aria-hidden="true">↓</span></a></div>
+    <aside className="guard-fieldnote" aria-label="Your learning journey"><p className="pf-eyebrow">Your field notes start here</p><ol><li><span>01</span><div><strong>Reflect & compose</strong><p>Give your teaching task a clear purpose.</p></div></li><li><span>02</span><div><strong>Evaluate</strong><p>Look closely at what the AI produces.</p></div></li><li><span>03</span><div><strong>Reflect</strong><p>Question the result. Refine your approach.</p></div></li></ol><p className="guard-note">Generative Universal Assistant for Resourceful Development</p></aside>
+  </section>;
 }

@@ -1,207 +1,35 @@
 import { products } from '@pathfinder/brand/products';
-import Image from "next/image";
-import Link from "next/link";
-import { GiWizardStaff, GiBorderedShield, GiBroadsword } from "react-icons/gi";
-import InstitutionLogos from "@/components/Institutionlogos";
-import Featurecard from "@/components/Featurecard";
-import DoubleHeadings from "@/components/DoubleHeadings";
+import Image from 'next/image';
+import Link from 'next/link';
+import InstitutionLogos from '@/components/Institutionlogos';
 
-const projectDeliverables = [
-  {
-    id: "sage",
-    title: "SAGE",
-    description: "Strategies for AI-Guided Education",
-    icon: (
-      <GiWizardStaff
-        size={32}
-        aria-hidden="true"
-      />
-    ),
-    link: products[1].url,
-    target: "_blank",
-    status: products[1].status,
-    audience: "Educators",
-    ctaLabel: "Visit SAGE",
-  },
-  {
-    id: "guard",
-    title: "GUARD",
-    description: "Generative Universal Assistant for Resourceful Development",
-    icon: (
-      <GiBorderedShield
-        size={32}
-        aria-hidden="true"
-      />
-    ),
-    link: products[2].url,
-    target: "_blank",
-    status: products[2].status,
-    audience: "Educators",
-    ctaLabel: "Try GUARD",
-  },
-  {
-    id: "artisan",
-    title: "ARTISAN",
-    description:
-      "AI Readiness Training for Insightful Systematic Adaptation and Navigation",
-    icon: (
-      <GiBroadsword
-        size={32}
-        aria-hidden="true"
-      />
-    ),
-    link: products[3].url,
-    status: products[3].status,
-    audience: "Educators and Students",
-    ctaLabel: "Visit ARTISAN",
-  },
+const pathways = [
+  { product: products[1], number: '01', verb: 'Find your bearings.', audience: 'For educators', body: 'Make informed decisions about AI in your teaching. Explore practical guidance on course design, assessment, and responsible use.', action: 'Explore SAGE', symbol: '✧' },
+  { product: products[2], number: '02', verb: 'Learn by experimenting.', audience: 'For educators', body: 'Put ideas into practice in guided AI labs. Build prompts, examine the results, and reflect on what works for learning.', action: 'Try GUARD', symbol: '◇' },
+  { product: products[3], number: '03', verb: 'Build your AI literacy.', audience: 'For educators and students', body: 'Develop the confidence to question, evaluate, and work thoughtfully with AI through a practical learning journey.', action: 'Visit ARTISAN', symbol: '↗' },
 ];
 
-const Hero = () => (
-  <section className="py-16 bg-white">
-    <div className="container mx-auto px-6 lg:px-12 flex flex-col-reverse md:flex-row items-center gap-12">
-      {/* Left Side */}
-      <div className="text-center md:text-left md:w-1/2 space-y-6">
-        <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-gray-900">
-          Welcome to the
-          <br />
-          Erasmus+ Pathfinder Project
-        </h1>
-        <p className="text-lg text-gray-800 leading-relaxed">
-          Pioneering AI Technology in Higher Education to Facilitate Innovation and
-          Nurture the Development of Entrepreneurial Resources
-        </p>
-        <Link
-          href="#deliverables"
-          className="inline-block bg-eu-blue hover:bg-blue-500 text-white text-lg font-semibold py-3 px-6 rounded-lg transition">
-          Learn More
-        </Link>
-      </div>
-
-      {/* Right Side */}
-      <div className="relative w-full md:w-1/2 md:ml-auto max-w-[300px] md:max-w-[400px]">
-        <div className="relative aspect-square w-full">
-          <Image
-            src="/images/pathfinder.png"
-            alt="Hero Image"
-            fill
-            className="rounded-3xl object-cover"
-            priority
-          />
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
 export default function Home() {
-  return (
-    <div className="">
-      {/* Hero Section */}
-      <Hero />
-
-      {/* <!-- Objectives Section --> */}
-      <section className="py-16 bg-blue-50">
-        <div className="max-w-4xl mx-auto space-y-6 px-6">
-          <DoubleHeadings
-            top="PROJECT OBJECTIVE"
-            bottom="Empowering Education Through AI"
-          />
-          <p className="text-lg text-gray-800">
-            Pathfinder is an Erasmus+ project that aims to advance the understanding and
-            adoption of Artificial Intelligence (AI) technology in higher education. We
-            equip educators and students with the knowledge, resources, and tools to
-            facilitate the effective and responsible integration of AI in teaching and
-            learning.
-          </p>
-
-          <p className="text-lg text-gray-800">
-            Our mission is to foster digital readiness, promote entrepreneurial
-            innovation, and enhance employability by:
-          </p>
-
-          <ul className="text-left space-y-2 text-gray-800 list-disc list-inside">
-            <li>Developing strategic guidelines for AI integration (SAGE)</li>
-            <li>
-              Creating AI-based tools for lesson planning and teaching support (GUARD)
-            </li>
-            <li>
-              Providing a learning journey to enhance students&apos; AI literacy (ARTISAN)
-            </li>
-          </ul>
-          <p className="text-lg text-gray-800">
-            Explore our website to learn more about this innovative approach to
-            transforming higher education through AI.
-          </p>
-        </div>
-      </section>
-
-      {/* Deliverables Section */}
-      <section
-        className="scroll-mt-24 py-16 bg-gradient-to-b from-white to-blue-50"
-        id="deliverables">
-        <div className="container px-5 mx-auto">
-          <DoubleHeadings
-            top="PROJECT DELIVERABLES"
-            bottom="Meet the Pathfinders"
-          />
-          <p className="mx-auto mb-8 max-w-4xl text-center text-gray-700">
-            SAGE is live at{" "}
-            <Link
-              href="https://sage.ai-pathfinder.eu"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-eu-blue hover:underline">
-              sage.ai-pathfinder.eu
-            </Link>
-            . GUARD is open for beta testing at{" "}
-            <Link
-              href="https://guard.ai-pathfinder.eu"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-eu-blue hover:underline">
-              guard.ai-pathfinder.eu
-            </Link>
-            . The domain for ARTISAN will be announced.
-          </p>
-          <div className="flex flex-wrap -m-4">
-            {projectDeliverables.map((feature) => (
-              <Featurecard
-                key={feature.id}
-                title={feature.title}
-                description={feature.description}
-                icon={feature.icon}
-                link={feature.link}
-                target={feature.target}
-                status={feature.status}
-                audience={feature.audience}
-                ctaLabel={feature.ctaLabel}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* <!-- Contact Section --> */}
-      <section className="py-16 mx-auto ">
-        <div className="max-w-5xl mx-auto text-center space-y-8">
-          <DoubleHeadings
-            top="PROJECT CONSORTIUM"
-            bottom="Participating Organizations"
-          />
-          <div className="text-center">
-            <InstitutionLogos />
-            <p className="text-lg text-gray-800 mt-8 mb-8">
-              Feel free to get in touch with us for more information.
-            </p>
-            <Link
-              href="/about"
-              className="bg-eu-blue hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-full transition">
-              Contact Us
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
+  return <>
+    <section className="pf-hero pf-section">
+      <div className="pf-hero-copy">
+        <p className="pf-eyebrow">An Erasmus+ project · Higher education</p>
+        <h1 className="pf-display">Find your way<br />with AI in higher education.</h1>
+        <p className="pf-intro">New possibilities. Better questions. Thoughtful practice. Pathfinder helps educators and students explore AI with purpose, confidence, and critical judgment.</p>
+        <div className="pf-actions"><Link className="pf-action" href="#deliverables">Explore the resources <span aria-hidden="true">↗</span></Link><Link className="pf-action pf-action-secondary" href="/about">Meet the project</Link></div>
+      </div>
+      <div className="pf-hero-art"><span className="pf-eyebrow">Guidance / Practice / Discovery</span><Image src="/brand/pathfinder.svg" alt="Pathfinder emblem: a winding path, wizard hat, shield, and sword" width={480} height={480} priority /><p>A shared path to thoughtful AI use.</p></div>
+    </section>
+    <section id="deliverables" className="pf-pathways">
+      <div className="pf-section">
+        <div className="pf-section-heading"><div><p className="pf-eyebrow">Choose your next step</p><h2 className="pf-display">Three ways forward.</h2></div><p>Start with a question, try an idea, or build a new skill. Each resource offers a different way into AI.</p></div>
+        <div className="pf-pathway-grid">{pathways.map(({product,number,verb,audience,body,action,symbol}) => <article key={product.id} className={`pf-pathway pf-pathway-${product.id}`}>
+          <div className="pf-pathway-top"><span className="pf-eyebrow">{number} / {product.name}</span><span aria-hidden="true" className="pf-pathway-symbol">{symbol}</span></div>
+          <p className="pf-audience">{audience} <span>· {product.status}</span></p><h3 className="pf-display">{verb}</h3><p>{body}</p><Link href={product.url}>{action} <span aria-hidden="true">↗</span></Link>
+        </article>)}</div>
+      </div>
+    </section>
+    <section className="pf-section pf-mission"><div><p className="pf-eyebrow">Our purpose</p><h2 className="pf-display">Human judgment.<br />New possibilities.</h2></div><div><p>Pathfinder advances the understanding and responsible adoption of AI in higher education. We connect practical teaching guidance with hands-on tools and learning experiences.</p><p>Our goal is to strengthen digital readiness, entrepreneurial innovation, and employability—equipping people to make purposeful choices as technology changes.</p><p className="pf-project-name">Pioneering AI Technology in Higher Education to Facilitate Innovation and Nurture the Development of Entrepreneurial Resources</p></div></section>
+    <section className="pf-partners"><div className="pf-section"><p className="pf-eyebrow">The project consortium</p><h2 className="pf-display">A shared effort across Europe.</h2><InstitutionLogos /><Link className="pf-action pf-action-secondary" href="/about">Meet our partners & get in touch <span aria-hidden="true">↗</span></Link></div></section>
+  </>;
 }

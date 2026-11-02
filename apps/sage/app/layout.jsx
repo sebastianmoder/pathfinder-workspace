@@ -1,6 +1,6 @@
 import { ProjectHeader } from '@pathfinder/brand'
 import { Analytics } from '@pathfinder/analytics';
-import { Banner, Head } from 'nextra/components'
+import { Head } from 'nextra/components'
 import { Layout, Navbar } from 'nextra-theme-docs'
 import { getPageMap } from 'nextra/page-map'
 import Script from 'next/script'
@@ -29,9 +29,7 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
-      <Head>
-        <link rel="icon" href="/icon.ico" type="image/x-icon" />
-      </Head>
+      <Head color={{ hue: 188, saturation: 64, lightness: { light: 26, dark: 70 } }} backgroundColor={{ light: "#faf7ef", dark: "#0f1d1e" }} />
       <body >
         <Script
           src="https://kit.fontawesome.com/6a5bc08ebc.js"
@@ -40,11 +38,6 @@ export default async function RootLayout({ children }) {
         />
 
         <Layout
-          banner={
-            <Banner storageKey="pathfinder-sage-development-banner">
-              {'🚧 This site is under development; its content is not final and may change at any time. 🚧'}
-            </Banner>
-          }
           navbar={navbar}
           footer={<Footer />}
           docsRepositoryBase="https://github.com/Sebstep/pathfinder-sage/tree/main"

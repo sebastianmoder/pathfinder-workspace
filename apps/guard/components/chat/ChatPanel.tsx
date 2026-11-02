@@ -47,8 +47,8 @@ export function ChatPanel({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-6 py-3 border-b border-guard-border flex items-center justify-between">
-        <span className="text-sm font-medium text-guard-blue-700">AI Chat</span>
+      <div className="px-4 sm:px-6 py-3 border-b border-guard-border bg-guard-surface-elevated flex flex-wrap gap-2 items-center justify-between">
+        <span className="font-semibold text-guard-blue-900">AI Chat</span>
         <ModelBadge model={model} />
       </div>
       <MessageList

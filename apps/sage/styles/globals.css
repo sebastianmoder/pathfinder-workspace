@@ -26,3 +26,24 @@ mark,
 [mark-color='green'] {
     background-color: #98d0a5;
 }
+
+/* Keep Nextra's reading layout and controls; share the project's field-guide identity. */
+article h1,article h2,article h3 { font-family:var(--font-zilla),Georgia,serif; letter-spacing:-.02em; }
+article h1 { line-height:1.15; }
+article { line-height:1.75; }
+.nextra-navbar { background:var(--pf-paper); border-bottom:1px solid var(--pf-border); }
+.dark .nextra-navbar { background:#0f1d1e; border-color:#36524d; }
+.dark .pf-header { background:#142b2d; color:#f3ead8; border-color:#36524d; }
+.dark .pf-header .pf-wordmark,.dark .pf-products a { color:#f3ead8; }
+.dark .pf-products a[aria-current] { background:#f3ead8; color:#093a43; }
+.dark .pf-products a:hover { background:#244b4c; color:#fff; }
+/* The project bar scrolls away; Nextra's own navbar remains the sticky anchor. */
+
+.dark .nextra-navbar { color:#f3ead8; }
+.dark aside { color:#c5d7d0; }
+/* Explicit contrast for Nextra's navigation utilities in the dark palette. */
+.dark .nextra-sidebar a,.dark .nextra-sidebar button,.dark .nextra-toc a,.dark .nextra-toc p,.dark .nextra-breadcrumb { color:#c5d7d0; }
+.dark .nextra-sidebar a[class*="bg-primary-100"] { background:#244b4c; color:#f3ead8; }
+.dark article button { color:#c5d7d0; }
+.nextra-callout[class*="blue"] { background:#e0eee7; border-color:#80aaa1; color:#174943; }
+.dark .nextra-callout[class*="blue"] { background:#193a3b; border-color:#4c847d; color:#c5e3d7; }

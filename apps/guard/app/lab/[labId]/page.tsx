@@ -29,9 +29,9 @@ export default async function LabPage({ params }: LabPageProps) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-dvh flex flex-col bg-background">
       <LabHeader labTitle={labMeta.title} />
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <LabWorkspace labId={labId as LabId} />
       </div>
     </div>

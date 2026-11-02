@@ -19,10 +19,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className="scroll-smooth">
       <head>
-        <link
-          rel="icon"
-          href="/icon.ico"
-        />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0"
@@ -47,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body >
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <Navigation />
-          <main className="mx-auto py-14 sm:py-16">{children}</main>
+          <main className="pf-project-main">{children}</main>
           <Footer />
         </AppRouterCacheProvider>
       <Analytics product="pathfinder" measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} production={process.env.CONTEXT === "production"} />
