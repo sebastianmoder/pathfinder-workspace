@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://ai-pathfinder.eu
+
+# Sitemaps
+Sitemap: https://ai-pathfinder.eu/sitemap.xml

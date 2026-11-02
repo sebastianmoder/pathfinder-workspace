@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "https://erasmus-pathfinder.netlify.app/*"
+  to = "https://ai-pathfinder.eu/:splat"
+  status = 301
+  force = true
