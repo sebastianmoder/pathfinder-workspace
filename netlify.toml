@@ -1,3 +1,6 @@
+[build]
+  command = "pnpm run build"
+
 [[redirects]]
   from = "https://pathfinder-guard.netlify.app/*"
   to = "https://guard.ai-pathfinder.eu/:splat"

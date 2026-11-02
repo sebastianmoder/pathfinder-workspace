@@ -39,18 +39,24 @@ Each lab is broken into guided iterations. Users answer Socratic scaffolding que
 
 ## Local Development
 
-Requires Node.js 22.13 or newer.
+Requires Node.js 22.13 or newer and [Corepack](https://github.com/nodejs/corepack#installation). This repository uses pnpm, with the exact version pinned in `package.json`.
+
+Enable pnpm through Corepack:
+
+```bash
+corepack enable pnpm
+```
 
 Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 Run the app:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -70,7 +76,7 @@ OPENROUTER_API_KEY=sk-or-v1-...
 
 Without either of those, `/api/chat` will return an error.
 
-On Netlify, also set `CHAT_JOB_SIGNING_SECRET` to a random 32-byte secret in the site environment variables with Functions scope (for example, generate one with `openssl rand -hex 32`). The variable must be available to both the Next.js functions and `chat-worker`. Redeploy after setting it. The Netlify chat path starts a background job and polls its progress; `npm run dev` keeps the direct stream for local development.
+On Netlify, also set `CHAT_JOB_SIGNING_SECRET` to a random 32-byte secret in the site environment variables with Functions scope (for example, generate one with `openssl rand -hex 32`). The variable must be available to both the Next.js functions and `chat-worker`. Redeploy after setting it. The Netlify chat path starts a background job and polls its progress; `pnpm run dev` keeps the direct stream for local development.
 
 Netlify Blobs holds generated text for up to one hour of access. Prompt input is stored only while a job runs and is removed when it finishes. The hourly `cleanup-chat-jobs` function removes expired or abandoned data on a subsequent run. Chat job events in Netlify function logs include request and job IDs for troubleshooting.
 
@@ -139,15 +145,29 @@ lib/
 ## Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
+pnpm run dev
+pnpm run build
+pnpm run start
+pnpm run lint
 ```
+
+## Dependency Management
+
+Use pnpm for all dependency changes. Commit `pnpm-lock.yaml` alongside `package.json`; it is the repository's only dependency lockfile. Installation checks reject other package managers, and `.npmrc` requires the pinned pnpm version.
+
+```bash
+pnpm add <package>
+pnpm add -D <package>
+pnpm remove <package>
+pnpm update
+pnpm audit
+pnpm audit --prod
+```
+
+Use `pnpm install --frozen-lockfile` for reproducible installs in CI. Netlify detects pnpm from `pnpm-lock.yaml`, selects the pinned version from `package.json`, and runs `pnpm run build` as configured in `netlify.toml`.
 
 ## Notes
 
-- Keep both `package-lock.json` and `pnpm-lock.yaml` updated when changing dependencies. Audit both with `npm audit` and `pnpm audit`; use `npm audit --omit=dev` and `pnpm audit --prod` to check production dependencies separately.
 - Dependency review (2026-11-02): ESLint stays on 9 because the current React and import lint plugins do not declare ESLint 10 support. TypeScript stays on 6 because `typescript-eslint` requires TypeScript below 6.1. Node types stay on 22 to match the minimum supported runtime.
 - The development lint toolchain still reports [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) through `minimatch` 3 and 10. The fix requires `minimatch` 11.0.1 or newer, outside the upstream dependency ranges; revisit this when the lint packages add compatible releases. Avoid forcing a global major-version override because the older consumers expect a different API.
 - The default model is defined by `DEFAULT_MODEL_OPTION` in `lib/constants.ts`. Update that single object to change the built-in default model, its labels, and its position at the top of the BYOK selector.
