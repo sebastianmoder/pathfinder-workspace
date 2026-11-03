@@ -33,24 +33,25 @@ body { font-family:var(--font-atkinson),system-ui,sans-serif; }
 /* Pathfinder field guide: shared shell and editorial vocabulary. */
 :root { --pf-blue:#17616c; --pf-yellow:#f2ad48; --pf-ink:#093a43; --pf-border:#cbd5ca; --pf-radius:.5rem; --pf-paper:#faf7ef; --pf-ivory:#f3ead8; --pf-sage:#8daa70; }
 .pf-header,.pf-footer { background:var(--pf-paper); color:var(--pf-ink); }
-.pf-bar { min-height:76px; padding:.7rem 1.5rem; gap:.75rem 2rem; }
+/* Include the header's 1px bottom border in the 60px shell height. */
+.pf-bar { box-sizing:border-box; min-height:59px; padding:.5rem 1.5rem; gap:.5rem 2rem; }
 .pf-wordmark { display:inline-flex; align-items:center; gap:.6rem; font-family:var(--font-zilla),Georgia,serif; font-size:1.6rem; color:var(--pf-ink); }
-.pf-wordmark img { width:44px; height:44px; }
+.pf-wordmark img { width:40px; height:40px; }
 .pf-wordmark span { background:none; padding:0; }
 .pf-products { gap:.35rem; }
-.pf-products a { padding:.55rem .85rem; font-size:.9rem; color:var(--pf-ink); border:1px solid transparent; }
+.pf-products a { padding:.5rem .85rem; font-size:.9rem; color:var(--pf-ink); border:1px solid transparent; }
 .pf-products a[aria-current] { background:var(--pf-ink); color:#fff; }
 .pf-products a:hover { background:var(--pf-ivory); color:var(--pf-ink); text-decoration:none; border-color:var(--pf-border); }
 .pf-local { border-top:1px solid var(--pf-border); padding:.6rem 1.5rem; }
 .pf-local nav { margin:0; }
 .pf-footer { padding-block:2.5rem; }
 .pf-footer strong { font-family:var(--font-zilla),Georgia,serif; font-size:1.25rem; }
-.pf-compact .pf-bar { padding-block:.5rem; min-height:68px; }
+.pf-compact .pf-bar { padding-block:.5rem; min-height:59px; }
 .pf-eyebrow { font-family:var(--font-atkinson-mono),monospace; font-size:.75rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#42645f; }
 .pf-display { font-family:var(--font-zilla),Georgia,serif; font-weight:600; letter-spacing:-.035em; line-height:1.08; }
 .pf-action { display:inline-flex; align-items:center; justify-content:center; gap:1rem; padding:.85rem 1.25rem; background:var(--pf-ink); color:white; border:1px solid var(--pf-ink); border-radius:.4rem; font-weight:700; text-decoration:none; }
 .pf-action:hover { background:#17616c; }
 .pf-action-secondary { background:transparent; color:var(--pf-ink); }
 .pf-action-secondary:hover { background:var(--pf-ivory); }
-@media(max-width:540px) { .pf-bar { padding:.75rem 1rem; gap:.6rem; } .pf-products { width:100%; justify-content:space-between; gap:0; } .pf-products a { padding:.5rem .55rem; font-size:.85rem; } .pf-wordmark { font-size:1.4rem; } }
+@media(max-width:540px) { .pf-bar { padding:.5rem 1rem; gap:.5rem; } .pf-products { justify-content:flex-end; gap:0; } .pf-products a { padding:.5rem .55rem; font-size:.85rem; } .pf-wordmark img { width:32px; height:32px; } .pf-wordmark span { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; transition-duration:.01ms!important; } }

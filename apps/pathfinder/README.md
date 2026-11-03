@@ -72,8 +72,8 @@ Open <http://localhost:3000> in a browser.
 
 Useful local routes:
 
-- `/` - homepage, project objective, deliverables, consortium preview
-- `/about` - partner organizations and external links
+- `/` - homepage, project objective, deliverables, full consortium profiles and links at `/#consortium`
+- `/about` - permanent redirect to `/#consortium`
 - `/sage` - SAGE overview page, with a link to the live SAGE subdomain
 - `/guard` - GUARD overview page, with a link to the beta subdomain
 - `/artisan` - ARTISAN coming-soon page
@@ -96,13 +96,13 @@ Useful local routes:
 app/
   page.tsx          Homepage
   layout.tsx        Root layout, metadata, analytics, navigation, footer
-  about/page.tsx    Consortium page
   sage/page.tsx     SAGE overview page
   guard/page.tsx    GUARD overview page
   artisan/page.tsx  ARTISAN overview page
 
 components/
   Navigation.tsx    Responsive top navigation
+  Consortium.tsx    Partner profiles and external links on the homepage
   Footer.tsx        Project footer and EU funding declaration
   Featurecard.tsx   Deliverable card component
   forms/            Form-related UI components
