@@ -23,6 +23,9 @@ Performance changes with the model, subject, genre, length, language, editing,
 and decision threshold. A tool tested on long, unedited English prose may behave
 very differently on a short answer, translated work, code, technical writing,
 or text edited with an embedded writing assistant.[^Jawahar2020SurveyDetection]
+A 2023 journal study tested 14 detectors on human-written, translated, generated,
+and edited texts and found that the tested tools were not consistently reliable
+across those conditions.[^WeberWulff2023Detection]
 
 Even apparently low false-positive rates can cause harm when applied across a
 large cohort. A detector can also miss model-generated text after ordinary
@@ -32,6 +35,14 @@ authors did not recommend the tested tools for determining integrity violations
 because of accuracy limits and the risk of false accusations. They distinguished
 this from possible non-punitive uses that support learning.[^Perkins2024Bypass]
 
+Newer evaluations can find stronger results for particular tools. A 2026 study
+found that one detector performed well on its constructed dataset, while still
+advising against using detector results as sole evidence in high-stakes
+decisions. Its separate analysis of real theses lacked known authorship ground
+truth, so the flagging rate cannot establish the prevalence of misconduct.
+Results belong to the tested tools, models, and text conditions; they do not
+establish authorship or whether an assignment rule was broken.[^VanVlasselaer2026Detection]
+
 ## Why the authorship question is harder than two labels
 
 Student writing can include brainstorming, translation, grammar correction,
@@ -40,10 +51,13 @@ all. “Human” and “AI” are therefore often not mutually exclusive categor
 The educational question is whether the student met the stated learning outcome
 and followed the published rules.
 
-Bias and unequal error rates are also serious concerns. Writing by multilingual
-students, concise genres, formulaic academic styles, and accessibility-supported
-writing may differ from a detector’s training data. No student should have to
-change a legitimate writing style merely to avoid a proprietary score.
+Bias and unequal error rates are also serious concerns. A 2023 study found that
+the tested detectors frequently misclassified non-native English writing
+samples as AI-generated.[^Liang2023DetectorBias] This finding concerns those
+samples and systems, not every language, genre, accessibility aid, or current
+detector. Do not infer misuse from multilingual, concise, formulaic, or
+accessibility-supported writing. No student should have to change a legitimate
+writing style merely to avoid a proprietary score.
 
 ## Respond to a concern fairly
 
@@ -99,3 +113,9 @@ for assessment redesign.
 [^Jawahar2020SurveyDetection]: Jawahar, G., Abdul-Mageed, M., & Lakshmanan, L. V. S. (2020). **Automatic detection of machine generated text: A critical survey**. *Proceedings of the 28th International Conference on Computational Linguistics*, 2296–2309. https://aclanthology.org/2020.coling-main.208/
 
 [^Perkins2024Bypass]: Perkins, M., Roe, J., Vu, B. H., Postma, D., Hickerson, D., McGaughran, J., & Khuat, H. Q. (2024). **Simple techniques to bypass GenAI text detectors: implications for inclusive education**. *International Journal of Educational Technology in Higher Education, 21*, 53. https://doi.org/10.1186/s41239-024-00487-w
+
+[^WeberWulff2023Detection]: Weber-Wulff, D., Anohina-Naumeca, A., Bjelobaba, S., Foltýnek, T., Guerrero-Dib, J., Popoola, O., Šigut, P., & Waddington, L. (2023). **Testing of detection tools for AI-generated text**. *International Journal for Educational Integrity, 19*, 26. https://doi.org/10.1007/s40979-023-00146-z
+
+[^VanVlasselaer2026Detection]: Van Vlasselaer, M., Van Droogenbroeck, F., & Spruyt, B. (2026). **Who wrote this? Evaluating the reliability of AI detection tools in higher education**. *International Journal for Educational Integrity, 22*, 16. https://doi.org/10.1007/s40979-026-00226-w. The [correction](https://doi.org/10.1007/s40979-026-00236-8) clarifies the ChatGPT Deep Research model label without changing the data, analyses, or conclusions.
+
+[^Liang2023DetectorBias]: Liang, W., Yuksekgonul, M., Mao, Y., Wu, E., & Zou, J. (2023). **GPT detectors are biased against non-native English writers**. *Patterns, 4*(7), 100779. https://doi.org/10.1016/j.patter.2023.100779

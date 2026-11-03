@@ -3,7 +3,12 @@ import { Steps } from 'nextra/components'
 
 # Creating Quizzes and Exam Questions with AI
 
-AI can speed up assessment design: generating question pools, producing variants, drafting rubrics, and helping you review items for clarity. But it only becomes *good pedagogy* when you use it to support a deliberate assessment workflow: clear learning outcomes, appropriate cognitive level, and careful review for accuracy and fairness.[^TestingStandards2014]
+AI can draft questions, candidate variants, rubrics, and suggested edits. Whether
+it saves work depends on the checking and correction required. Use a deliberate
+assessment workflow with clear learning outcomes, appropriate cognitive demand,
+and review for accuracy and fairness. Assessment standards provide the basis
+for evaluating the intended use of the resulting assessment; they do not
+establish AI's productivity benefits.[^TestingStandards2014]
 
 Well-designed quizzes also serve learning (not just grading). Frequent retrieval practice (“practice tests”) reliably improves long-term retention, especially when paired with feedback.[^RoedigerKarpicke2006] [^Dunlosky2013] [^KarpickeBlunt2011]
 
@@ -25,7 +30,11 @@ Ask the model to identify the Bloom level for each outcome and propose one asses
 
 ### 2. Build an assessment blueprint (coverage, weighting, constraints)
 
-Before generating questions, decide what proportion of points/time goes to each topic and skill. This reduces “AI drift” and helps you defend the exam as representative of what you taught (validity evidence for the intended use).[^TestingStandards2014]
+Before generating questions, decide what proportion of points and time goes to
+each topic and skill. Use the blueprint to check generated suggestions against
+the intended coverage. Documenting that coverage contributes to validity
+evidence for the intended assessment use; it does not establish that the model
+will follow the blueprint.[^TestingStandards2014]
 
 **What to ask AI for**
 
@@ -116,7 +125,13 @@ Task:
 
 ### 2) Generate MCQs with rationales and misconception-based distractors
 
-Start with three plausible options. Add another only when it represents a meaningful misconception; weak distractors add noise without improving the question.[^UWExamQuestionTypes]
+Use three well-written options as a starting point, subject to the assessment
+purpose and item review. A meta-analysis supports three-option items as a way
+to improve content coverage within testing time without reducing psychometric
+quality. It did not test AI-generated distractors or establish a mandatory
+option count for every assessment.[^Rodriguez2005Options] Add another option only
+when it represents a meaningful misconception; review each distractor against
+the source material and intended skill.
 
 ```md copy
 Draft [number you can fully review] multiple-choice questions using only this
@@ -221,6 +236,8 @@ State the permitted AI level and disclosure requirements in each assessment
 brief. See [Setting course and assignment AI rules](/teaching/course_ai_policy).
 
 ## References & Footnotes
+
+[^Rodriguez2005Options]: Rodriguez, M. C. (2005). **Three options are optimal for multiple-choice items: A meta-analysis of 80 years of research**. *Educational Measurement: Issues and Practice, 24*(2), 3–13. https://doi.org/10.1111/j.1745-3992.2005.00006.x
 
 [^TestingStandards2014]: American Educational Research Association, American Psychological Association, & National Council on Measurement in Education. (2014). **Standards for Educational and Psychological Testing**. https://www.testingstandards.net/open-access-files.html
 
