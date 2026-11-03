@@ -13,7 +13,6 @@ interface Partner {
   name: string;
   country: string;
   description: string;
-  focusAreas: string[];
   imgSrc: string;
   socialLinks: SocialLink[];
 }
@@ -25,7 +24,6 @@ const partners: Partner[] = [
     country: "Liechtenstein 🇱🇮",
     description:
       "The University of Liechtenstein specializes in architecture and business economics, offering an intimate academic environment with a strong focus on sustainability and innovation.",
-    focusAreas: ["Architecture", "Business Economics", "Sustainability and innovation"],
     imgSrc: "/images/partners/unili.png",
     socialLinks: [
       { name: "Website", url: "https://www.uni.li/en/", icon: <FaGlobe size={24} /> },
@@ -52,11 +50,6 @@ const partners: Partner[] = [
     country: "Finland 🇫🇮",
     description:
       "LAB University of Applied Sciences in Finland stands out for its applied research and education in health and wellbeing, circular economy, and design, preparing students for impactful careers with a global perspective.",
-    focusAreas: [
-      "Health and wellbeing",
-      "Circular economy",
-      "Design and applied research",
-    ],
     imgSrc: "/images/partners/LAB.png",
     socialLinks: [
       { name: "Website", url: "https://lab.fi/en/", icon: <FaGlobe size={24} /> },
@@ -83,7 +76,6 @@ const partners: Partner[] = [
     country: "Croatia 🇭🇷",
     description:
       "The University of Dubrovnik, Croatia, renowned for its maritime studies, electrical engineering, and business courses, combines rich historical heritage with modern educational approaches.",
-    focusAreas: ["Maritime studies", "Electrical engineering", "Business studies"],
     imgSrc: "/images/partners/unidu.png",
     socialLinks: [
       { name: "Website", url: "https://www.unidu.hr/eng/", icon: <FaGlobe size={24} /> },
@@ -110,11 +102,6 @@ const partners: Partner[] = [
     country: "Liechtenstein 🇱🇮",
     description:
       "Formatio Private School was founded in 1995 and pioneers personalized education, fosters strengths, and cultivates digital proficiency, preparing students for the 21st-century landscape with excellence and innovation.",
-    focusAreas: [
-      "Personalized education",
-      "Digital proficiency",
-      "Student strengths and innovation",
-    ],
     imgSrc: "/images/partners/formatio.png",
     socialLinks: [
       {
@@ -220,11 +207,6 @@ export default function Consortium() {
                 </div>
               </div>
               <p className="pf-partner-description">{partner.description}</p>
-              <ul className="pf-partner-focus">
-                {partner.focusAreas.map((focus) => (
-                  <li key={focus}>{focus}</li>
-                ))}
-              </ul>
               <SocialIcons
                 partnerName={partner.name}
                 links={partner.socialLinks}
