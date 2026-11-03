@@ -24,29 +24,32 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           {t.skipToContent}
         </a>
-        <header className="border-b border-border bg-surface">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-            <Link href="/" className="font-[family-name:var(--font-zilla)] text-xl font-semibold">
-              {t.appName}
-            </Link>
-            <nav aria-label={t.nav.label} className="flex flex-wrap justify-end gap-x-3 text-[0.9375rem] sm:gap-x-4 sm:text-base">
-              <Link href="/map" className="underline-offset-4 hover:underline">
-                {t.nav.map}
+        {/* Keep the footer just below the viewport when page content is short. */}
+        <div className="flex min-h-dvh flex-col print:min-h-0">
+          <header className="border-b border-border bg-surface">
+            <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+              <Link href="/" className="font-[family-name:var(--font-zilla)] text-xl font-semibold">
+                {t.appName}
               </Link>
-              <Link href="/continue" className="underline-offset-4 hover:underline">
-                {t.nav.continue}
-              </Link>
-              <Link href="/summary" className="underline-offset-4 hover:underline">
-                {t.nav.summary}
-              </Link>
-            </nav>
-          </div>
-        </header>
-        <SessionProvider>
-          <main id="main" className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8">
-            {children}
-          </main>
-        </SessionProvider>
+              <nav aria-label={t.nav.label} className="flex flex-wrap justify-end gap-x-3 text-[0.9375rem] sm:gap-x-4 sm:text-base">
+                <Link href="/map" className="underline-offset-4 hover:underline">
+                  {t.nav.map}
+                </Link>
+                <Link href="/continue" className="underline-offset-4 hover:underline">
+                  {t.nav.continue}
+                </Link>
+                <Link href="/summary" className="underline-offset-4 hover:underline">
+                  {t.nav.summary}
+                </Link>
+              </nav>
+            </div>
+          </header>
+          <SessionProvider>
+            <main id="main" className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8">
+              {children}
+            </main>
+          </SessionProvider>
+        </div>
         <ProjectFooter compact />
       <Analytics product="artisan" measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} production={process.env.CONTEXT === "production"} />
       </body>
