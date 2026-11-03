@@ -2,41 +2,28 @@ import { Callout } from 'nextra/components'
 
 # Teaching Students to Critically Evaluate AI Outputs
 
-As AI tools become a routine part of academic and professional life, one of the most important skills educators can cultivate is the ability to evaluate what AI actually produces. Students who know how to interrogate an AI response — to spot what is wrong, what is missing, and what is misleadingly confident — are far better equipped than those who simply accept or simply reject AI as a tool. <mark>Critical evaluation of AI outputs is itself a transferable graduate skill</mark>, applicable in every discipline and every workplace where these tools are now present.
+Students need a repeatable way to inspect claims, sources, omissions, and
+framing. This guide helps educators design activities that make those judgments
+visible. For the underlying risks, use [Limitations and risks](/genai/limitations);
+for the wider curriculum pathway, use [Building AI competencies](/students/ai_competencies).
 
-This article provides a practical framework for teaching that skill, along with concrete classroom activities you can adapt to your subject.
+## Prepare an artefact students can check
 
-## Why AI Outputs Are Genuinely Difficult to Evaluate
+Choose a course-relevant output, a source pack students can access, and a
+specific evaluation goal. Inspect the output in advance and retain an answer
+key that distinguishes accurate, unsupported, misleading, and missing content.
+Include good claims as well as weaknesses so the task rewards judgment rather
+than automatic rejection.
 
-Before designing activities, it helps to understand the specific challenges students face. AI outputs can be difficult to evaluate for reasons that are quite different from the challenges of evaluating human-authored text.
+Fluent presentation does not establish accuracy. Models can invent citations,
+misrepresent real sources, or omit competing perspectives; even a
+retrieval-enabled product can link a claim to the wrong passage.[^Huang2024Survey]
+[^AlkaissiMcFarlane2023Hallucinations] Bias may appear in framing and omissions as
+well as explicit stereotypes.[^Ntoutsi2020Bias]
 
-### They look authoritative
-
-AI-generated text can be fluent, well-structured, and confidently phrased even
-when its claims are weak. Surface quality varies by model, language, prompt, and
-task, so style is neither evidence of accuracy nor a reliable indicator of AI
-authorship. A plausible explanation of a legal principle or historical event
-can still be wrong or incomplete.[^Huang2024Survey]
-
-### Errors are unpredictable
-
-Unlike a textbook, which has consistent errors concentrated in particular areas, AI models can be accurate on some questions and wrong on very similar ones, with no visible seam between the two. A model might correctly explain the mechanism of a chemical reaction but misattribute the discovery of the underlying principle. Students have no reliable way to predict which parts of any given response to trust.
-
-### Hallucinated sources are common
-
-AI models can generate plausible-looking citations that do not exist or
-misdescribe real publications. Products with search or retrieval can still cite
-the wrong passage or fail to support a claim. Students must verify that a source
-exists, inspect the source itself, and check that it supports the specific
-claim.[^AlkaissiMcFarlane2023Hallucinations] [^Huang2024Survey]
-
-### Bias is embedded and invisible
-
-AI models are trained on large bodies of text that reflects the perspectives, priorities, and blind spots of their sources. Responses may subtly favour certain cultural viewpoints, frame issues in ways that centre particular groups, or present contested ideas as settled.[^Ntoutsi2020Bias] Unlike an identifiable human author, the AI has no disclosed positionality for students to weigh.
-
-### Confident simplification
-
-When a question is genuinely contested or complex, AI models tend to produce a clear, tidy answer that papers over the nuance. Disciplines like law, medicine, history, and philosophy depend on students' capacity to hold complexity and ambiguity — precisely the capacity that AI-generated summaries may undermine.
+Supply a shared artefact when individual accounts are unnecessary. This gives
+students an equivalent starting point without subscriptions, uploads, or live
+model variability. Provide accessible formats and instructions in advance.
 
 ## A Framework for Evaluation
 
@@ -44,7 +31,12 @@ Rather than asking students to "check if the AI is right" (which offers no metho
 
 ### 1. Is it accurate?
 
-Ask students to identify the specific factual claims in a response and verify at least two or three of them against authoritative sources. Depending on the discipline this might mean primary sources, peer-reviewed literature, official data, or standard reference texts. <mark>The goal is not to verify everything — it is to develop the habit of treating AI accuracy as something to be tested, not assumed.</mark>
+Ask students to identify checkable claims and verify a manageable sample
+against authoritative sources. Sampling is a teaching exercise, not validation
+of the entire output. For work that will be submitted, distributed, or used in a
+consequential decision, check every material claim and reference. Depending on
+the discipline, use primary records, peer-reviewed research, official data, or
+approved reference texts. Mark unresolved claims as unresolved.
 
 ### 2. Is it complete?
 
@@ -68,7 +60,12 @@ Give students an AI-generated explanation of a concept from your course. Their t
 
 ### Source Verification
 
-Ask the AI to provide a list of references on a topic. Then send students to verify whether those references exist and, if they do, whether the AI's description of them is accurate. <mark>This exercise is consistently surprising for students</mark>, who often assume that references are either all real or all fake. The reality — that many exist but are misquoted or misattributed — requires more careful judgment than either assumption prepares them for.
+Provide an educator-vetted set of citations from an AI output, including any
+errors you have already identified. Students check the bibliographic record,
+open each source, locate the supporting passage, and explain whether it supports
+the associated claim. Distinguish “does not exist”, “exists but does not support
+this claim”, and “could not access or verify”. Do not require students to
+generate a bibliography and then assume it contains suitable errors.
 
 ### Side-by-Side Comparison
 
@@ -76,7 +73,8 @@ Provide students with two explanations of the same concept: one AI-generated, on
 
 ### The Omission Exercise
 
-Rather than asking what the AI got wrong, ask students to identify what a good answer to this question would need to include, before they see the AI response. Then compare their list against what the AI actually produced. <mark>Asking students to construct evaluation criteria before seeing the output</mark> avoids the anchoring effect of the AI's framing and forces genuine disciplinary thinking.
+Rather than asking what the AI got wrong, ask students to identify what a good answer to this question would need to include, before they see the AI response. Then compare their list against what the AI actually produced. <mark>Asking students to construct evaluation criteria before seeing the output</mark> can reduce reliance on the AI’s framing and makes students’ disciplinary
+criteria explicit.
 
 ### Perspective Audit
 
@@ -101,7 +99,8 @@ The same framework applies across subjects, but the most productive activities v
 
 In **STEM fields**, the highest-value target is numerical claims, equations, and procedural steps. AI models often produce plausible but subtly wrong derivations or incorrectly simplified formulas. Ask students to work through AI-generated solutions independently and identify any step that could not be reproduced from first principles.
 
-In **the humanities**, focus on interpretation and attribution. Ask students to check whether the AI's reading of a text is defensible, and whether it accurately characterises the views of scholars it appears to cite. Role-play exercises where students argue against an AI-generated interpretation are particularly effective — a version of the [debate simulation](/students/simulations/) technique.
+In **the humanities**, focus on interpretation and attribution. Ask students to check whether the AI's reading of a text is defensible, and whether it accurately characterises the views of scholars it appears to cite. A [debate simulation](/students/simulations/) is one possible way to practise
+challenging an interpretation; assess the evidence and reasoning students use.
 
 In **law and medicine**, focus on currency and jurisdiction. AI models may confidently apply outdated guidelines, the wrong jurisdiction's law, or superseded clinical protocols. These are exactly the domains where confident error carries the highest practical risk, making AI literacy a professional safety issue, not just an academic one.
 
@@ -111,12 +110,25 @@ In **the social sciences**, focus on framing and absent perspectives. Economic m
 
 The activities above work best when they are not isolated units on "AI literacy" but woven into normal course routines. A few practical approaches:
 
-- <mark>Assign AI interaction as preparatory work</mark> before seminars, then open the seminar by asking: "What did the AI tell you about this topic? What was missing or wrong?" This gives students a shared artefact to critique together.
+- Provide a shared, checked AI output as preparatory work, then ask students
+  which claims are supported, missing, or wrong. If live interaction serves the
+  outcome, provide approved access and an equivalent account-free activity.
 - Build AI output evaluation into your existing source evaluation criteria. Many courses already ask students to assess the reliability of sources; extending that framework to AI outputs is a natural and low-overhead addition.
 - When AI responses happen to be very good, say so explicitly. Part of critical evaluation is recognising quality, not just failure. Students should learn to distinguish between an AI response that is a useful starting point and one that is actively misleading.
 - Encourage students to [prompt more carefully](/prompting/) as part of evaluation — a poorly constructed question often produces a poor response, and improving the prompt is itself a diagnostic act.
 
-Over time, students who regularly practise this kind of evaluation develop a more accurate mental model of what AI tools are and are not good for. They become neither credulous users nor reflexive dismissers, but skilled collaborators who know how to extract value from these tools while maintaining their own intellectual authority.
+## Make evaluation assessable
+
+Ask students to submit a short claim-check record and a justified revision:
+
+| Claim or feature | Source and exact location | Judgment | Revision or next check |
+| --- | --- | --- | --- |
+| Quote or locate the relevant part | Identify a passage, dataset, calculation, or other evidence | Supported, contradicted, unsupported, or unresolved | Explain what should change and why |
+
+Judge the quality of source selection, the match between evidence and claim,
+recognition of uncertainty, and the reason for the revision. Do not grade the
+number of faults found: a supported claim should be retained. Include a fresh
+output later to check whether students can transfer the method.
 
 ## Example Prompt: AI Fact-Check Exercise
 
@@ -151,7 +163,7 @@ The final question matters: it asks students to make a judgment, not just a crit
 
 ## References & Footnotes
 
-[^AlkaissiMcFarlane2023Hallucinations]: Alkaissi, H., & McFarlane, S. I. (2023). **Artificial hallucinations in ChatGPT: implications in scientific writing**. *International Journal of Medical Education*, *14*, 100–101. https://doi.org/10.1016/j.ijme.2023.100822
+[^AlkaissiMcFarlane2023Hallucinations]: Alkaissi, H., & McFarlane, S. I. (2023). **Artificial hallucinations in ChatGPT: implications in scientific writing**. *Cureus, 15*(2), e35179. https://doi.org/10.7759/cureus.35179
 
 [^Huang2024Survey]: Huang, L., Yu, W., Ma, W., Zhong, W., Feng, Z., Wang, H., Chen, Q., Peng, W., Feng, X., Qin, B., & Liu, T. (2024). **A survey on hallucination in large language models: Principles, taxonomy, challenges, and open questions**. *ACM Transactions on Information Systems*. https://doi.org/10.1145/3703155
 

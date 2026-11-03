@@ -1,0 +1,117 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Evaluating an AI Teaching Workflow
+
+Before expanding an AI activity, check whether it improves the teaching or
+learning that matters. Faster drafts, student satisfaction, and polished work
+can be useful observations, but none establishes that students learned more.
+This guide provides a practical pilot process for course teams.
+
+<Callout type="info">
+  Complete the [responsible-use checks](/genai/responsible_use) first. A pilot
+  needs the same tool approval, data protection, access, and oversight as other
+  teaching. Use synthetic material for initial testing.
+</Callout>
+
+## Plan a small comparison
+
+<Steps>
+
+### Define the benefit and the learning to preserve
+
+Choose one workflow and one main question. For example: “Can AI help draft
+practice questions while preserving answer accuracy and reducing total
+preparation time?” or “Can a tutor help students solve a new problem without
+assistance?” Name what students must still do themselves.
+
+### Establish a useful baseline
+
+Compare with the existing teaching approach or a feasible alternative such as
+peer practice, a static case, or educator-written questions. Use comparable
+content, time, outcomes, and review criteria. Record important differences in
+prior knowledge, access, or support rather than attributing every difference to
+AI. Do not withhold required support or accommodations to create a comparison.
+
+### Choose evidence and stop conditions in advance
+
+Select a small number of measures from the table below. Define unacceptable
+failures before seeing the results. Examples include a missed serious factual
+error, an access barrier without an equivalent route, or a tutor repeatedly
+doing the skill students are meant to practise.
+
+### Test difficult cases, then pilot with support
+
+First try common misconceptions, incomplete sources, ambiguous requests, and
+attempts to obtain final assessed answers. Repeat important inputs because
+outputs can vary. Revise or reject the workflow before involving students if
+the failures cannot be caught reliably. In a student pilot, explain the purpose,
+offer the planned alternative, and provide a route to the educator.
+
+### Decide whether to adopt, revise, or stop
+
+Compare the reviewed results with the baseline and stop conditions. A small
+local pilot can reveal problems and inform a course decision; it cannot by
+itself establish a general causal effect. Record limitations, the decision
+owner, and when to re-test after changes to the tool, sources, task, or learners.
+
+</Steps>
+
+## Collect evidence that answers the question
+
+| Question | Useful evidence | Avoid treating as sufficient |
+| --- | --- | --- |
+| Did students develop the target capability? | An independent explanation or new task; a later check where retention matters | Assisted task completion or confidence alone |
+| Is the material accurate and aligned? | Educator checks of claims, solutions, source support, and outcome coverage | The model's own quality score |
+| Does it save work overall? | Time for preparation, checking, correction, student support, and maintenance | Generation time alone |
+| Can everyone participate? | Testing with relevant languages, access routes, formats, and assistive technology | One successful demonstration |
+| Are errors or burdens uneven? | Review of failure patterns across relevant task and learner contexts, using authorised data | A cohort average that hides barriers |
+| Can the activity continue without the service? | A tested alternative and retained teaching materials | An untested backup link |
+
+Use only data needed for the evaluation, in approved storage, with an announced
+purpose, access rules, and retention period. Do not collect full chats or
+sensitive demographic data by default. Consult institutional specialists before
+expanding a teaching review into research or collecting additional personal data.
+
+## Worked example: a practice tutor
+
+For a first-year quantitative course, ask students to attempt a problem before
+using hints from an approved tutor. Follow the practice with a comparable new
+problem without AI, allowing the usual approved accommodations. Use the same
+criteria to inspect the reasoning and repeat a short check later if retention
+is the goal. Compare with the existing supported-practice approach and record
+differences in time and prior knowledge.
+
+If assisted answers improve but independent work does not, revise the scaffolding
+or return to the existing approach. A high-school mathematics trial found that
+an unrestricted AI interface improved assisted practice but harmed subsequent
+unassisted performance; a more structured tutor mitigated that harm without
+showing an unassisted gain over the control.[^Bastani2025Learning] This does not
+predict every university outcome. It explains why a local evaluation must look
+beyond performance while help is available.
+
+## Copyable pilot record
+
+```text
+Workflow, decision owner, and pilot date:
+Learning outcome and student work to preserve:
+Expected benefit and comparison approach:
+Approved tool/model, source pack, and prompt version:
+Data needed, storage/access, and retention:
+Access arrangements and equivalent alternative:
+Representative and difficult test cases:
+Main success measure and how it will be checked:
+Unacceptable failures and stop conditions:
+Observed learning, quality, errors, barriers, and total workload:
+Limitations of the comparison:
+Decision: adopt / revise and re-test / stop
+Next review date and changes that trigger earlier review:
+```
+
+For implementation details, use [AI as a tutor](/students/tutoring),
+[creating exam questions](/teaching/exam_questions), or
+[providing feedback](/teaching/feedback). Publish the relevant
+[assignment AI rules](/teaching/course_ai_policy) before students begin.
+
+## References & Footnotes
+
+[^Bastani2025Learning]: Bastani, H., Bastani, O., Sungu, A., Ge, H., Kabakcı, Ö., & Mariman, R. (2025). **Generative AI without guardrails can harm learning: Evidence from high school mathematics**. *Proceedings of the National Academy of Sciences, 122*(26), e2422633122. https://doi.org/10.1073/pnas.2422633122

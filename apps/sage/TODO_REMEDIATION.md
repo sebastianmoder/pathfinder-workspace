@@ -1,6 +1,6 @@
 # Content Remediation Backlog
 
-Reviewed: 13 September 2026
+Reviewed: 3 November 2026
 
 This file tracks editorial TODOs that remain in published content. Incomplete
 pages are kept in `drafts/` and are intentionally excluded from the public
@@ -36,6 +36,24 @@ content tree.
   guidance for evidence quality, privacy, access, and human review.
 - Expanded the introductory and limitations pages and updated the 2026 European
   Commission ethical-guidance reference.
+
+## Completed in the November 2026 review
+
+See [the content audit and revision plan](CONTENT_REVIEW.md) for findings,
+source verification, editorial decisions, and validation results.
+
+- Corrected mismatched references and qualified claims about AI reliability,
+  assessment outsourcing, case-based learning, and detector uses.
+- Added an evaluation workflow covering comparison measures, independent
+  learning, total workload, access, and stop conditions.
+- Strengthened exam answer-key and variant checks, tutoring, writing transfer,
+  source-evaluation activities, and rubric calibration.
+- Distinguished prohibited biometric emotion recognition from high-risk uses
+  requiring institutional classification and review.
+- Consolidated repeated disclosure and prompting templates. Page timestamps
+  remain managed automatically by Nextra, without manual dates in content.
+- Built and indexed all 30 published pages; checked links, desktop/mobile
+  rendering, and search while preserving the original routes.
 
 ## Future development candidates
 

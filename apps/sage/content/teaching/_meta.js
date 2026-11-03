@@ -6,4 +6,5 @@ export default {
     exam_questions: 'Creating exam questions',
     rubrics: 'Creating rubrics',
     feedback: 'Providing feedback',
+    evaluating_ai: 'Evaluating an AI teaching workflow',
 }

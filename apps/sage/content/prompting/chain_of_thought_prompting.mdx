@@ -12,23 +12,15 @@ transcript of hidden reasoning.
   that the answer is correct.[^Turpin2023Unfaithful]
 </Callout>
 
-## Use an outcome-first prompt
+## Start with the task and success criteria
 
-A strong prompt normally specifies:
+Use the [practical prompting pattern](/prompting#a-practical-default) to define
+the goal, context, sources, criteria, constraints, and output. This guide adds
+the next step: deciding what evidence would let you check the result.
 
-1. **Goal:** the task and the decision or learning outcome it should support.
-2. **Context:** only the information needed to do the work.
-3. **Evidence:** the sources or supplied material the answer may rely on.
-4. **Success criteria:** what a good result must contain.
-5. **Constraints:** audience, scope, tone, length, and prohibited actions.
-6. **Output:** the exact structure you need.
-7. **Uncertainty:** what to do when information is missing or ambiguous.
-8. **Checks:** how the model should test the result before returning it.
-
-Current model guidance likewise recommends stating the outcome and success
-criteria clearly, then asking the model to validate its work.[^OpenAIModelGuidance]
-Long instructions about every reasoning step can make a prompt more brittle when
-the exact path does not matter.
+For a complex task, ask for a short plan when it creates a useful approval or
+review point. For example, review an assessment blueprint before generating its
+questions. A model's plan and self-check remain suggestions to inspect.
 
 ## Ask for checkable work
 
@@ -45,47 +37,27 @@ The right kind of explanation depends on the task:
 Ask for a **concise rationale** when it helps a reader judge the answer. Do not
 treat verbosity as rigor.
 
-## A reusable prompt pattern
+## Worked example: verify a lesson plan
+
+After drafting a lesson plan from approved outcomes and sources, request a
+check that exposes omissions:
 
 ```text
-<goal>
-Create [deliverable] to support [learning or teaching outcome].
-</goal>
+Review the draft against the supplied learning outcomes and class constraints.
+Return a table with:
+- each outcome and the student action that practises it;
+- the observable learning check;
+- the segment and time allocation; and
+- any missing prerequisite, unsupported claim, or participation barrier.
 
-<context>
-Audience: [learners and level]
-Course context: [relevant context]
-Available time/resources: [constraints]
-</context>
-
-<evidence>
-Use only the material below for factual claims:
-[paste approved material or provide sources]
-</evidence>
-
-<success_criteria>
-- [criterion 1]
-- [criterion 2]
-- [criterion 3]
-</success_criteria>
-
-<instructions>
-Produce [required format and length].
-Distinguish sourced facts from suggestions or inferences.
-If essential information is missing, ask up to three questions before drafting.
-Do not invent facts, quotations, references, or student information.
-</instructions>
-
-<verification>
-Before answering, check the draft against every success criterion.
-Return the deliverable, followed by a short verification table with one row per
-criterion and any uncertainty that remains.
-</verification>
+List the segment durations and their total. If an outcome has no activity or
+check, mark it as missing rather than claiming alignment. Distinguish proposed
+fixes from content already present in the plan.
 ```
 
-Delimiters such as XML-style tags are optional; they mainly help separate
-instructions from source material in longer prompts. See [Separate instructions,
-sources, and output](/prompting/use_delimiters).
+Then add the durations yourself, inspect the proposed outcome mapping, and
+check factual claims against the course sources. A table containing a tick for
+every row is not sufficient: it must point to actual evidence in the plan.
 
 ## Decompose only where it helps
 
@@ -119,7 +91,5 @@ human corrections. Re-test important workflows when the model, tool, source
 material, or task changes.
 
 ## References & Footnotes
-
-[^OpenAIModelGuidance]: OpenAI. **Prompting guidance for current models**. https://developers.openai.com/api/docs/guides/latest-model
 
 [^Turpin2023Unfaithful]: Turpin, M., Michael, J., Perez, E., & Bowman, S. R. (2023). **Language models don't always say what they think: Unfaithful explanations in chain-of-thought prompting**. *Advances in Neural Information Processing Systems, 36*. https://arxiv.org/abs/2305.04388
