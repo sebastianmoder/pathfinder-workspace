@@ -38,6 +38,7 @@ export default async function RootLayout({ children }) {
         />
 
         <Layout
+          nextThemes={{ defaultTheme: 'light' }}
           navbar={navbar}
           footer={<Footer />}
           docsRepositoryBase="https://github.com/Sebstep/pathfinder-sage/tree/main"
