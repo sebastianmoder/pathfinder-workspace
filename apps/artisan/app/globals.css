@@ -236,6 +236,14 @@
     }
   }
 
+  /* Redacted: inverted and struck through, so it reads as removed and stays legible enough to undo. */
+  .claim.redact[aria-pressed="true"] {
+    background-image: none;
+    background-color: var(--foreground);
+    color: var(--background);
+    text-decoration: line-through 1.5px;
+  }
+
   .claim-static {
     background: var(--highlighter);
     color: var(--highlighter-ink);

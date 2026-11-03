@@ -239,7 +239,7 @@ export function DialogueActivity({
           }}
           className={`mt-6 ${primary}`}
         >
-          {t.dialogue.next}
+          {step.continueLabel ?? t.dialogue.next}
         </button>
       )}
     </div>

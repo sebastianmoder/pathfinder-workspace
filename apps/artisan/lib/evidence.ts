@@ -1,5 +1,13 @@
 import type { DebriefSkill, Step } from "@/content/types";
 import { auditItems } from "./audit";
+import { delegationItems } from "./delegation";
+import { composeItems } from "./compose";
+import { chartItems } from "./chart";
+import { gymItems } from "./gym";
+import { casefileItems } from "./casefile";
+import { thresholdItems } from "./threshold";
+import { workflowItems } from "./workflow";
+import { allocationItems } from "./allocation";
 import { segmentsOf } from "./mark";
 
 /**
@@ -75,9 +83,32 @@ export function evidenceItems(step: Step): string[] {
     case "transfer":
       if ("audit" in step) return auditItems(step.id, step.audit);
       if ("mark" in step) return segmentsOf(step.mark).filter((s) => !s.optional).map((s) => itemKey(step.id, s.id));
+      if ("delegation" in step) return delegationItems(step.id, step.delegation);
+      if ("compose" in step) return composeItems(step.id, step.compose);
+      if ("casefile" in step) return casefileItems(step.id, step.casefile);
+      if ("workflow" in step) return workflowItems(step.id, step.workflow);
+      if ("allocation" in step) return allocationItems(step.id);
       return [step.id];
     case "claimAudit":
       return auditItems(step.id, step.audit);
+    case "delegation":
+      return delegationItems(step.id, step.delegation);
+    case "compose":
+      return composeItems(step.id, step.compose);
+    case "chartLab":
+      return chartItems(step.id, step.chart);
+    case "gym":
+      return gymItems(step.id, step.problems);
+    case "casefile":
+      return casefileItems(step.id, step.casefile);
+    case "allocation":
+      return allocationItems(step.id);
+    case "workflow":
+      return workflowItems(step.id, step.workflow);
+    case "thresholdLab":
+      return thresholdItems(step.id, step.lab);
+    case "mark":
+      return segmentsOf(step.mark).filter((s) => !s.optional).map((s) => itemKey(step.id, s.id));
     case "sort":
       return step.items.map((i) => itemKey(step.id, i.id));
     case "argumentMap":

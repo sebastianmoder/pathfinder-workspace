@@ -54,6 +54,7 @@ export function OpenResponse({
 
   const audit = step.priorReason && (progress.stepState[step.priorReason.stepId] as { answers?: Record<string, ClaimAnswer> } | undefined);
   const prior = step.priorReason ? audit?.answers?.[step.priorReason.claimId]?.reason?.trim() : undefined;
+  const earlier = step.priorResponse ? (progress.stepState[step.priorResponse] as { text?: string } | undefined)?.text?.trim() : undefined;
   const wrote = !!state.text.trim() || !!prior;
   const sentences = splitSentences(state.text.trim() || prior || "");
   const samples = step.rubric.samples ?? [];
@@ -126,6 +127,15 @@ export function OpenResponse({
           <p className="font-bold">{t.open.prior}</p>
           <blockquote className="mt-1 whitespace-pre-wrap border-l-4 border-border pl-3">{prior}</blockquote>
           <p className="mt-2 text-sm text-muted">{t.open.priorHelp}</p>
+        </div>
+      )}
+      {earlier && (
+        <div className="mt-4">
+          <p className="font-bold">{t.open.earlier}</p>
+          <blockquote className="mt-1 whitespace-pre-wrap border-l-4 border-border pl-3">{earlier}</blockquote>
+          {!state.text.trim() && (
+            <button type="button" onClick={() => set({ text: earlier })} className="mt-2 btn btn-secondary btn-small">{t.open.startFromEarlier}</button>
+          )}
         </div>
       )}
       <label htmlFor={fieldId} className="mt-4 block font-bold">{t.open.label}</label>

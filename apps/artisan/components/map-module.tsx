@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ModuleEntry } from "@/content/types";
 import { useSession } from "@/lib/session/session";
+import { getMission } from "@/content/missions";
 import { t } from "@/lib/i18n/en";
 
 export function MapModule({ module, availableInOrder }: { module: ModuleEntry; availableInOrder: ModuleEntry[] }) {
@@ -10,6 +11,8 @@ export function MapModule({ module, availableInOrder }: { module: ModuleEntry; a
   const recommended = availableInOrder.find((m) => !m.missionIds.every(isCompleted))?.id === module.id;
   const available = module.status === "available";
   const done = available && module.missionIds.every(isCompleted);
+  const nextMission = module.missionIds.find((id) => !isCompleted(id)) ?? module.missionIds[0];
+  const parts = module.missionIds.length > 1 ? module.missionIds.map((id) => ({ id, title: getMission(id)?.title ?? id })) : [];
 
   if (!available) {
     // Planned work reads as a quiet line with no destination, so nothing looks playable.
@@ -32,8 +35,19 @@ export function MapModule({ module, availableInOrder }: { module: ModuleEntry; a
             <span className="bg-[var(--highlighter)] px-1 font-bold text-[var(--highlighter-ink)]">{t.map.recommended}</span>
           )}
         </p>
+        {parts.length > 0 && (
+          <ol className="mt-2 space-y-1 text-sm">
+            {parts.map((p, i) => (
+              <li key={p.id}>
+                {t.map.part(i + 1)}{" "}
+                <Link href={`/missions/${p.id}`} className="underline">{p.title}</Link>
+                {isCompleted(p.id) && <span className="mark-yes"> <span aria-hidden="true">✔ </span>{t.map.partDone}</span>}
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
-      <Link href={`/missions/${module.missionIds[0]}`} className={`btn btn-small ${recommended ? "btn-primary" : "btn-secondary"}`}>
+      <Link href={`/missions/${nextMission}`} className={`btn btn-small ${recommended ? "btn-primary" : "btn-secondary"}`}>
         {t.map.play}<span className="sr-only">: {module.title}</span>
       </Link>
     </li>

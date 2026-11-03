@@ -18,6 +18,14 @@ import { OpenResponse } from "./activities/open-response";
 import { DialogueActivity, DialogueReplay } from "./activities/dialogue";
 import { ArgumentMap } from "./activities/argument-map";
 import { MarkText } from "./activities/mark-text";
+import { DelegationDesk } from "./activities/delegation-desk";
+import { ComposeStudio } from "./activities/compose-studio";
+import { ChartLab } from "./activities/chart-lab";
+import { HelpGym } from "./activities/help-gym";
+import { Casefile } from "./activities/casefile";
+import { ThresholdLab } from "./activities/threshold-lab";
+import { WorkflowRunner } from "./activities/workflow-runner";
+import { AllocationBoard } from "./activities/allocation-board";
 
 interface Props {
   mission: Mission;
@@ -187,11 +195,38 @@ function StepView({
               <p className="mb-4">{step.prompt}</p>
               <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onEvidence={record} onContinue={onContinue} />
             </>
+          ) : "delegation" in step ? (
+            <>
+              <p className="mb-4">{step.prompt}</p>
+              <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onContinue={onContinue} />
+            </>
+          ) : "allocation" in step ? (
+            <>
+              <p className="mb-4">{step.prompt}</p>
+              <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onContinue={onContinue} />
+            </>
+          ) : "workflow" in step ? (
+            <>
+              <p className="mb-4">{step.prompt}</p>
+              <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onContinue={onContinue} />
+            </>
+          ) : "casefile" in step ? (
+            <>
+              <p className="mb-4">{step.prompt}</p>
+              <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
+            </>
+          ) : "compose" in step ? (
+            <>
+              <p className="mb-4">{step.prompt}</p>
+              <ComposeStudio stepId={step.id} spec={step.compose} onEvidence={record} onContinue={onContinue} />
+            </>
           ) : "mark" in step ? (
             <>
               <p className="mb-4">{step.prompt}</p>
               <MarkText
                 paragraphs={step.mark}
+                mode={step.mode}
+                flow={step.flow}
                 onResult={(id, right) => record(itemKey(step.id, id), { right })}
                 onContinue={onContinue}
               />
@@ -207,6 +242,93 @@ function StepView({
         <>
           <h2 className="text-2xl">{step.title}</h2>
           <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} intro={step.intro} showFinal onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "delegation":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "compose":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <ComposeStudio stepId={step.id} spec={step.compose} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "chartLab":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <ChartLab stepId={step.id} spec={step.chart} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "gym":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <HelpGym stepId={step.id} problems={step.problems} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "mark":
+      return (
+        <>
+          <h2 className="mb-2 text-2xl">{step.title}</h2>
+          <p className="mb-4">{step.prompt}</p>
+          <MarkText
+            paragraphs={step.mark}
+            mode={step.mode}
+            flow={step.flow}
+            onResult={(id, right) => record(itemKey(step.id, id), { right })}
+            onContinue={onContinue}
+          />
+        </>
+      );
+
+    case "casefile":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "thresholdLab":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <ThresholdLab stepId={step.id} spec={step.lab} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "workflow":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "allocation":
+      return (
+        <>
+          <h2 className="text-2xl">{step.title}</h2>
+          <p className="mt-1 mb-4">{step.intro}</p>
+          <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onContinue={onContinue} />
         </>
       );
 
