@@ -5,6 +5,7 @@ import type { AllocationSpec } from "@/content/types";
 import { coverage, planResult, spent } from "@/lib/allocation";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, useReveal } from "../step-ui";
 
 /**
  * Choose conditions within a budget, then see a stakeholder map of whose concerns the plan covers (PRD M13).
@@ -31,12 +32,20 @@ export function AllocationBoard({
   const result = isCurrent ? planResult(spec, checked) : null;
   const cov = isCurrent ? coverage(spec, checked) : null;
   const stakeholders = [...new Set(spec.concerns.map((c) => c.stakeholder))];
+  const [checks, setChecks] = useState(0);
+  const mapRef = useReveal<HTMLElement>(checks);
   const optionLabel = (id: string) => spec.options.find((o) => o.id === id)?.label ?? id;
 
   return (
     <div>
-      <section aria-labelledby={`${uid}-map`}>
+      <section ref={mapRef} aria-labelledby={`${uid}-map`} className="reveal">
         <h3 id={`${uid}-map`} className="text-lg font-bold">{t.allocation.map}</h3>
+        {result && (
+          <p role="status" className={`mt-2 rounded-lg border-2 p-3 ${result.right ? "border-[var(--mark-yes)]" : "border-[var(--mark-no)]"}`}>
+            <span aria-hidden="true" className={result.right ? "mark-yes" : "mark-no"}>{result.right ? "✔ " : "✖ "}</span>
+            {result.overBudget ? t.allocation.overBudget : result.right ? t.allocation.sound : t.allocation.missing(result.missingEssential.length)}
+          </p>
+        )}
         <ul className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {stakeholders.map((s) => (
             <li key={s} className="rounded-lg border border-border bg-surface p-3">
@@ -83,9 +92,7 @@ export function AllocationBoard({
           ))}
         </div>
       </fieldset>
-      <p role="status" className={`mt-3 font-bold ${over ? "mark-no" : ""}`}>{t.allocation.spent(money(total), money(spec.budget.amount), over)}</p>
-
-      <div className="mt-3 flex flex-wrap gap-3">
+      <ActionBar note={checked && !isCurrent ? t.allocation.changed : undefined}>
         <button
           type="button"
           disabled={chosen.length === 0}
@@ -93,20 +100,15 @@ export function AllocationBoard({
             const r = planResult(spec, chosen);
             onEvidence(itemKey(stepId, "plan"), { right: r.right });
             setChecked(chosen);
+            setChecks((n) => n + 1);
           }}
           className="btn btn-primary"
         >
           {t.allocation.check}
         </button>
         {checked && <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>}
-      </div>
-      {result && (
-        <p role="status" className="mt-3">
-          <span aria-hidden="true" className={result.right ? "mark-yes" : "mark-no"}>{result.right ? "✔ " : "✖ "}</span>
-          {result.overBudget ? t.allocation.overBudget : result.right ? t.allocation.sound : t.allocation.missing(result.missingEssential.length)}
-        </p>
-      )}
-      {checked && !isCurrent && <p className="mt-3 text-sm">{t.allocation.changed}</p>}
+        <span role="status" className={`text-sm font-bold ${over ? "mark-no" : ""}`}>{t.allocation.spent(money(total), money(spec.budget.amount), over)}</span>
+      </ActionBar>
     </div>
   );
 }

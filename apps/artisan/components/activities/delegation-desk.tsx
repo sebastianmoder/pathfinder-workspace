@@ -5,6 +5,7 @@ import { DELEGATION_ROLES, type DelegationRole, type DelegationSpec, type Delega
 import { delegationResults, isSound } from "@/lib/delegation";
 import type { EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { ActionBar } from "../step-ui";
 
 const FACTORS = ["stakes", "evidence", "sensitivity", "reversibility"] as const;
 const roleLabel = (role: DelegationRole) => t.delegation.roles[role].label;
@@ -50,7 +51,9 @@ export function DelegationDesk({
             <Outcome key={task.id} task={task} chosen={sent[task.id]} />
           ))}
         </ul>
-        <button type="button" onClick={onContinue} className="mt-5 btn btn-primary">{t.mission.next}</button>
+        <ActionBar>
+          <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>
+        </ActionBar>
       </div>
     );
   }
@@ -121,18 +124,20 @@ export function DelegationDesk({
         ))}
       </ul>
 
-      <p className="mt-4 text-sm" aria-live="polite">{t.delegation.progress(count, spec.tasks.length)}</p>
-      <button
-        type="button"
-        disabled={count < spec.tasks.length}
-        onClick={() => {
-          for (const [item, result] of delegationResults(stepId, spec, assigned, hinted)) onEvidence(item, result);
-          setSent(assigned);
-        }}
-        className="mt-2 btn btn-primary"
-      >
-        {t.delegation.send}
-      </button>
+      <ActionBar>
+        <button
+          type="button"
+          disabled={count < spec.tasks.length}
+          onClick={() => {
+            for (const [item, result] of delegationResults(stepId, spec, assigned, hinted)) onEvidence(item, result);
+            setSent(assigned);
+          }}
+          className="btn btn-primary"
+        >
+          {t.delegation.send}
+        </button>
+        <span className="text-sm font-bold" aria-live="polite">{t.delegation.progress(count, spec.tasks.length)}</span>
+      </ActionBar>
     </div>
   );
 }

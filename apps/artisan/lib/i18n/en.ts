@@ -64,6 +64,110 @@ export const en = {
     verdict: { correct: "Fits the case", defensible: "Defensible", weaker: "Weaker fit" },
     fictional: "Fictional case.",
     missionFallback: "Mission",
+    aboutCase: "About this mission and its case",
+    youWillLearn: "What you will practise:",
+    chooseFirst: "Choose an answer to check it.",
+    chooseAndRate: "Choose an answer and how confident you are to record it.",
+    placeAll: (left: number) => `${left} still to place.`,
+    fixAndRecheck: "Change any answer marked ✖ and check again, or continue.",
+  },
+
+  /** The moves each kind of step asks for, shown above the activity so nobody has to guess. */
+  howTo: {
+    label: "How to do this step",
+    initialJudgment: [
+      "Choose the answer you would give right now.",
+      "Say how confident you are.",
+      "Record it. There is no verdict yet: you will come back to it at the end.",
+    ],
+    quiz: ["Choose the answer that fits best.", "Check it. If it's a weaker fit, try another option or show the answer."],
+    revision: [
+      "Your first answer is shown for comparison.",
+      "Choose again. Keeping your first answer is fine if your reasons still hold.",
+    ],
+    transferChoice: ["This is a new case, with no hints.", "Choose the answer that fits best, then check it."],
+    sort: ["Choose a category from the menu under every item.", "When all are placed, check your answers."],
+    faultTrace: [
+      "Read what each stage does (in the box below).",
+      "For every failure, choose the stage where it went wrong.",
+      "Check your answers. Any you got wrong can be changed and checked again.",
+    ],
+    sandbox: [
+      "Switch sentences on or off to decide what the machine learns from.",
+      "Press “Train the machine”.",
+      "Choose the word you expect, then press “Ask the machine”.",
+      "When the task's goal is met, move on to the next task.",
+    ],
+    claimAudit: [
+      "Select a highlighted claim in the briefing.",
+      "Open a source and link the passage that decides the claim, or say that no source addresses it.",
+      "Choose the claim's status and what to do with it, then check it.",
+      "Repeat for every claim.",
+    ],
+    delegation: [
+      "Read each request in the inbox.",
+      "Choose who should do the work: a person, a person with AI help, or AI with supervision.",
+      "When every request has a role, send the assignments to see what happened later.",
+    ],
+    compose: [
+      "Choose an option for each part of the workspace.",
+      "Press “Run it” to produce a version.",
+      "Tick the checklist items the version meets, then check your list.",
+      "When the version meets every item, move on.",
+    ],
+    chartLab: [
+      "Change the measure, axis or range on the left.",
+      "Watch the chart and table change.",
+      "When the view does what the task asks, check it.",
+    ],
+    gym: [
+      "Answer the problem on your own first. Any answer is fine.",
+      "If you're not there yet, choose a kind of help and try again.",
+    ],
+    casefile: [
+      "Read the post, then follow the leads you think matter most. Time is limited.",
+      "Each lead adds what you found, and the timeline fills in.",
+      "Press “Finish investigating”, then say what is established, contradicted or still uncertain.",
+    ],
+    thresholdLab: [
+      "Choose a score version and move the threshold.",
+      "Read who is selected in the plot and the table.",
+      "When the setting meets the task, check it.",
+    ],
+    markFind: ["Select every passage that answers the question. Select again to unmark.", "Check your answer."],
+    markRedact: [
+      "Select each detail to remove it. Select it again to put it back.",
+      "Check your answer to see what each party would receive.",
+    ],
+    workflow: [
+      "Choose an option at each step of the assistant.",
+      "Run the tests.",
+      "Name the step behind each failure, then fix it and run the tests again until all pass.",
+    ],
+    allocation: [
+      "Read each group's concerns.",
+      "Tick the conditions you would set, within the budget.",
+      "Check your plan to see whose concerns it covers.",
+    ],
+    dialogue: [
+      "Choose what to say at each turn. Some replies let you show a passage from the sources.",
+      "What you uncover is listed beside the conversation. Your notes are private.",
+      "When the conversation ends, answer the board's questions and continue.",
+    ],
+    argumentMap: [
+      "Select a card on the left.",
+      "Press “Place here” on the part of the map where it belongs.",
+      "When every card is placed, check your map.",
+    ],
+    openResponse: [
+      "Write your answer in the box. Nothing you write leaves your browser.",
+      "Then show the criteria and point to the sentence that meets each one.",
+    ],
+    openPractice: [
+      "Read each sample answer.",
+      "Tick the criteria it meets, then compare with the reviewed rating.",
+      "Then write your own. You can skip the practice.",
+    ],
   },
 
   pause: {
@@ -137,7 +241,10 @@ export const en = {
     decisionTitle: "Use your briefing",
     unchecked: "not yet checked",
     checkedMark: "checked",
-    selectClaim: "Select a claim in the briefing to start.",
+    selectClaim: "Select a highlighted claim in the briefing to start. Its checklist opens here.",
+    nextClaim: "Next claim",
+    allChecked: "Every claim is checked. Change any judgment, or move on.",
+    allJudged: "Every claim is judged. Submit the audit to see the feedback.",
     selectedClaim: "Selected claim",
     evidenceHeading: "1. Evidence",
     noEvidenceYet: "No passage linked yet. Open a source and link the passage that bears on this claim.",
@@ -258,6 +365,8 @@ export const en = {
     cards: "Cards to place",
     allPlaced: "All cards are placed. You can still move them.",
     selectCard: "Select a card first.",
+    pickCard: (left: number) => `Select a card to place. ${left} still to place.`,
+    nowPlace: (card: string) => `Selected: “${card}”. Now press “Place here” on the part of the map where it belongs.`,
     placeHere: "Place here",
     moveBack: "Take back",
     check: "Check my map",
@@ -325,6 +434,7 @@ export const en = {
     print: "Print",
   },
   mark: {
+    count: (n: number, redact: boolean) => (redact ? `Removed: ${n}.` : `Marked: ${n}.`),
     help: "Select a passage to mark it, and select it again to unmark it.",
     result: (found: number, targets: number, extra: number) =>
       `You marked ${found} of ${targets}${extra > 0 ? `, and ${extra} that ${extra === 1 ? "does" : "do"} not belong` : ""}.`,
@@ -382,6 +492,14 @@ export const en = {
     taskDone: "Done.",
     used: (n: number) => `You used ${n} ${n === 1 ? "sentence" : "sentences"}.`,
     nextTask: "Next task",
+    nextMove: {
+      train: "Next: set the sentences, then press “Train the machine”.",
+      retrain: "Next: you changed the sentences, so train the machine again.",
+      say: "Next: press “Say it” to give the machine your line.",
+      predict: "Next: choose the word you expect.",
+      ask: "Next: press “Ask the machine”.",
+      retry: "Not yet. Change the sentences, train again and ask again, or use “Show me a way”.",
+    },
   },
   faultTrace: {
     fits: "Fits.",
@@ -437,6 +555,8 @@ export const en = {
     roundDone: "Every criterion is met, and you judged it correctly.",
     checkToFinish: "This version meets every criterion. Judge it with the checklist to finish the round.",
     nextRound: "Next round",
+    nextChange: "Change the workspace and run it again until the version meets every criterion. Then judge it with the checklist.",
+    nothingChanged: "Change at least one option to run a new version.",
     recordTitle: (n: number) => `Contribution record for version ${n}`,
     recordPart: "Part",
     recordChoice: "What is there",
@@ -465,6 +585,7 @@ export const en = {
     nextTask: "Next task",
   },
   gym: {
+    tryHelp: "Choose a kind of help below, then pick an answer and check again.",
     problem: (n: number, total: number) => `Problem ${n} of ${total}`,
     attemptFirst: "Have a go first. Any answer is fine: it shows you, and the help, where to start.",
     yourAnswer: "Your answer",
@@ -481,6 +602,8 @@ export const en = {
     nextProblem: "Next problem",
   },
   casefile: {
+    leftShort: (n: number) => `${n} ${n === 1 ? "lead" : "leads"} left`,
+    finishNote: "Finish when you have followed the leads you want. You can't follow more afterwards.",
     leads: "Leads",
     left: (n: number, total: number) => `Leads you can still follow: ${n} of ${total}.`,
     kind: { record: "Record", interview: "Interview", check: "Check" },
@@ -546,6 +669,8 @@ export const en = {
     diagnosisRight: "Right step.",
     diagnosisWrong: (step: string) => `It failed at: ${step}.`,
     nowFix: "Now change the steps that failed, and run the tests again.",
+    firstRun: "The assistant starts with the simplest choice at each step. Run the tests to see how it does.",
+    diagnoseFirst: "Next: in “Diagnose the first run” below, choose which step caused each failure.",
     allPass: "Every test passes. That covers the cases you tested, which is not every case.",
   },
   allocation: {

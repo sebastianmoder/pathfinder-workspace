@@ -16,6 +16,7 @@ import {
 } from "@/lib/compose";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, useReveal } from "../step-ui";
 
 /**
  * Workspace, comparison, checklist and version tree (PRD M03, M11). Outputs are authored per option, so
@@ -67,6 +68,14 @@ export function ComposeStudio({
     ? round.criteria.every((c) => checkedNow.ticks.includes(c.id) === criterionMet(c, current!.choices))
     : false;
   const roundDone = met && checklistRight;
+  const doneRef = useReveal<HTMLDivElement>(roundDone ? `${round.id}-${currentId}` : null);
+  const note = tooMany
+    ? t.compose.tooMany(pending.map((id) => spec.elements.find((e) => e.id === id)?.label ?? id).join(", "))
+    : !current ? t.compose.noRun
+    : roundDone ? undefined
+    : met ? t.compose.checkToFinish
+    : !canRun ? t.compose.nothingChanged
+    : t.compose.nextChange;
   const labelOf = (id: string) => spec.elements.find((e) => e.id === id)?.label ?? id;
 
   const run = () => {
@@ -137,22 +146,6 @@ export function ComposeStudio({
               </fieldset>
             ))}
           </div>
-          {tooMany && <p className="mt-2 text-sm" role="status">{t.compose.tooMany(pending.map(labelOf).join(", "))}</p>}
-          <div className="mt-3 flex flex-wrap gap-3">
-            <button type="button" disabled={!canRun} onClick={run} className="btn btn-primary">{t.compose.run}</button>
-            {!met && (
-              <button
-                type="button"
-                onClick={() => {
-                  setChoices(round.solution);
-                  setUsedSolution((u) => (u.includes(round.id) ? u : [...u, round.id]));
-                }}
-                className="btn btn-secondary"
-              >
-                {t.compose.showMe}
-              </button>
-            )}
-          </div>
         </section>
 
         <section aria-labelledby={`${uid}-out`}>
@@ -211,15 +204,13 @@ export function ComposeStudio({
         </section>
       </div>
 
-      {roundDone && (
-        <div role="status" className="mt-5 rounded-lg border-2 border-[var(--mark-yes)] p-4">
-          <p><strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.compose.roundDone}</strong> {round.success}</p>
-          <button type="button" onClick={nextRound} className="mt-3 btn btn-primary">
-            {roundIndex + 1 < spec.rounds.length ? t.compose.nextRound : t.mission.next}
-          </button>
-        </div>
-      )}
-      {met && !checklistRight && <p className="mt-4 text-sm">{t.compose.checkToFinish}</p>}
+      <div ref={doneRef} className="reveal">
+        {roundDone && (
+          <div role="status" className="mt-5 rounded-lg border-2 border-[var(--mark-yes)] p-4">
+            <p><strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.compose.roundDone}</strong> {round.success}</p>
+          </div>
+        )}
+      </div>
 
       {spec.record && current && (
         <section className="mt-6" aria-labelledby={`${uid}-rec`}>
@@ -284,6 +275,29 @@ export function ComposeStudio({
           </ul>
         </section>
       )}
+
+      <ActionBar note={note}>
+        {!roundDone && (
+          <button type="button" disabled={!canRun} onClick={run} className="btn btn-primary">{t.compose.run}</button>
+        )}
+        {!met && (
+          <button
+            type="button"
+            onClick={() => {
+              setChoices(round.solution);
+              setUsedSolution((u) => (u.includes(round.id) ? u : [...u, round.id]));
+            }}
+            className="btn btn-secondary"
+          >
+            {t.compose.showMe}
+          </button>
+        )}
+        {roundDone && (
+          <button type="button" onClick={nextRound} className="btn btn-primary">
+            {roundIndex + 1 < spec.rounds.length ? t.compose.nextRound : t.mission.next}
+          </button>
+        )}
+      </ActionBar>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import type { ChartLabSpec, ChartView } from "@/content/types";
 import { barsFor, baselineOf, goalMet, measureOf, niceMax, percentChange, type Bar } from "@/lib/chart";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, useReveal } from "../step-ui";
 
 const fmt = (n: number) => n.toLocaleString("en-GB", { maximumFractionDigits: 1 });
 
@@ -40,6 +41,8 @@ export function ChartLab({
   }, [taskIndex]);
 
   const task = spec.tasks[taskIndex];
+  const [checks, setChecks] = useState(0);
+  const resultRef = useReveal<HTMLDivElement>(result ? checks : null);
   const bars = barsFor(spec, view);
   const measure = measureOf(spec, view);
   const baseline = baselineOf(spec, view);
@@ -110,21 +113,33 @@ export function ChartLab({
         </figure>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => {
+      <div ref={resultRef} className="reveal">
+        {result === "notYet" && <p role="status" className="mt-3"><span aria-hidden="true" className="mark-no">✖ </span>{t.chart.notYet}</p>}
+        {result === "met" && (
+          <div role="status" className="mt-3 rounded-lg border-2 border-[var(--mark-yes)] p-4">
+            <p><strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.chart.met}</strong> {task.success}</p>
+          </div>
+        )}
+      </div>
+
+      <ActionBar>
+        {result !== "met" && (
+          <button
+            type="button"
+            onClick={() => {
             const met = goalMet(task.goal, view);
             if (task.evidence !== false) {
               const assisted = usedSolution.includes(task.id);
               onEvidence(itemKey(stepId, task.id), { right: met && !assisted, assisted });
             }
             setResult(met ? "met" : "notYet");
-          }}
-          className="btn btn-primary"
-        >
-          {t.chart.check}
-        </button>
+            setChecks((n) => n + 1);
+            }}
+            className="btn btn-primary"
+          >
+            {t.chart.check}
+          </button>
+        )}
         {result !== "met" && (
           <button
             type="button"
@@ -137,11 +152,7 @@ export function ChartLab({
             {t.chart.showMe}
           </button>
         )}
-      </div>
-      {result === "notYet" && <p role="status" className="mt-3"><span aria-hidden="true" className="mark-no">✖ </span>{t.chart.notYet}</p>}
-      {result === "met" && (
-        <div role="status" className="mt-3">
-          <p><strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.chart.met}</strong> {task.success}</p>
+        {result === "met" && (
           <button
             type="button"
             onClick={() => {
@@ -150,12 +161,13 @@ export function ChartLab({
                 setResult(null);
               } else onContinue();
             }}
-            className="mt-3 btn btn-primary"
+            className="btn btn-primary"
           >
             {taskIndex + 1 < spec.tasks.length ? t.chart.nextTask : t.mission.next}
           </button>
-        </div>
-      )}
+        )}
+        <span className="text-sm font-bold">{t.chart.task(taskIndex + 1, spec.tasks.length)}</span>
+      </ActionBar>
     </div>
   );
 }

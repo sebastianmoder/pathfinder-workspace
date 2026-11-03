@@ -7,6 +7,7 @@ import { itemKey } from "@/lib/evidence";
 import { askMachine, goalMet, isStale, type AskRecord } from "@/lib/sandbox";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, HowTo, useReveal } from "../step-ui";
 
 type SandboxStep = Extract<Step, { kind: "sandbox" }>;
 
@@ -63,6 +64,14 @@ export function SandboxActivity({
   const stale = isStale(state.on, state.trained);
   const waitingToSay = !!task.say && !state.said;
   const item = itemKey(step.id, task.id);
+  const replyRef = useReveal<HTMLDivElement>(state.asks > 0 ? `${state.taskIndex}-${state.asks}` : null);
+  const nextMove =
+    state.met ? undefined
+    : state.trained === null ? t.sandbox.nextMove.train
+    : stale ? t.sandbox.nextMove.retrain
+    : waitingToSay ? t.sandbox.nextMove.say
+    : !state.predicted ? (state.last ? t.sandbox.nextMove.retry : t.sandbox.nextMove.predict)
+    : t.sandbox.nextMove.ask;
 
   // The previous task's controls have gone, so focus moves to the new task.
   const taskHeading = useRef<HTMLHeadingElement>(null);
@@ -113,6 +122,7 @@ export function SandboxActivity({
       <h2 className="text-2xl">{step.title}</h2>
       <p className="mt-1">{step.intro}</p>
       <p className="mt-1 text-sm text-muted">{t.sandbox.label}</p>
+      <HowTo steps={t.howTo.sandbox} />
 
       <ol className="mt-4 grid gap-2 sm:grid-cols-5" aria-label={t.sandbox.pipeline}>
         {step.stages.map((stage) => (
@@ -220,7 +230,7 @@ export function SandboxActivity({
             <p className="mt-2 text-sm text-muted">{t.sandbox.predictFirst}</p>
           )}
 
-          <div role="status" className="mt-4">
+          <div ref={replyRef} role="status" className="reveal mt-4">
             {state.last && <Reply step={step} task={task} ask={state.last} />}
           </div>
         </div>
@@ -232,18 +242,24 @@ export function SandboxActivity({
             <strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.sandbox.taskDone}</strong> {task.success}
             {task.showCount && state.last && <> {t.sandbox.used(state.last.trainedIds.length)}</>}
           </p>
+        </div>
+      )}
+
+      <ActionBar note={nextMove}>
+        <span className="text-sm font-bold">{t.sandbox.progress(state.taskIndex + 1, step.tasks.length)}: {task.title}</span>
+        {state.met && (
           <button
             type="button"
             onClick={() => {
               if (isLastTask) onContinue();
               else session.setStepState(missionId, step.id, enterTask(step.tasks[state.taskIndex + 1], state.taskIndex + 1, state));
             }}
-            className="mt-3 btn btn-primary"
+            className="btn btn-primary"
           >
             {isLastTask ? t.mission.next : t.sandbox.nextTask}
           </button>
-        </div>
-      )}
+        )}
+      </ActionBar>
     </div>
   );
 }

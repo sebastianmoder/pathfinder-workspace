@@ -266,6 +266,65 @@
     color: var(--mark-no);
   }
 
+  /*
+   * The row of buttons that moves an activity on. It sticks to the bottom of the window while the activity
+   * is on screen, so the next action is always in view, and settles at the end of the activity after that.
+   */
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin: 1.25rem -1rem 0;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--background) 94%, transparent);
+    backdrop-filter: blur(6px);
+  }
+  @supports not (background: color-mix(in srgb, red, blue)) {
+    .action-bar {
+      background: var(--background);
+    }
+  }
+
+  /* Feedback that appears after an action is scrolled clear of the action bar. */
+  .reveal {
+    scroll-margin: 5rem 0 7rem;
+  }
+
+  /* What the learner does in this step, set apart from the case material. */
+  .howto {
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--highlighter);
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+  }
+  .howto ol {
+    counter-reset: howto;
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+  }
+  .howto li {
+    counter-increment: howto;
+    display: flex;
+    gap: 0.6rem;
+    font-size: 0.9375rem;
+  }
+  .howto li::before {
+    content: counter(howto);
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-top: 0.05rem;
+    border-radius: 999px;
+    background: var(--foreground);
+    color: var(--background);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
   /* Mission progress as a ruler: one graduation per step. */
   .ruler {
     display: flex;
@@ -304,6 +363,8 @@
 
 @media print {
   .no-print,
+  .action-bar,
+  .howto,
   header {
     display: none !important;
   }

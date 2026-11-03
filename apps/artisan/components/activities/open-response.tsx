@@ -7,6 +7,7 @@ import type { EvidenceResult } from "@/lib/evidence";
 import { splitSentences } from "@/lib/mark";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, HowTo, useReveal } from "../step-ui";
 
 type OpenStep = Extract<Step, { kind: "openResponse" }>;
 interface State {
@@ -58,6 +59,7 @@ export function OpenResponse({
   const wrote = !!state.text.trim() || !!prior;
   const sentences = splitSentences(state.text.trim() || prior || "");
   const samples = step.rubric.samples ?? [];
+  const criteriaRef = useReveal<HTMLDivElement>(state.revealed);
 
   if (samples.length > 0 && !state.practiceDone) {
     return (
@@ -65,6 +67,7 @@ export function OpenResponse({
         <h2 className="text-2xl">{step.prompt}</h2>
         <h3 className="mt-4 text-lg font-bold">{t.open.practiceTitle}</h3>
         <p className="mt-1">{t.open.practiceIntro}</p>
+        <HowTo steps={t.howTo.openPractice} />
         <ul className="mt-4 space-y-4">
           {samples.map((sample, i) => (
             <li key={sample.id} className="rounded-lg border border-border bg-surface p-4">
@@ -104,7 +107,7 @@ export function OpenResponse({
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex flex-wrap gap-3">
+        <ActionBar>
           {!state.compared ? (
             <>
               <button type="button" onClick={() => set({ compared: true })} className="btn btn-primary">{t.open.compareRatings}</button>
@@ -113,7 +116,7 @@ export function OpenResponse({
           ) : (
             <button type="button" onClick={() => set({ practiceDone: true })} className="btn btn-primary">{t.open.writeMine}</button>
           )}
-        </div>
+        </ActionBar>
       </div>
     );
   }
@@ -121,6 +124,7 @@ export function OpenResponse({
   return (
     <div>
       <h2 className="text-2xl">{step.prompt}</h2>
+      <HowTo steps={t.howTo.openResponse} />
       <p className="mt-2 text-sm text-muted">{t.open.privacy}</p>
       {prior && (
         <div className="mt-4">
@@ -146,59 +150,65 @@ export function OpenResponse({
         onChange={(e) => set({ text: e.target.value, pointed: {} })}
         className="mt-1 w-full rounded border border-border bg-surface px-3 py-2"
       />
-      {!state.revealed && (
-        <div className="mt-3 flex flex-wrap gap-3">
-          <button type="button" disabled={!wrote} onClick={() => set({ revealed: true })} className="btn btn-primary">
-            {t.open.showCriteria}
-          </button>
-          {!wrote && (
-            <button type="button" onClick={() => set({ revealed: true, skipped: true })} className="btn btn-secondary">
-              {t.open.skip}
+      <div ref={criteriaRef} className="reveal">
+        {state.revealed && (
+          <div className="mt-5">
+            {state.skipped ? (
+              <>
+                <h3 className="font-bold">{t.open.criteriaList}</h3>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  {step.rubric.criteria.map((c) => <li key={c.id}>{c.text}</li>)}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h3 className="font-bold">{t.open.criteria}</h3>
+                <p className="text-sm text-muted">{t.open.pointHelp}</p>
+                <div className="mt-2 space-y-3">
+                  {step.rubric.criteria.map((c) => (
+                    <div key={c.id} className="rounded-lg border border-border bg-surface p-3">
+                      <label htmlFor={`${uid}-${c.id}`} className="block">{c.text}</label>
+                      <select
+                        id={`${uid}-${c.id}`}
+                        value={state.pointed[c.id] ?? ""}
+                        onChange={(e) => {
+                          const pointed = { ...state.pointed };
+                          if (e.target.value === "") delete pointed[c.id];
+                          else pointed[c.id] = Number(e.target.value);
+                          set({ pointed });
+                        }}
+                        className="mt-1 block w-full rounded border border-border bg-background px-2 py-1.5"
+                      >
+                        <option value="">{t.open.noSentence}</option>
+                        {sentences.map((s, i) => <option key={i} value={i}>{s}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            <h3 className="mt-4 font-bold">{t.open.examples}</h3>
+            <ul className="mt-1 list-disc space-y-2 pl-5 text-sm">
+              {step.rubric.examples.map((e) => <li key={e}>{e}</li>)}
+            </ul>
+            {!state.skipped && <p className="mt-3 text-sm text-muted">{t.open.selfAssessed}</p>}
+          </div>
+        )}
+      </div>
+
+      <ActionBar>
+        {!state.revealed ? (
+          <>
+            <button type="button" disabled={!wrote} onClick={() => set({ revealed: true })} className="btn btn-primary">
+              {t.open.showCriteria}
             </button>
-          )}
-        </div>
-      )}
-      {state.revealed && (
-        <div className="mt-5">
-          {state.skipped ? (
-            <>
-              <h3 className="font-bold">{t.open.criteriaList}</h3>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                {step.rubric.criteria.map((c) => <li key={c.id}>{c.text}</li>)}
-              </ul>
-            </>
-          ) : (
-            <>
-              <h3 className="font-bold">{t.open.criteria}</h3>
-              <p className="text-sm text-muted">{t.open.pointHelp}</p>
-              <div className="mt-2 space-y-3">
-                {step.rubric.criteria.map((c) => (
-                  <div key={c.id} className="rounded-lg border border-border bg-surface p-3">
-                    <label htmlFor={`${uid}-${c.id}`} className="block">{c.text}</label>
-                    <select
-                      id={`${uid}-${c.id}`}
-                      value={state.pointed[c.id] ?? ""}
-                      onChange={(e) => {
-                        const pointed = { ...state.pointed };
-                        if (e.target.value === "") delete pointed[c.id];
-                        else pointed[c.id] = Number(e.target.value);
-                        set({ pointed });
-                      }}
-                      className="mt-1 block w-full rounded border border-border bg-background px-2 py-1.5"
-                    >
-                      <option value="">{t.open.noSentence}</option>
-                      {sentences.map((s, i) => <option key={i} value={i}>{s}</option>)}
-                    </select>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-          <h3 className="mt-4 font-bold">{t.open.examples}</h3>
-          <ul className="mt-1 list-disc space-y-2 pl-5 text-sm">
-            {step.rubric.examples.map((e) => <li key={e}>{e}</li>)}
-          </ul>
-          {!state.skipped && <p className="mt-3 text-sm text-muted">{t.open.selfAssessed}</p>}
+            {!wrote && (
+              <button type="button" onClick={() => set({ revealed: true, skipped: true })} className="btn btn-secondary">
+                {t.open.skip}
+              </button>
+            )}
+          </>
+        ) : (
           <button
             type="button"
             onClick={() => {
@@ -209,12 +219,12 @@ export function OpenResponse({
               );
               onContinue();
             }}
-            className="mt-4 btn btn-primary"
+            className="btn btn-primary"
           >
             {t.mission.next}
           </button>
-        </div>
-      )}
+        )}
+      </ActionBar>
     </div>
   );
 }

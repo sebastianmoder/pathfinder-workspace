@@ -5,6 +5,7 @@ import type { Step } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { useHintLadder } from "../hint-ladder";
+import { ActionBar, HowTo, useReveal } from "../step-ui";
 
 type SortStep = Extract<Step, { kind: "sort" }>;
 
@@ -25,11 +26,15 @@ export function SortActivity({
 
   const allPlaced = step.items.every((i) => placed[i.id]);
   const allRight = step.items.every((i) => placed[i.id] === i.categoryId);
+  const [checks, setChecks] = useState(0);
+  const listRef = useReveal<HTMLUListElement>(checks);
+  const left = step.items.filter((i) => !placed[i.id]).length;
 
   return (
     <div>
       <h2 className="text-2xl">{step.prompt}</h2>
-      <ul className="mt-4 space-y-3">
+      <HowTo steps={t.howTo.sort} />
+      <ul ref={listRef} className="reveal mt-4 space-y-3">
         {step.items.map((item) => {
           const right = placed[item.id] === item.categoryId;
           return (
@@ -60,7 +65,7 @@ export function SortActivity({
         })}
       </ul>
       {ladder.list}
-      <div className="mt-4 flex flex-wrap gap-3">
+      <ActionBar note={!allPlaced ? t.mission.placeAll(left) : checked && !allRight ? t.sort.fixSome : undefined}>
         <button
           type="button"
           disabled={!allPlaced}
@@ -69,6 +74,7 @@ export function SortActivity({
               onEvidence(itemKey(step.id, i.id), { right: placed[i.id] === i.categoryId, assisted: ladder.used });
             }
             setChecked(true);
+            setChecks((n) => n + 1);
           }}
           className="btn btn-primary"
         >
@@ -80,8 +86,7 @@ export function SortActivity({
             {t.mission.next}
           </button>
         )}
-      </div>
-      {checked && !allRight && <p className="mt-3 text-sm">{t.sort.fixSome}</p>}
+      </ActionBar>
     </div>
   );
 }

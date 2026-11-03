@@ -20,6 +20,7 @@ import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { ChoiceQuestion } from "../choice-question";
 import { MarkText } from "./mark-text";
+import { ActionBar, HowTo, useReveal } from "../step-ui";
 
 type View = "briefing" | "sources" | "judgment";
 type Phase = "spot" | "trust" | "audit" | "final" | "decision";
@@ -188,14 +189,18 @@ export function ClaimAudit({ missionId, stepId, audit, intro, showFinal, onEvide
   const feedbackOpen = !independent || state.submitted;
   const panelClass = (v: View) => `${state.view === v ? "block" : "hidden"} lg:block`;
   const finished = audit.claims.filter((c) => state.done.includes(c.id)).length;
+  // The next claim still to check, after the one open now, so the learner can work straight through.
+  const order = audit.briefing.flat().flatMap((seg) => (typeof seg !== "string" && "claimId" in seg ? [seg.claimId] : []));
+  const from = state.selected ? order.indexOf(state.selected) : -1;
+  const nextClaim = [...order.slice(from + 1), ...order.slice(0, from + 1)].find((id) => id !== state.selected && !state.done.includes(id)) ?? null;
 
   return (
     <div>
       <h3 ref={phaseHeading} tabIndex={-1} className="sr-only">{t.audit.auditHeading}</h3>
-      {intro && <p className="mb-4 mt-1">{intro}</p>}
-      <p role="status" className="mb-3 text-sm font-bold">
-        {feedbackOpen ? t.audit.progress(finished, audit.claims.length) : t.audit.progressSaved(finished, audit.claims.length)}
-      </p>
+      {intro && <p className="mt-1 max-w-3xl">{intro}</p>}
+      <div className="mb-4">
+        <HowTo steps={t.howTo.claimAudit} />
+      </div>
       {!feedbackOpen && <p className="mb-3 text-sm">{t.audit.independentNote}</p>}
       <div ref={tabsRef} role="group" aria-label={t.audit.views} className="mb-4 flex flex-wrap gap-2 lg:hidden">
         {VIEWS.map((v) => (
@@ -211,7 +216,7 @@ export function ClaimAudit({ missionId, stepId, audit, intro, showFinal, onEvide
         ))}
       </div>
 
-      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+      <div className="lg:grid lg:grid-cols-2 lg:gap-6">
         <div className="space-y-4">
           <section
             ref={(el) => { panels.current.briefing = el; }}
@@ -263,7 +268,8 @@ export function ClaimAudit({ missionId, stepId, audit, intro, showFinal, onEvide
             ref={(el) => { panels.current.judgment = el; }}
             tabIndex={-1}
             aria-label={t.audit.view.judgment}
-            className={panelClass("judgment")}
+            data-scroll-panel
+            className={`${panelClass("judgment")} lg:sticky lg:top-4 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto`}
           >
             {claim ? (
               <JudgmentPanel
@@ -281,6 +287,7 @@ export function ClaimAudit({ missionId, stepId, audit, intro, showFinal, onEvide
                   pendingFocus.current = true;
                   set({ view: "sources" });
                 }}
+                onNext={nextClaim ? () => selectClaim(nextClaim) : undefined}
                 onCheck={(assisted) => {
                   if (feedbackOpen) recordClaim(claim, assisted);
                   set({
@@ -296,27 +303,43 @@ export function ClaimAudit({ missionId, stepId, audit, intro, showFinal, onEvide
         </div>
       </div>
 
-      {allDone && !feedbackOpen && (
-        <button
-          type="button"
-          onClick={() => {
-            for (const c of audit.claims) recordClaim(c, false);
-            set({ submitted: true, showFeedback: audit.claims.map((c) => c.id) });
-          }}
-          className={`mt-6 ${primary}`}
-        >
-          {t.audit.submit}
-        </button>
-      )}
-      {allDone && feedbackOpen && (
-        <button
-          type="button"
-          onClick={() => (showFinal ? set({ phase: "final" }) : onContinue())}
-          className={`mt-6 ${primary}`}
-        >
-          {showFinal ? t.audit.finish : t.mission.next}
-        </button>
-      )}
+      <ActionBar
+        note={
+          allDone
+            ? feedbackOpen ? t.audit.allChecked : t.audit.allJudged
+            : !claim ? t.audit.selectClaim : undefined
+        }
+      >
+        <span role="status" className="text-sm font-bold">
+          {feedbackOpen ? t.audit.progress(finished, audit.claims.length) : t.audit.progressSaved(finished, audit.claims.length)}
+        </span>
+        {!allDone && nextClaim && (!claim || (state.done.includes(claim.id) && !state.showFeedback.includes(claim.id))) && (
+          <button type="button" onClick={() => selectClaim(nextClaim)} className={secondary}>
+            {t.audit.nextClaim} <span aria-hidden="true">→</span>
+          </button>
+        )}
+        {allDone && !feedbackOpen && (
+          <button
+            type="button"
+            onClick={() => {
+              for (const c of audit.claims) recordClaim(c, false);
+              set({ submitted: true, showFeedback: audit.claims.map((c) => c.id) });
+            }}
+            className={primary}
+          >
+            {t.audit.submit}
+          </button>
+        )}
+        {allDone && feedbackOpen && (
+          <button
+            type="button"
+            onClick={() => (showFinal ? set({ phase: "final" }) : onContinue())}
+            className={primary}
+          >
+            {showFinal ? t.audit.finish : t.mission.next}
+          </button>
+        )}
+      </ActionBar>
     </div>
   );
 }
@@ -356,15 +379,19 @@ function TrustPass({
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-sm text-muted">{t.audit.trustNote}</p>
-      <button
-        type="button"
-        disabled={audit.claims.some((c) => !trust[c.id])}
-        onClick={onDone}
-        className={`mt-4 ${primary}`}
-      >
-        {t.audit.trustDone}
-      </button>
+      <ActionBar note={t.audit.trustNote}>
+        <button
+          type="button"
+          disabled={audit.claims.some((c) => !trust[c.id])}
+          onClick={onDone}
+          className={primary}
+        >
+          {t.audit.trustDone}
+        </button>
+        {audit.claims.some((c) => !trust[c.id]) && (
+          <span className="text-sm">{t.mission.placeAll(audit.claims.filter((c) => !trust[c.id]).length)}</span>
+        )}
+      </ActionBar>
     </div>
   );
 }
@@ -407,6 +434,7 @@ function JudgmentPanel({
   onChange,
   onOpenSources,
   onCheck,
+  onNext,
 }: {
   claim: Claim;
   sources: Source[];
@@ -420,7 +448,9 @@ function JudgmentPanel({
   onChange: (patch: Partial<ClaimAnswer>) => void;
   onOpenSources: () => void;
   onCheck: (assisted: boolean) => void;
+  onNext?: () => void;
 }) {
+  const feedbackRef = useReveal<HTMLDivElement>(showFeedback);
   const group = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const [hintShown, setHintShown] = useState(false);
   const needsReason = !!reasonPrompt && !reasonLocked;
@@ -532,7 +562,14 @@ function JudgmentPanel({
       </div>
       {!complete && <p className="mt-2 text-sm text-muted">{t.audit.missing}</p>}
       {hintShown && <p className="mt-2 text-sm">{claim.hint}</p>}
-      {showFeedback && <ClaimFeedback claim={claim} answer={answer} />}
+      <div ref={feedbackRef} className="reveal">
+        {showFeedback && <ClaimFeedback claim={claim} answer={answer} />}
+        {showFeedback && onNext && (
+          <button type="button" onClick={onNext} className="mt-3 btn btn-primary">
+            {t.audit.nextClaim} <span aria-hidden="true">→</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -785,9 +822,11 @@ function FinalBriefing({
       </ul>
 
       {!audit.decision && Consequences}
-      <button type="button" onClick={audit.decision ? onDecide : onContinue} className={`mt-6 ${primary}`}>
-        {audit.decision ? t.audit.toDecision : t.mission.next}
-      </button>
+      <ActionBar>
+        <button type="button" onClick={audit.decision ? onDecide : onContinue} className={primary}>
+          {audit.decision ? t.audit.toDecision : t.mission.next}
+        </button>
+      </ActionBar>
     </div>
   );
 }

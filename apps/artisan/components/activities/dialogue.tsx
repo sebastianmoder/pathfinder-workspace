@@ -6,6 +6,7 @@ import { citeChoiceId, startNodeId, walk, type Walk } from "@/lib/dialogue";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, HowTo, useReveal } from "../step-ui";
 import { SourceDrawer } from "./claim-audit";
 
 type DialogueStep = Extract<Step, { kind: "dialogue" }>;
@@ -178,11 +179,13 @@ export function DialogueActivity({
   const spec = step.dialogue;
   const path = walk(spec, startNodeId(spec, initialChoiceId), state.choices);
   const choose = (id: string) => set({ choices: [...state.choices, id] });
+  const endRef = useReveal<HTMLDivElement>(path.ended);
 
   return (
     <div>
       <h2 className="text-2xl">{step.title}</h2>
       <p className="mt-1">{step.intro}</p>
+      <HowTo steps={t.howTo.dialogue} />
       <p className="mt-3 border-l-4 border-border pl-3 text-sm">{t.dialogue.scripted}</p>
 
       <details className="mt-3 rounded-lg border border-border bg-surface p-3">
@@ -196,14 +199,14 @@ export function DialogueActivity({
         </ul>
       </details>
 
-      <div className="mt-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+      <div className="mt-4 lg:grid lg:grid-cols-2 lg:gap-6">
         <div>
           {path.questionsLeft !== null && !path.ended && (
             <p role="status" className="mb-3 text-sm font-bold">{t.dialogue.questionsLeft(path.questionsLeft)}</p>
           )}
           <Conversation spec={spec} sources={step.sources} path={path} onChoose={choose} />
         </div>
-        <div className="mt-4 space-y-4 lg:mt-0">
+        <div data-scroll-panel className="mt-4 space-y-4 lg:sticky lg:top-4 lg:mt-0 lg:max-h-[calc(100vh-8rem)] lg:self-start lg:overflow-y-auto">
           <Discoveries spec={spec} found={path.discovered} showMissed={path.ended} />
           <SourceDrawer
             sources={step.sources}
@@ -225,22 +228,26 @@ export function DialogueActivity({
         </div>
       </div>
 
-      {path.ended && <BoardQuestions spec={spec} found={path.discovered} />}
+      <div ref={endRef} className="reveal">
+        {path.ended && <BoardQuestions spec={spec} found={path.discovered} />}
+      </div>
 
       {path.ended && (
-        <button
-          type="button"
-          onClick={() => {
-            for (const d of spec.discoveries) onEvidence(itemKey(step.id, d.id), { right: path.discovered.includes(d.id) });
-            for (const turn of path.turns) {
-              if (turn.choice?.scored) onEvidence(itemKey(step.id, turn.choice.scored.item), { right: turn.choice.scored.right });
-            }
-            onContinue();
-          }}
-          className={`mt-6 ${primary}`}
-        >
-          {step.continueLabel ?? t.dialogue.next}
-        </button>
+        <ActionBar>
+          <button
+            type="button"
+            onClick={() => {
+              for (const d of spec.discoveries) onEvidence(itemKey(step.id, d.id), { right: path.discovered.includes(d.id) });
+              for (const turn of path.turns) {
+                if (turn.choice?.scored) onEvidence(itemKey(step.id, turn.choice.scored.item), { right: turn.choice.scored.right });
+              }
+              onContinue();
+            }}
+            className={primary}
+          >
+            {step.continueLabel ?? t.dialogue.next}
+          </button>
+        </ActionBar>
       )}
     </div>
   );

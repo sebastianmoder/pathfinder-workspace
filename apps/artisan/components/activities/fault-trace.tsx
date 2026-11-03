@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import type { Step } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, StepIntro, useReveal } from "../step-ui";
 
 type FaultStep = Extract<Step, { kind: "faultTrace" }>;
 
@@ -25,12 +26,12 @@ export function FaultTrace({
 
   const allPicked = step.cases.every((c) => picked[c.id]);
   const anyChecked = Object.keys(checked).length > 0;
+  const listRef = useReveal<HTMLUListElement>(anyChecked ? checked : null);
 
   return (
     <div>
-      <h2 className="text-2xl">{step.title}</h2>
-      <p className="mt-1">{step.prompt}</p>
-      <dl className="mt-3 grid gap-2 rounded-lg border border-border bg-surface p-3 text-sm sm:grid-cols-2">
+      <StepIntro title={step.title} intro={step.prompt} howTo={t.howTo.faultTrace} />
+      <dl className=" grid gap-2 rounded-lg border border-border bg-surface p-3 text-sm sm:grid-cols-2">
         {step.stages.map((s) => (
           <div key={s.id}>
             <dt className="font-bold">{s.label}</dt>
@@ -39,7 +40,7 @@ export function FaultTrace({
         ))}
       </dl>
 
-      <ul className="mt-4 space-y-3">
+      <ul ref={listRef} className="reveal mt-4 space-y-3">
         {step.cases.map((c) => {
           const isChecked = checked[c.id] !== undefined && checked[c.id] === picked[c.id];
           const right = checked[c.id] === c.stageId;
@@ -79,7 +80,9 @@ export function FaultTrace({
         })}
       </ul>
 
-      <div className="mt-4 flex flex-wrap gap-3">
+      <ActionBar
+        note={!allPicked ? t.mission.placeAll(step.cases.filter((c) => !picked[c.id]).length) : anyChecked ? t.faultTrace.retryNote : undefined}
+      >
         <button
           type="button"
           disabled={!allPicked}
@@ -96,8 +99,7 @@ export function FaultTrace({
         {anyChecked && (
           <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>
         )}
-      </div>
-      {anyChecked && <p className="mt-3 text-sm">{t.faultTrace.retryNote}</p>}
+      </ActionBar>
     </div>
   );
 }

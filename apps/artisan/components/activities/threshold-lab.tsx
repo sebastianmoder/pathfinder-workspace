@@ -5,6 +5,7 @@ import type { ThresholdLabSpec, ThresholdView } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { missedGap, outcomes, thresholdGoalMet, totalSelected, withinCapacity } from "@/lib/threshold";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, useReveal } from "../step-ui";
 
 /**
  * Screening threshold with outcomes by group (PRD M09). The error table carries every number; the plot
@@ -38,6 +39,8 @@ export function ThresholdLab({
   }, [taskIndex]);
 
   const task = spec.tasks[taskIndex];
+  const [checks, setChecks] = useState(0);
+  const resultRef = useReveal<HTMLDivElement>(result ? checks : null);
   const o = outcomes(spec, view);
   const selected = totalSelected(o);
   const set = (patch: Partial<ThresholdView>) => {
@@ -140,19 +143,31 @@ export function ThresholdLab({
         </aside>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => {
+      <div ref={resultRef} className="reveal">
+        {result === "notYet" && <p role="status" className="mt-3"><span aria-hidden="true" className="mark-no">✖ </span>{t.threshold.notYet}</p>}
+        {result === "met" && (
+          <div role="status" className="mt-3 rounded-lg border-2 border-[var(--mark-yes)] p-4">
+            <p><strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.threshold.met}</strong> {task.success}</p>
+          </div>
+        )}
+      </div>
+
+      <ActionBar>
+        {result !== "met" && (
+          <button
+            type="button"
+            onClick={() => {
             const met = thresholdGoalMet(spec, task.goal, view);
             const assisted = usedSolution.includes(task.id);
             onEvidence(itemKey(stepId, task.id), { right: met && !assisted, assisted });
             setResult(met ? "met" : "notYet");
-          }}
-          className="btn btn-primary"
-        >
-          {t.threshold.check}
-        </button>
+            setChecks((n) => n + 1);
+            }}
+            className="btn btn-primary"
+          >
+            {t.threshold.check}
+          </button>
+        )}
         {result !== "met" && (
           <button
             type="button"
@@ -165,11 +180,7 @@ export function ThresholdLab({
             {t.threshold.showMe}
           </button>
         )}
-      </div>
-      {result === "notYet" && <p role="status" className="mt-3"><span aria-hidden="true" className="mark-no">✖ </span>{t.threshold.notYet}</p>}
-      {result === "met" && (
-        <div role="status" className="mt-3">
-          <p><strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.threshold.met}</strong> {task.success}</p>
+        {result === "met" && (
           <button
             type="button"
             onClick={() => {
@@ -178,12 +189,13 @@ export function ThresholdLab({
                 setResult(null);
               } else onContinue();
             }}
-            className="mt-3 btn btn-primary"
+            className="btn btn-primary"
           >
             {taskIndex + 1 < spec.tasks.length ? t.threshold.nextTask : t.mission.next}
           </button>
-        </div>
-      )}
+        )}
+        <span className="text-sm font-bold">{t.threshold.task(taskIndex + 1, spec.tasks.length)}</span>
+      </ActionBar>
     </div>
   );
 }

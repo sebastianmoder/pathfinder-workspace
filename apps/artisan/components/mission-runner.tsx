@@ -1,7 +1,7 @@
 "use client";
 
 import { track } from '@pathfinder/analytics';
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import type { Mission, Step } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
@@ -26,6 +26,7 @@ import { Casefile } from "./activities/casefile";
 import { ThresholdLab } from "./activities/threshold-lab";
 import { WorkflowRunner } from "./activities/workflow-runner";
 import { AllocationBoard } from "./activities/allocation-board";
+import { ActionBar, HowTo, StepIntro } from "./step-ui";
 
 interface Props {
   mission: Mission;
@@ -62,34 +63,72 @@ export function MissionRunner({ mission, password, next }: Props) {
     window.scrollTo({ top: 0 });
   };
 
+  const first = stepIndex === 0;
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const aboutId = useId();
+  const tools = (
+    <div className="no-print flex shrink-0 gap-2">
+      {reminder && (
+        <button type="button" onClick={() => helpRef.current?.showModal()} className="btn btn-secondary btn-small">
+          {t.mission.remind}
+        </button>
+      )}
+      <button type="button" onClick={() => pauseRef.current?.showModal()} className="btn btn-secondary btn-small">
+        {t.mission.pause}
+      </button>
+    </div>
+  );
+  const progress = (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <p className="text-sm font-bold">{t.mission.step(stepIndex + 1, total)}</p>
+      <div className="ruler w-full max-w-[22rem] flex-1 basis-40" aria-hidden="true">
+        {mission.steps.map((s, i) => (
+          <span key={s.id} data-done={i <= stepIndex} />
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 basis-64">
-          <h1 className="text-3xl sm:text-4xl">{mission.title}</h1>
-          <p className="mt-1 max-w-3xl">{mission.outcome}</p>
-        </div>
-        <div className="no-print flex gap-2">
-          {reminder && (
-            <button type="button" onClick={() => helpRef.current?.showModal()} className="btn btn-secondary btn-small">
-              {t.mission.remind}
-            </button>
-          )}
-          <button type="button" onClick={() => pauseRef.current?.showModal()} className="btn btn-secondary btn-small">
-            {t.mission.pause}
+      {first ? (
+        <>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 basis-64">
+              <h1 className="text-3xl sm:text-4xl">{mission.title}</h1>
+              <p className="mt-1 max-w-3xl"><span className="font-bold">{t.mission.youWillLearn}</span> {mission.outcome}</p>
+            </div>
+            {tools}
+          </div>
+          <p className="mt-4 max-w-3xl border-l-4 border-border pl-3"><strong>{t.mission.fictional}</strong> {mission.scenario}</p>
+          <div className="mt-6">{progress}</div>
+        </>
+      ) : (
+        <div className="border-b border-border pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h1 className="min-w-0 flex-1 basis-56 text-2xl">{mission.title}</h1>
+            {tools}
+          </div>
+          <div className="mt-2">{progress}</div>
+          {/* A button, not <details>: the case summary isn't a group of controls. */}
+          <button
+            type="button"
+            aria-expanded={aboutOpen}
+            aria-controls={aboutId}
+            onClick={() => setAboutOpen((o) => !o)}
+            className="no-print mt-2 text-sm text-muted underline-offset-4 hover:underline"
+          >
+            <span aria-hidden="true">{aboutOpen ? "▾ " : "▸ "}</span>
+            {t.mission.aboutCase}
           </button>
+          <div id={aboutId} hidden={!aboutOpen} className="mt-2 max-w-3xl space-y-2 border-l-4 border-border pl-3 text-sm">
+            <p><span className="font-bold">{t.mission.youWillLearn}</span> {mission.outcome}</p>
+            <p><strong>{t.mission.fictional}</strong> {mission.scenario}</p>
+          </div>
         </div>
-      </div>
-
-      <p className="mt-4 max-w-3xl border-l-4 border-border pl-3"><strong>{t.mission.fictional}</strong> {mission.scenario}</p>
+      )}
 
       <div className="mt-6">
-        <p className="text-sm font-bold">{t.mission.step(stepIndex + 1, total)}</p>
-        <div className="ruler mt-1" aria-hidden="true">
-          {mission.steps.map((s, i) => (
-            <span key={s.id} data-done={i <= stepIndex} />
-          ))}
-        </div>
         <section key={step.id} ref={stepRef} tabIndex={-1} aria-label={t.mission.step(stepIndex + 1, total)} className="mt-4 outline-offset-8">
           <StepView
             step={step}
@@ -163,10 +202,12 @@ function StepView({
       return (
         <>
           <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-2">{step.body}</p>
-          <button type="button" onClick={onContinue} className="mt-5 btn btn-primary">
-            {t.mission.next}
-          </button>
+          <p className="mt-2 max-w-3xl">{step.body}</p>
+          <ActionBar>
+            <button type="button" onClick={onContinue} className="btn btn-primary">
+              {t.mission.next}
+            </button>
+          </ActionBar>
         </>
       );
 
@@ -174,6 +215,7 @@ function StepView({
     case "quiz":
       return (
         <ChoiceQuestion
+          howTo={step.kind === "initialJudgment" ? t.howTo.initialJudgment : undefined}
           name={step.id}
           prompt={step.prompt}
           choices={step.choices}
@@ -186,61 +228,56 @@ function StepView({
         />
       );
 
-    case "transfer":
+    case "transfer": {
+      const howTo =
+        "audit" in step ? t.howTo.claimAudit
+        : "delegation" in step ? t.howTo.delegation
+        : "allocation" in step ? t.howTo.allocation
+        : "workflow" in step ? t.howTo.workflow
+        : "casefile" in step ? t.howTo.casefile
+        : "compose" in step ? t.howTo.compose
+        : "mark" in step ? (step.mode === "redact" ? t.howTo.markRedact : t.howTo.markFind)
+        : undefined;
+      if (!howTo && "choices" in step) {
+        return (
+          <>
+            <StepIntro title={step.title} howTo={t.howTo.transferChoice} />
+            <ChoiceQuestion name={step.id} prompt={step.prompt} choices={step.choices} hints={step.hints} onCommit={onAnswer} onEvidence={recordStep} onContinue={onContinue} />
+          </>
+        );
+      }
       return (
         <>
-          <h2 className="mb-2 text-2xl">{step.title}</h2>
+          <StepIntro title={step.title} intro={step.prompt} howTo={"audit" in step ? undefined : howTo} />
           {"audit" in step ? (
-            <>
-              <p className="mb-4">{step.prompt}</p>
-              <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onEvidence={record} onContinue={onContinue} />
-            </>
+            <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onEvidence={record} onContinue={onContinue} />
           ) : "delegation" in step ? (
-            <>
-              <p className="mb-4">{step.prompt}</p>
-              <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onContinue={onContinue} />
-            </>
+            <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onContinue={onContinue} />
           ) : "allocation" in step ? (
-            <>
-              <p className="mb-4">{step.prompt}</p>
-              <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onContinue={onContinue} />
-            </>
+            <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onContinue={onContinue} />
           ) : "workflow" in step ? (
-            <>
-              <p className="mb-4">{step.prompt}</p>
-              <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onContinue={onContinue} />
-            </>
+            <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onContinue={onContinue} />
           ) : "casefile" in step ? (
-            <>
-              <p className="mb-4">{step.prompt}</p>
-              <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
-            </>
+            <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
           ) : "compose" in step ? (
-            <>
-              <p className="mb-4">{step.prompt}</p>
-              <ComposeStudio stepId={step.id} spec={step.compose} onEvidence={record} onContinue={onContinue} />
-            </>
+            <ComposeStudio stepId={step.id} spec={step.compose} onEvidence={record} onContinue={onContinue} />
           ) : "mark" in step ? (
-            <>
-              <p className="mb-4">{step.prompt}</p>
-              <MarkText
-                paragraphs={step.mark}
-                mode={step.mode}
-                flow={step.flow}
-                onResult={(id, right) => record(itemKey(step.id, id), { right })}
-                onContinue={onContinue}
-              />
-            </>
-          ) : (
-            <ChoiceQuestion name={step.id} prompt={step.prompt} choices={step.choices} hints={step.hints} onCommit={onAnswer} onEvidence={recordStep} onContinue={onContinue} />
-          )}
+            <MarkText
+              paragraphs={step.mark}
+              mode={step.mode}
+              flow={step.flow}
+              onResult={(id, right) => record(itemKey(step.id, id), { right })}
+              onContinue={onContinue}
+            />
+          ) : null}
         </>
       );
+    }
 
     case "claimAudit":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
+          <h2 className="mb-3 text-2xl">{step.title}</h2>
           <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} intro={step.intro} showFinal onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -248,8 +285,7 @@ function StepView({
     case "delegation":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.delegation} />
           <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -257,8 +293,7 @@ function StepView({
     case "compose":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.compose} />
           <ComposeStudio stepId={step.id} spec={step.compose} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -266,8 +301,7 @@ function StepView({
     case "chartLab":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.chartLab} />
           <ChartLab stepId={step.id} spec={step.chart} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -275,8 +309,7 @@ function StepView({
     case "gym":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.gym} />
           <HelpGym stepId={step.id} problems={step.problems} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -284,8 +317,7 @@ function StepView({
     case "mark":
       return (
         <>
-          <h2 className="mb-2 text-2xl">{step.title}</h2>
-          <p className="mb-4">{step.prompt}</p>
+          <StepIntro title={step.title} intro={step.prompt} howTo={step.mode === "redact" ? t.howTo.markRedact : t.howTo.markFind} />
           <MarkText
             paragraphs={step.mark}
             mode={step.mode}
@@ -299,8 +331,7 @@ function StepView({
     case "casefile":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.casefile} />
           <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -308,8 +339,7 @@ function StepView({
     case "thresholdLab":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.thresholdLab} />
           <ThresholdLab stepId={step.id} spec={step.lab} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -317,8 +347,7 @@ function StepView({
     case "workflow":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.workflow} />
           <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -326,8 +355,7 @@ function StepView({
     case "allocation":
       return (
         <>
-          <h2 className="text-2xl">{step.title}</h2>
-          <p className="mt-1 mb-4">{step.intro}</p>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.allocation} />
           <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onContinue={onContinue} />
         </>
       );
@@ -342,6 +370,7 @@ function StepView({
       return (
         <>
           <h2 className="text-2xl">{step.prompt}</h2>
+          <HowTo steps={t.howTo.revision} />
           <p className="mt-3 rounded border border-border bg-surface p-3 text-sm">
             <strong>{t.mission.before}:</strong> {before?.label ?? "—"}
             {first?.confidence !== undefined && <> ({label(first.confidence)})</>}

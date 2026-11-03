@@ -5,6 +5,7 @@ import type { GymProblem } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { isRight, solveResult } from "@/lib/gym";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, useReveal } from "../step-ui";
 
 /**
  * Attempt, choose help, try again (PRD M06). Help is offered after a first attempt, each kind says what it
@@ -61,6 +62,7 @@ export function HelpGym({
     } else onContinue();
   };
 
+  const feedbackRef = useReveal<HTMLDivElement>(attempts > 0 ? `${index}-${attempts}` : null);
   const usedLabels = problem.helps.filter((h) => helpsUsed.includes(h.id)).map((h) => h.label);
   const sawAnswer = problem.helps.some((h) => h.givesAnswer && helpsUsed.includes(h.id));
 
@@ -92,21 +94,17 @@ export function HelpGym({
           ))}
         </div>
       </fieldset>
-      {!solved && (
-        <button type="button" disabled={!selected} onClick={check} className="mt-3 btn btn-primary">
-          {t.mission.commit}
-        </button>
-      )}
-
-      {checked && (
-        <p role="status" className="mt-3">
-          <strong>
-            <span aria-hidden="true" className={solved ? "mark-yes" : "mark-no"}>{solved ? "✔ " : "✖ "}</span>
-            {solved ? t.gym.right : t.gym.notYet}
-          </strong>
-          {solved && chosen && <> {chosen.explanation}</>}
-        </p>
-      )}
+      <div ref={feedbackRef} className="reveal">
+        {checked && (
+          <p role="status" className="mt-3">
+            <strong>
+              <span aria-hidden="true" className={solved ? "mark-yes" : "mark-no"}>{solved ? "✔ " : "✖ "}</span>
+              {solved ? t.gym.right : t.gym.notYet}
+            </strong>
+            {solved && chosen && <> {chosen.explanation}</>}
+          </p>
+        )}
+      </div>
 
       {attempts > 0 && (
         <section className="mt-5 rounded-lg border border-border bg-surface p-4" aria-labelledby={`${uid}-help`}>
@@ -138,13 +136,22 @@ export function HelpGym({
       )}
 
       {solved && (
-        <div className="mt-5">
-          <p>{usedLabels.length ? t.gym.usedSummary(usedLabels.join(", ")) : t.gym.noHelp} {sawAnswer ? t.gym.answerNote : usedLabels.length ? t.gym.methodNote : ""}</p>
-          <button type="button" onClick={next} className="mt-3 btn btn-primary">
+        <p className="mt-5">{usedLabels.length ? t.gym.usedSummary(usedLabels.join(", ")) : t.gym.noHelp} {sawAnswer ? t.gym.answerNote : usedLabels.length ? t.gym.methodNote : ""}</p>
+      )}
+
+      <ActionBar note={!selected && !solved ? t.mission.chooseFirst : checked && !solved ? t.gym.tryHelp : undefined}>
+        {!solved && (
+          <button type="button" disabled={!selected} onClick={check} className="btn btn-primary">
+            {t.mission.commit}
+          </button>
+        )}
+        {solved && (
+          <button type="button" onClick={next} className="btn btn-primary">
             {index + 1 < problems.length ? t.gym.nextProblem : t.mission.next}
           </button>
-        </div>
-      )}
+        )}
+        {problems.length > 1 && <span className="text-sm font-bold">{t.gym.problem(index + 1, problems.length)}</span>}
+      </ActionBar>
     </div>
   );
 }

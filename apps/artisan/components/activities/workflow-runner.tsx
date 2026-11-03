@@ -5,6 +5,7 @@ import type { WorkflowSpec } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { runAll, type Arrangement, type TestResult } from "@/lib/workflow";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, useReveal } from "../step-ui";
 
 /**
  * Assemble a simulated assistant and run reviewed tests (PRD M12). After the first run the learner names
@@ -46,6 +47,15 @@ export function WorkflowRunner({
   const stale = !!ranWith && spec.slots.some((s) => ranWith[s.id] !== arrangement[s.id]);
   const shownFailure = diagnosed || firstFailures.length === 0;
   const focusResult = results?.find((r) => r.test.id === selected) ?? results?.find((r) => !r.passed) ?? null;
+
+  const diagRef = useReveal<HTMLElement>(diagnosed);
+  const note = mustDiagnose
+    ? t.workflow.diagnoseFirst
+    : allPassed && !stale ? undefined
+    : stale ? t.workflow.stale
+    : runCount === 0 ? t.workflow.firstRun
+    : diagnosed || firstFailures.length === 0 ? t.workflow.nowFix
+    : undefined;
 
   const run = () => {
     const r = runAll(spec, arrangement);
@@ -99,23 +109,6 @@ export function WorkflowRunner({
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button type="button" onClick={run} disabled={mustDiagnose} className="btn btn-primary">{runCount === 0 ? t.workflow.run : t.workflow.rerun}</button>
-        {runCount > 0 && !mustDiagnose && !allPassed && (
-          <button
-            type="button"
-            onClick={() => {
-              setArrangement(spec.solution);
-              setUsedSolution(true);
-            }}
-            className="btn btn-secondary"
-          >
-            {t.workflow.showMe}
-          </button>
-        )}
-      </div>
-      {stale && !mustDiagnose && <p className="mt-2 text-sm">{t.workflow.stale}</p>}
-
       {results && (
         <section className="mt-6" aria-labelledby={`${uid}-results`}>
           <h3 ref={resultsRef} id={`${uid}-results`} tabIndex={-1} className="text-lg font-bold outline-offset-4">{t.workflow.results(runCount)}</h3>
@@ -140,7 +133,7 @@ export function WorkflowRunner({
       )}
 
       {runCount > 0 && firstFailures.length > 0 && (
-        <section className="mt-6 rounded-lg border-2 border-border p-4" aria-labelledby={`${uid}-diag`}>
+        <section ref={diagRef} className="reveal mt-6 rounded-lg border-2 border-border p-4" aria-labelledby={`${uid}-diag`}>
           <h3 id={`${uid}-diag`} className="text-lg font-bold">{t.workflow.diagnoseTitle}</h3>
           <p className="text-sm">{t.workflow.diagnoseIntro}</p>
           <ul className="mt-3 space-y-3">
@@ -170,29 +163,51 @@ export function WorkflowRunner({
               );
             })}
           </ul>
-          {!diagnosed && (
-            <button
-              type="button"
-              disabled={firstFailures.some((f) => !diagnosis[f.test.id])}
-              onClick={() => {
-                for (const f of firstFailures) onEvidence(itemKey(stepId, "diagnose", f.test.id), { right: diagnosis[f.test.id] === f.slot });
-                setDiagnosed(true);
-              }}
-              className="mt-3 btn btn-primary"
-            >
-              {t.workflow.checkDiagnosis}
-            </button>
-          )}
-          {diagnosed && !allPassed && <p className="mt-3 text-sm">{t.workflow.nowFix}</p>}
         </section>
       )}
 
       {allPassed && !stale && (
         <div role="status" className="mt-5 rounded-lg border-2 border-[var(--mark-yes)] p-4">
           <p><strong><span aria-hidden="true" className="mark-yes">✔ </span>{t.workflow.allPass}</strong></p>
-          <button type="button" onClick={onContinue} className="mt-3 btn btn-primary">{t.mission.next}</button>
         </div>
       )}
+
+      <ActionBar note={note}>
+        {mustDiagnose ? (
+          <button
+            type="button"
+            disabled={firstFailures.some((f) => !diagnosis[f.test.id])}
+            onClick={() => {
+              for (const f of firstFailures) onEvidence(itemKey(stepId, "diagnose", f.test.id), { right: diagnosis[f.test.id] === f.slot });
+              setDiagnosed(true);
+            }}
+            className="btn btn-primary"
+          >
+            {t.workflow.checkDiagnosis}
+          </button>
+        ) : null}
+        {mustDiagnose ? (
+          <button type="button" disabled className="btn btn-secondary">{t.workflow.rerun}</button>
+        ) : allPassed && !stale ? (
+          <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>
+        ) : (
+          <>
+            <button type="button" onClick={run} className="btn btn-primary">{runCount === 0 ? t.workflow.run : t.workflow.rerun}</button>
+            {runCount > 0 && !allPassed && (
+              <button
+                type="button"
+                onClick={() => {
+                  setArrangement(spec.solution);
+                  setUsedSolution(true);
+                }}
+                className="btn btn-secondary"
+              >
+                {t.workflow.showMe}
+              </button>
+            )}
+          </>
+        )}
+      </ActionBar>
     </div>
   );
 }

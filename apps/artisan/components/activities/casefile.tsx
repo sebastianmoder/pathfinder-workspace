@@ -5,6 +5,7 @@ import type { CasefileSpec, CaseStatus } from "@/content/types";
 import { expectedStatus, timelineFor } from "@/lib/casefile";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, useReveal } from "../step-ui";
 
 const STATUSES: CaseStatus[] = ["known", "uncertain", "contradicted"];
 
@@ -39,6 +40,7 @@ export function Casefile({
   const lastPressure = [...followed].reverse().map((id) => spec.leads.find((l) => l.id === id)?.pressure).find(Boolean);
   const leadLabel = (id: string) => spec.leads.find((l) => l.id === id)?.label ?? id;
   const notFollowed = spec.leads.filter((l) => !followed.includes(l.id));
+  const resultsRef = useReveal<HTMLUListElement>(checked);
 
   const Artifact = (
     <div className="mat p-3 sm:p-5">
@@ -99,14 +101,17 @@ export function Casefile({
               })}
             </ul>
           </section>
-          <div className="mt-5 space-y-4 lg:mt-0">
+          <div className="mt-5 space-y-4 lg:sticky lg:top-4 lg:mt-0 lg:self-start">
             {lastPressure && (
               <p aria-live="polite" className="rounded-lg border-l-4 border-[var(--mark-no)] bg-surface p-3"><strong>{t.casefile.message}</strong> {lastPressure}</p>
             )}
             {Timeline}
           </div>
         </div>
-        <button type="button" onClick={() => setPhase("judge")} className="mt-6 btn btn-primary">{t.casefile.finish}</button>
+        <ActionBar note={t.casefile.finishNote}>
+          <button type="button" onClick={() => setPhase("judge")} className="btn btn-primary">{t.casefile.finish}</button>
+          {spec.budget && <span className="text-sm font-bold">{t.casefile.leftShort(left!)}</span>}
+        </ActionBar>
       </div>
     );
   }
@@ -127,7 +132,7 @@ export function Casefile({
         {timeline.length > 0 && <div className="mt-3">{Timeline}</div>}
       </details>
 
-      <ul className="mt-4 space-y-3">
+      <ul ref={resultsRef} className="reveal mt-4 space-y-3">
         {spec.statements.map((s) => {
           const expected = expectedStatus(s, followed);
           const verdict = checked?.[s.id];
@@ -166,7 +171,17 @@ export function Casefile({
         })}
       </ul>
 
-      <div className="mt-4 flex flex-wrap gap-3">
+      {checked && notFollowed.length > 0 && (
+        <section className="mt-6 border-2 border-dashed border-border p-4" aria-labelledby={`${uid}-missed`}>
+          <h4 id={`${uid}-missed`} className="font-bold">{t.casefile.missedTitle}</h4>
+          <p className="text-sm text-muted">{t.casefile.missedNote}</p>
+          <ul className="mt-2 space-y-2 text-sm">
+            {notFollowed.map((l) => <li key={l.id}><strong>{l.label}:</strong> {l.finding}</li>)}
+          </ul>
+        </section>
+      )}
+
+      <ActionBar note={!allAnswered ? t.mission.placeAll(spec.statements.filter((x) => !answers[x.id]).length) : undefined}>
         <button
           type="button"
           disabled={!allAnswered}
@@ -180,17 +195,7 @@ export function Casefile({
           {t.mission.commit}
         </button>
         {checked && <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>}
-      </div>
-
-      {checked && notFollowed.length > 0 && (
-        <section className="mt-6 border-2 border-dashed border-border p-4" aria-labelledby={`${uid}-missed`}>
-          <h4 id={`${uid}-missed`} className="font-bold">{t.casefile.missedTitle}</h4>
-          <p className="text-sm text-muted">{t.casefile.missedNote}</p>
-          <ul className="mt-2 space-y-2 text-sm">
-            {notFollowed.map((l) => <li key={l.id}><strong>{l.label}:</strong> {l.finding}</li>)}
-          </ul>
-        </section>
-      )}
+      </ActionBar>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { startNodeId, walk } from "@/lib/dialogue";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { ActionBar, HowTo, useReveal } from "../step-ui";
 import { useHintLadder } from "../hint-ladder";
 
 type MapStep = Extract<Step, { kind: "argumentMap" }>;
@@ -134,8 +135,9 @@ export function ArgumentMap({
     <div>
       <h2 ref={phaseHeading} tabIndex={-1} className="text-2xl">{step.title}</h2>
       <p className="mt-1">{step.prompt}</p>
+      <HowTo steps={t.howTo.argumentMap} />
 
-      <div className="mt-4 lg:grid lg:grid-cols-[2fr_3fr] lg:items-start lg:gap-6">
+      <div className="mt-4 lg:grid lg:grid-cols-[2fr_3fr] lg:gap-6">
         <div>
           <h3 ref={poolHeading} tabIndex={-1} className="font-bold">{t.argumentMap.cards}</h3>
           {allPlaced ? (
@@ -161,6 +163,7 @@ export function ArgumentMap({
         </div>
 
         <div className="mt-6 lg:mt-0">
+          <div data-scroll-panel className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
           <div className="mat p-3">
             <p className="sheet p-3">
               <span className="text-sm text-muted">{t.argumentMap.proposal}: </span>
@@ -210,11 +213,20 @@ export function ArgumentMap({
               </li>
             ))}
           </ul>
+          </div>
         </div>
       </div>
 
       {ladder.list}
-      <div className="mt-4 flex flex-wrap gap-3">
+      <ActionBar
+        note={
+          state.selected
+            ? t.argumentMap.nowPlace(step.cards.find((c) => c.id === state.selected)!.text)
+            : !allPlaced ? t.argumentMap.pickCard(unplaced.length)
+            : state.checked ? t.argumentMap.continueNote
+            : undefined
+        }
+      >
         {!state.checked && ladder.button}
         <button
           type="button"
@@ -233,8 +245,7 @@ export function ArgumentMap({
         {state.checked && (
           <button type="button" onClick={() => set({ phase: "connect" })} className={primary}>{t.argumentMap.toConnect}</button>
         )}
-      </div>
-      {state.checked && <p role="status" className="mt-2 text-sm">{t.argumentMap.continueNote}</p>}
+      </ActionBar>
     </div>
   );
 }
@@ -258,12 +269,13 @@ function ConnectPhase({
   const fits = (link: MapStep["links"][number]) =>
     state.targets[link.cardId] === link.targetId || !!link.defensibleTargetIds?.includes(state.targets[link.cardId]);
   const allSet = step.links.every((l) => state.targets[l.cardId]);
+  const linksRef = useReveal<HTMLUListElement>(state.linksChecked);
 
   return (
     <div>
       <h2 ref={headingRef} tabIndex={-1} className="text-2xl">{t.argumentMap.connectTitle}</h2>
       <p className="mt-1">{t.argumentMap.connectIntro}</p>
-      <ul className="mt-4 space-y-3">
+      <ul ref={linksRef} className="reveal mt-4 space-y-3">
         {step.links.map((link) => {
           const card = step.cards.find((c) => c.id === link.cardId)!;
           const right = fits(link);
@@ -294,7 +306,7 @@ function ConnectPhase({
           );
         })}
       </ul>
-      <div className="mt-4 flex flex-wrap gap-3">
+      <ActionBar note={!allSet ? t.mission.placeAll(step.links.filter((l) => !state.targets[l.cardId]).length) : undefined}>
         <button
           type="button"
           disabled={!allSet}
@@ -309,7 +321,7 @@ function ConnectPhase({
         {state.linksChecked && (
           <button type="button" onClick={() => set({ phase: "test" })} className={primary}>{t.argumentMap.toTest}</button>
         )}
-      </div>
+      </ActionBar>
     </div>
   );
 }
@@ -409,11 +421,9 @@ function TestPhase({
         </li>
       </ul>
 
-      {state.tried.length >= MIN_TRIED ? (
-        <button type="button" onClick={onContinue} className={`mt-4 ${primary}`}>{t.mission.next}</button>
-      ) : (
-        <p className="mt-3 text-sm text-muted">{t.argumentMap.tryMore(MIN_TRIED)}</p>
-      )}
+      <ActionBar note={state.tried.length >= MIN_TRIED ? undefined : t.argumentMap.tryMore(MIN_TRIED)}>
+        {state.tried.length >= MIN_TRIED && <button type="button" onClick={onContinue} className={primary}>{t.mission.next}</button>}
+      </ActionBar>
     </div>
   );
 }
