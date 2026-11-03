@@ -1,20 +1,18 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { completeM01, completeM04, completeM05, completeT01 } from "./helpers";
+import { missions } from "../content/missions";
+import { passwords } from "../content/passwords";
+import { modules } from "../content/journey";
+import {
+  completeB01, completeB03, completeC01Evidence, completeC01Review, completeC01Scope, completeC01Workflow,
+  completeM01, completeM02, completeM03, completeM04, completeM05, completeM06Gym, completeM06Teach, completeM07,
+  completeM08, completeM09, completeM10, completeM11, completeM12, completeM13, completeT01,
+} from "./helpers";
 
-const ROUTES = [
-  "/",
-  "/start",
-  "/map",
-  "/continue",
-  "/summary",
-  "/missions/m01-foundations",
-  "/missions/m04-evidence",
-  "/missions/m05-argument",
-  "/missions/t01-transfer",
-];
+const ROUTES = ["/", "/start", "/map", "/continue", "/summary", ...missions.map((m) => `/missions/${m.id}`)];
 
-test("criterion 1: a new learner completes P0 to P5 with no account", async ({ page, context }) => {
+test("criterion 1: a new learner completes the whole journey, from the welcome page to the capstone, with no account", async ({ page, context }) => {
+  test.setTimeout(300_000);
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
   await page.getByRole("link", { name: "Start", exact: true }).click();
@@ -25,12 +23,47 @@ test("criterion 1: a new learner completes P0 to P5 with no account", async ({ p
   await page.getByRole("link", { name: "Start the first mission" }).click();
 
   await completeM01(page);
+  await page.getByRole("link", { name: "The Delegation Desk", exact: true }).click();
+  await completeM02(page);
+  await page.getByRole("link", { name: "The Briefing Studio", exact: true }).click();
+  await completeM03(page);
+  await page.getByRole("link", { name: "The FAQ Project", exact: true }).click();
+  await completeB01(page);
   await page.getByRole("link", { name: "The Evidence Bureau", exact: true }).click();
   await completeM04(page);
   await page.getByRole("link", { name: "The Argument Forge", exact: true }).click();
   await completeM05(page);
+  await page.getByRole("link", { name: "The Thinking Gym: learning with help", exact: true }).click();
+  await completeM06Gym(page);
+  await page.getByRole("link", { name: "The Thinking Gym: teach it back", exact: true }).click();
+  await completeM06Teach(page);
+  await page.getByRole("link", { name: "The Numbers Lab", exact: true }).click();
+  await completeM07(page);
   await page.getByRole("link", { name: "The Newsletter Desk", exact: true }).click();
   await completeT01(page);
+  await page.getByRole("link", { name: "The Newsroom", exact: true }).click();
+  await completeM08(page);
+  await page.getByRole("link", { name: "The Fairness Council", exact: true }).click();
+  await completeM09(page);
+  await page.getByRole("link", { name: "The Boundary Room", exact: true }).click();
+  await completeM10(page);
+  await page.getByRole("link", { name: "The Co-Creation Studio", exact: true }).click();
+  await completeM11(page);
+  await page.getByRole("link", { name: "The Annual Report", exact: true }).click();
+  await completeB03(page);
+  await page.getByRole("link", { name: "The Systems Workshop", exact: true }).click();
+  await completeM12(page);
+  await page.getByRole("link", { name: "The Citizens' Assembly", exact: true }).click();
+  await completeM13(page);
+  for (const [title, complete] of [
+    ["The Commission, chapter 1: scope", completeC01Scope],
+    ["The Commission, chapter 2: evidence", completeC01Evidence],
+    ["The Commission, chapter 3: workflow", completeC01Workflow],
+    ["The Commission, chapter 4: the review meeting", completeC01Review],
+  ] as const) {
+    await page.getByRole("link", { name: title, exact: true }).click();
+    await complete(page);
+  }
 
   // End of the available journey: no next password is issued.
   await expect(page.getByText(/You have completed the currently available journey/)).toBeVisible();
@@ -41,7 +74,7 @@ test("criterion 1: a new learner completes P0 to P5 with no account", async ({ p
   await expect(page.locator("strong", { hasText: "Open the source and read the relevant part" })).toBeVisible();
   await expect(page.getByText(/It is probably correct.*\(Very\)/)).toBeVisible();
   await expect(page.getByText(/It tells me little; I need evidence\. \(Somewhat\)/)).toBeVisible();
-  for (const code of ["HAZEL-BEACON-47", "CEDAR-COMPASS-37", "ALDER-THIMBLE-26", "BIRCH-HARBOUR-58"])
+  for (const { code } of passwords)
     await expect(page.locator("li").getByText(code).locator("visible=true")).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
@@ -54,7 +87,8 @@ test("criterion 1: a new learner completes P0 to P5 with no account", async ({ p
   expect(copied).toContain("It tells me little; I need evidence. (Somewhat)");
   expect(copied).not.toContain("PRIVATE-");
   expect(copied).toContain("You would have relied on 7 claims"); // M04's first read, against the evidence
-  expect(copied).not.toMatch(/\bscore\b/i);
+  // No score for the learner. (M09 is about a screening tool's score, so the word alone is fine.)
+  expect(copied).not.toMatch(/\byour score\b|\bscore:|\bpoints\b|\/\s?100\b/i);
   expect(copied).not.toMatch(/demonstrated/i); // finishing a mission is not proof of a skill
 
   // Printing keeps the content and drops the controls.
@@ -66,7 +100,7 @@ test("criterion 1: a new learner completes P0 to P5 with no account", async ({ p
 
   // The map shows what this visit completed, and only for this visit.
   await page.getByRole("link", { name: "Mission map", exact: true }).click();
-  await expect(page.getByText("Completed this visit")).toHaveCount(4);
+  await expect(page.getByText("Completed this visit")).toHaveCount(modules.filter((m) => m.status === "available").length);
 });
 
 test("criterion 1: the starting questions can be skipped", async ({ page }) => {
@@ -75,12 +109,14 @@ test("criterion 1: the starting questions can be skipped", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Inside the Machine" })).toBeVisible();
 });
 
-for (const [id, title, code] of [
-  ["m01-foundations", "Inside the Machine", "hazel beacon 47"],
-  ["m04-evidence", "The Evidence Bureau", "CEDAR-COMPASS-37"],
-  ["m05-argument", "The Argument Forge", "alder-thimble-26"],
-  ["t01-transfer", "The Newsletter Desk", "birchharbour58"],
-] as const) {
+// Each code is typed differently, as learners do: case, spaces and separators are ignored.
+const variants = [(c: string) => c, (c: string) => c.toLowerCase().replace(/-/g, " "), (c: string) => c.replace(/-/g, ""), (c: string) => c.toLowerCase()];
+for (const [i, { code: published, missionId: id }] of passwords.entries()) {
+  const mission = missions.find((m) => m.id === id)!;
+  const title = mission.title;
+  const second = mission.steps[1];
+  const secondHeading = "title" in second ? second.title : "";
+  const code = variants[i % variants.length](published);
   test(`criteria 2, 6, 7: ${title} opens from its password in a fresh browser, claiming no history`, async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -91,9 +127,9 @@ for (const [id, title, code] of [
     await page.getByRole("link", { name: "Start mission" }).click();
     await expect(page).toHaveURL(new RegExp(`/missions/${id}$`));
     await expect(page.getByText(/^Step 1 of/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "A quick refresher" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: secondHeading })).toHaveCount(0);
     await page.getByRole("button", { name: "Continue", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "A quick refresher" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: secondHeading })).toBeVisible();
 
     // Nothing was inferred from the password.
     await page.getByRole("link", { name: "Mission map", exact: true }).click();
@@ -103,7 +139,8 @@ for (const [id, title, code] of [
 }
 
 test("criterion 9: refreshing mid-activity gives a clear restart on every mission", async ({ page }) => {
-  for (const id of ["m01-foundations", "m04-evidence", "m05-argument", "t01-transfer"]) {
+  test.setTimeout(120_000);
+  for (const { id } of missions) {
     await page.goto(`/missions/${id}`);
     await page.getByRole("button", { name: "Continue", exact: true }).click();
     await page.getByRole("button", { name: "Continue", exact: true }).click();

@@ -288,3 +288,613 @@ export async function completeT01(page: Page) {
   await cont(page);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
+
+/** Assigns a role to each task in a delegation desk, then sends them. */
+export async function assignRoles(page: Page, roles: [string, string][]) {
+  for (const [title, role] of roles) {
+    await page.getByRole("group", { name: `Role for: ${title}` }).getByRole("radio", { name: role, exact: true }).check();
+  }
+  await page.getByRole("button", { name: "Send the assignments" }).click();
+}
+
+export const M02_DESK: [string, string][] = [
+  ["Award the hardship bursaries", "Human-led"],
+  ["Send booking reminders", "Supervised automation"],
+  ["Translate the term newsletter", "AI-assisted"],
+  ["Reply to a parent's complaint", "Human-led"],
+  ["Tag the donated books", "Supervised automation"],
+  ["Summarise the course feedback", "AI-assisted"],
+];
+
+export const M02_TRANSFER: [string, string][] = [
+  ["Sort the volunteer sign-ups", "Supervised automation"],
+  ["Decide on extra visits", "Human-led"],
+  ["Draft the council grant letter", "AI-assisted"],
+];
+
+export async function completeM02(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /How often the tool gets/, "Fairly");
+  await assignRoles(page, M02_DESK);
+  await cont(page);
+  await page.getByLabel(/Sam, who runs bookings/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/What a mistake would cost/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await assignRoles(page, M02_TRANSFER);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M02-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+/** Picks an option in a compose workspace. The legend can carry a "changed" note, so it is matched by its start. */
+export async function pickPart(page: Page, part: string, option: RegExp) {
+  await page.getByRole("group", { name: new RegExp(`^${part}`) }).getByRole("radio", { name: option }).check();
+}
+
+export const runIt = (page: Page) => page.getByRole("button", { name: "Run it" }).click();
+
+/** Ticks the criteria the latest version meets, checks the checklist, and moves on. */
+export async function judgeChecklist(page: Page, criteria: RegExp[], next = "Continue") {
+  for (const c of criteria) await page.getByRole("checkbox", { name: c }).check();
+  await page.getByRole("button", { name: "Check my checklist" }).click();
+  await page.getByRole("button", { name: next, exact: true }).click();
+}
+
+export const M03_CRITERIA = [/written to new Homework Club/, /right date, time and room/, /what to bring/, /short, plain and friendly/];
+
+export async function completeM03(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /The tool isn't capable/, "Fairly");
+  await runIt(page);
+  for (const [part, option] of [
+    ["Objective", /welcome email/],
+    ["Context", /most new to tutoring/],
+    ["What it must include", /photo ID/],
+    ["Length and style", /Under 120 words/],
+  ] as const) {
+    await pickPart(page, part, option);
+    await runIt(page);
+  }
+  await judgeChecklist(page, M03_CRITERIA);
+  const place: [RegExp, string][] = [
+    [/exact deadline/, "Find evidence"],
+    [/600-word essay/, "Improve the brief"],
+    [/quick note to parents/, "Ask a clarifying question"],
+    [/wrong opening hours/, "Improve the brief"],
+    [/80% of costs/, "Find evidence"],
+    [/aimed at teenagers/, "Ask a clarifying question"],
+  ];
+  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/The audience and its must-haves/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/The request left out/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await pickPart(page, "Objective", /announcing the repair café's new hours/);
+  await pickPart(page, "Context", /first Saturday/);
+  await pickPart(page, "What it must include", /small electricals/);
+  await pickPart(page, "Length and style", /Under 60 words/);
+  await runIt(page);
+  await judgeChecklist(page, [/notice about the new hours/, /new day, time and place/, /what can be repaired/, /easy to read from a distance/]);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M03-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+/** Sets a chart lab control by its option label, then checks the view. */
+export async function chartView(page: Page, options: string[], next: string) {
+  for (const o of options) await page.getByRole("radio", { name: o, exact: true }).check();
+  await page.getByRole("button", { name: "Check this view" }).click();
+  await page.getByRole("button", { name: next, exact: true }).click();
+}
+
+export async function completeM07(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /Whether the chart's numbers match/, "Fairly");
+  await chartView(page, ["At zero"], "Next task");
+  await chartView(page, ["Every month on record"], "Continue");
+  await chartView(page, ["Visits per 1,000 residents"], "Continue");
+  await auditClaim(page, /Monthly visits rose/, { passage: "reg-visits", calc: "9.8", status: "Supported", action: "Retain" });
+  await auditClaim(page, /AI helper caused/, { passage: "reg-helper", status: "Unsupported", action: "Qualify", repair: ["97", "101"] });
+  await auditClaim(page, /83% of visitors/, { passage: "cards-result", calc: "83", status: "Misleading", action: "Qualify", repair: ["12", "10"] });
+  await auditClaim(page, /costs just/, { passage: "costs-helper", status: "Incorrect", action: "Correct", repair: ["1,800", "2"] });
+  await page.getByRole("button", { name: "See the final briefing" }).click();
+  await cont(page);
+  await page.getByLabel(/Treating the rise since March/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/How the axis, the time range/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await markAndCheck(page, [/Membership grew/, /girls playing/, /Nine in ten/], "Audit the claims");
+  const save = { independent: true };
+  await auditClaim(page, /Membership grew/, { ...save, passage: "mem-total", calc: "50", status: "Supported", action: "Retain", reason: "PRIVATE-M07-REASON" });
+  await auditClaim(page, /girls playing/, { ...save, passage: "mem-girls", calc: "200", status: "Incorrect", action: "Correct", repair: ["6", "18", "200"] });
+  await auditClaim(page, /Nine in ten/, { ...save, passage: "survey-active", status: "Misleading", action: "Qualify", repair: ["30", "120", "27"] });
+  await page.getByRole("button", { name: "Submit the audit" }).click();
+  await page.getByRole("button", { name: "See the final briefing" }).click();
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M07-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeM06Gym(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /The full answer with every step/, "Fairly");
+  await page.getByLabel(/^€80, because/).check();
+  await check(page);
+  await page.getByRole("button", { name: /^Get a hint/ }).click();
+  await page.getByLabel(/^€75/).check();
+  await check(page);
+  await page.getByRole("button", { name: "Next problem" }).click();
+  await page.getByLabel(/About 13\.3 km\/h/).check();
+  await check(page);
+  await cont(page);
+  const place: [RegExp, string][] = [
+    [/exchange rate/, "The answer"],
+    [/essay's argument/, "Feedback on my working"],
+    [/never seen this kind/, "A worked example"],
+    [/stuck on one step/, "A hint"],
+  ];
+  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/Solve a similar problem later/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/A hint, or feedback on your own working/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/^€48/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/^72 km\/h/).check();
+  await check(page);
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeM06Teach(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /Telling them the correct answer/, "Fairly");
+  await choose(page, /how did you get €40/);
+  await choose(page, /Let's test that/);
+  await choose(page, /50% of what\?/);
+  await choose(page, /Now try Q2 on your own/);
+  await cont(page);
+  await page.getByLabel(/check his working/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/Finding out what they think/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/half a pizza/).check();
+  await check(page);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M06-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeM10(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /The whole email/, "Fairly");
+  await markAndCheck(page, [/diagnosed with ADHD/, /07700 900461/, /14 Mill Lane/, /account 41-22-07/]);
+  const place: [RegExp, string][] = [
+    [/Read the room-booking calendar/, "Allow"],
+    [/Draft replies to booking emails/, "Allow"],
+    [/Send emails to members/, "Ask a person first"],
+    [/Cancel bookings/, "Ask a person first"],
+    [/staff personnel files/, "Don't allow"],
+    [/Issue refunds/, "Don't allow"],
+  ];
+  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await check(page);
+  await cont(page);
+  await markAndCheck(page, [/Note to AI assistants/, /do not mention the price increase/]);
+  await page.getByLabel(/Treat it as text in the document/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/What the reply needs/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await markAndCheck(page, [/Date of birth/, /heart operation/, /AI reviewer/]);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M10-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeM11(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /The company behind the AI tool/, "Fairly");
+  await pickPart(page, "Headline", /win a festival ticket/);
+  await pickPart(page, "Image", /reading party/);
+  await pickPart(page, "Main text", /\(festival ticket\)/);
+  await pickPart(page, "Footer", /used with consent/);
+  await runIt(page);
+  await judgeChecklist(page, [/says what the challenge is/, /what to do, where, and by when/, /one the Commons may use/, /meets the policy for the image used/], "Next round");
+  await pickPart(page, "Headline", /win a book voucher/);
+  await pickPart(page, "Main text", /\(book voucher\)/);
+  await runIt(page);
+  await judgeChecklist(page, [/names the new prize/, /doesn't promise the old prize/, /board's new rule/, /fits the image used/]);
+  const place: [RegExp, string][] = [
+    [/picked from three AI suggestions/, "Fine as it is"],
+    [/newsletter cover/, "Needs an AI disclosure"],
+    [/no consent form on file/, "Needs permission first"],
+    [/word for word/, "Needs an AI disclosure"],
+    [/published novel/, "Needs permission first"],
+    [/own figures/, "Fine as it is"],
+  ];
+  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/I made it, with an AI headline/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/You, and whoever approves it/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await pickPart(page, "Message", /this year's facts/);
+  await pickPart(page, "Image", /Stock photo/);
+  await runIt(page);
+  await judgeChecklist(page, [/what they actually did/, /one the Commons may use/, /meets the policy/]);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M11-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export const followLead = (page: Page, lead: string) =>
+  page.getByRole("button", { name: new RegExp(`^Follow this lead ?: ${lead}`) }).click();
+
+/** Answers each statement in a casefile by its group, then checks. */
+export async function judgeStatements(page: Page, answers: [RegExp, string][]) {
+  for (const [statement, status] of answers) await page.getByRole("group", { name: statement }).getByRole("radio", { name: status }).check();
+  await check(page);
+}
+
+export async function completeM08(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /Look closely at the image/, "Fairly");
+  for (const lead of ["Search for earlier copies", "Check the river-level record", "Phone the café", "Message the account"]) await followLead(page, lead);
+  await page.getByRole("button", { name: "Finish investigating" }).click();
+  await judgeStatements(page, [
+    [/taken before today/, "Established"],
+    [/is flooded this morning/, "Contradicted"],
+    [/failed to warn/, "Contradicted"],
+    [/knowing it was old/, "Still uncertain"],
+    [/shared about 4,000/, "Established"],
+  ]);
+  await cont(page);
+  await page.getByLabel(/Little: an unedited photo/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/Publish a short report/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/Find out where and when/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  for (const lead of ["Read the transcript", "Search for where the wording", "Look at the account"]) await followLead(page, lead);
+  await page.getByRole("button", { name: "Finish investigating" }).click();
+  await judgeStatements(page, [
+    [/in her 3 May speech/, "Contradicted"],
+    [/first appeared as satire/, "Established"],
+    [/meant to deceive/, "Still uncertain"],
+    [/shared about 2,000/, "Established"],
+  ]);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M08-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export const setThreshold = (page: Page, value: number) => page.getByLabel(/^Threshold: invite everyone/).fill(String(value));
+
+export async function completeM09(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /same rule to everyone is fair/, "Fairly");
+  await setThreshold(page, 63);
+  await page.getByRole("button", { name: "Check this setting" }).click();
+  await page.getByRole("button", { name: "Next task" }).click();
+  await page.getByRole("radio", { name: "Revised score" }).check();
+  await setThreshold(page, 72);
+  await page.getByRole("button", { name: "Check this setting" }).click();
+  await cont(page);
+  const place: [RegExp, string][] = [
+    [/How many qualified applicants/, "Evidence can settle it"],
+    [/marks people down/, "Evidence can settle it"],
+    [/worse than inviting a weak one/, "A choice that needs justifying"],
+    [/equal error rates/, "A choice that needs justifying"],
+    [/automated screen at all/, "A choice that needs justifying"],
+  ];
+  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/Other groups weren't checked/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/its scores are systematically lower/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/label reflects transport/).check();
+  await check(page);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M09-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function setStep(page: Page, step: string, option: RegExp) {
+  await page.getByRole("group", { name: step, exact: true }).getByRole("radio", { name: option }).check();
+}
+
+export async function diagnose(page: Page, answers: [RegExp, string][]) {
+  for (const [test, step] of answers) await page.getByLabel(test).selectOption({ label: step });
+  await page.getByRole("button", { name: "Check my diagnosis" }).click();
+}
+
+export async function completeM12(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /In the model/, "Fairly");
+  await page.getByRole("button", { name: "Run the tests" }).click();
+  await diagnose(page, [
+    [/library open on Saturday/, "Where answers come from"],
+    [/parking for the new pottery/, "Where answers come from"],
+    [/forwards a flyer/, "Text inside attachments"],
+    [/Tuesday's IT class/, "When the booking system is down"],
+    [/charged twice/, "Sending replies"],
+  ]);
+  await setStep(page, "Where answers come from", /Commons handbook/);
+  await setStep(page, "When the sources don't cover it", /pass the email to staff/);
+  await setStep(page, "Text inside attachments", /Treat it as content/);
+  await setStep(page, "Sending replies", /money or complaints/);
+  await setStep(page, "When the booking system is down", /Tell the member/);
+  await page.getByRole("button", { name: "Run the tests again" }).click();
+  await cont(page);
+  await page.getByLabel(/Launch to a small group/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/In the workflow/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await page.getByRole("button", { name: "Run the tests" }).click();
+  await diagnose(page, [
+    [/recycling collected/, "Where answers come from"],
+    [/bank holiday/, "Where answers come from"],
+    [/wasn't emptied/, "Missed collections"],
+  ]);
+  await setStep(page, "Where answers come from", /collection calendar/);
+  await setStep(page, "Holiday changes", /service-change notices/);
+  await setStep(page, "Missed collections", /Log it/);
+  await page.getByRole("button", { name: "Run the tests again" }).click();
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M12-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function choosePlan(page: Page, options: RegExp[]) {
+  for (const o of options) await page.getByRole("checkbox", { name: o }).check();
+  await page.getByRole("button", { name: "Check my plan" }).click();
+}
+
+export async function completeM13(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /Whether the savings are larger/, "Fairly");
+  for (const lead of ["Read the Eastfield pilot", "Read the residents' digital", "Talk to the disability", "Read the finance", "Talk to the residents' association"]) await followLead(page, lead);
+  await page.getByRole("button", { name: "Finish investigating" }).click();
+  await judgeStatements(page, [
+    [/most routine enquiries/, "Established"],
+    [/shut some residents out/, "Established"],
+    [/carbon emissions/, "Still uncertain"],
+    [/depends on halving/, "Established"],
+    [/every time/, "Contradicted"],
+  ]);
+  await cont(page);
+  await choosePlan(page, [/staffed phone line/, /talk to a person/, /monthly review/]);
+  await cont(page);
+  await page.getByLabel(/Run it for six months/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/Who benefits, who bears/).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+  await choosePlan(page, [/chest pain/, /callback/, /five most-spoken/]);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-M13-ANSWER");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+async function reviseAndFinish(page: Page, answer: RegExp) {
+  await page.getByLabel(answer).check();
+  await page.getByLabel("Somewhat", { exact: true }).check();
+  await check(page);
+  await cont(page);
+}
+
+export async function completeB01(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /Which AI tool writes/, "Fairly");
+  await assignRoles(page, [
+    ["Find the most common questions", "AI-assisted"],
+    ["Draft the answers", "AI-assisted"],
+    ["Decide the refund policy wording", "Human-led"],
+  ]);
+  await cont(page);
+  await pickPart(page, "Objective", /When is the Commons open/);
+  await pickPart(page, "Context", /current hours/);
+  await pickPart(page, "What it must include", /noticeboard/);
+  await pickPart(page, "Length and style", /Under 50 words/);
+  await runIt(page);
+  await judgeChecklist(page, [/answers the question asked/, /hours come from you/, /holiday changes/, /short and plain/]);
+  await markAndCheck(page, [/Children under 12/, /family room/, /children's activities are free/]);
+  await page.getByLabel(/Remove it, or check it/).check();
+  await check(page);
+  await cont(page);
+  await reviseAndFinish(page, /Which parts AI should do/);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeB03(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /Spelling and grammar/, "Fairly");
+  await markAndCheck(page, [/^Haddad,$/, /asylum case/, /Canal Street/, /Note for the AI/]);
+  await followLead(page, "Check the file's history");
+  await followLead(page, "Look for consent forms");
+  await page.getByRole("button", { name: "Finish investigating" }).click();
+  await judgeStatements(page, [
+    [/opening night/, "Contradicted"],
+    [/consent to show/, "Contradicted"],
+    [/meant to mislead/, "Still uncertain"],
+  ]);
+  await cont(page);
+  await page.getByLabel(/State what was checked/).check();
+  await check(page);
+  await cont(page);
+  await page.getByLabel(/A note saying it was written with AI/).check();
+  await check(page);
+  await cont(page);
+  await reviseAndFinish(page, /Things that read well/);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeC01Scope(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /fluent, helpful-sounding/, "Fairly");
+  await assignRoles(page, [
+    ["Answer questions about courses", "Supervised automation"],
+    ["Tell residents if they qualify for council tax support", "Human-led"],
+    ["Respond to messages suggesting someone is at risk", "Human-led"],
+    ["Translate event listings into five languages", "AI-assisted"],
+  ]);
+  await cont(page);
+  await markAndCheck(page, [/Mrs Patricia Lowe/, /07700 900812/, /D\. Mensah/, /Account 4471-22/]);
+  await page.getByLabel(/A named service owner/).check();
+  await check(page);
+  await cont(page);
+  await reviseAndFinish(page, /What a wrong answer would cost/);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeC01Evidence(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /other councils have bought/, "Fairly");
+  await markAndCheck(page, [/found it 95% accurate/, /equally accurate/, /every conversation mentioning/], "Audit the claims");
+  const save = { independent: true };
+  await auditClaim(page, /found it 95% accurate/, { ...save, passage: "trial-accuracy", calc: "90.5", status: "Incorrect", action: "Correct", repair: ["950", "1,050", "90"], reason: "PRIVATE-C01-REASON" });
+  await auditClaim(page, /equally accurate/, { ...save, passage: "trial-languages", status: "Incorrect", action: "Correct", repair: ["67", "63"] });
+  await auditClaim(page, /every conversation mentioning/, { ...save, passage: "trial-risk", status: "Supported", action: "Retain" });
+  await page.getByRole("button", { name: "Submit the audit" }).click();
+  await page.getByRole("button", { name: "See the final briefing" }).click();
+  await cont(page);
+  await chartView(page, ["Correct answers per 100 questions"], "Continue");
+  await page.getByLabel(/Launch only in English/).check();
+  await check(page);
+  await cont(page);
+  await reviseAndFinish(page, /Accurate on what questions/);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeC01Workflow(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /most accurate model/, "Fairly");
+  await page.getByRole("button", { name: "Run the tests" }).click();
+  await diagnose(page, [
+    [/Spanish beginners/, "Where answers come from"],
+    [/lost my job/, "Questions about entitlements"],
+    [/scared to go home/, "Messages suggesting someone is at risk"],
+    [/message in Polish/, "Messages in other languages"],
+    [/new community hall/, "Where answers come from"],
+  ]);
+  await setStep(page, "Where answers come from", /published pages/);
+  await setStep(page, "Questions about entitlements", /book a call/);
+  await setStep(page, "Messages suggesting someone is at risk", /hand over to the duty officer/);
+  await setStep(page, "Messages in other languages", /interpreter/);
+  await setStep(page, "When the pages don't cover it", /pass it to staff/);
+  await page.getByRole("button", { name: "Run the tests again" }).click();
+  await cont(page);
+  await page.getByLabel(/Launch in stages/).check();
+  await check(page);
+  await cont(page);
+  await reviseAndFinish(page, /mistakes are caught/);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+export async function completeC01Review(page: Page) {
+  await cont(page);
+  await cont(page);
+  await recordJudgment(page, /Answering the challenge with confidence/, "Fairly");
+  await choosePlan(page, [/Interpreter calls/, /staffed phone line/, /weekly independent check/]);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await page.getByLabel("Your answer").fill("PRIVATE-C01-MEMO: launch in English with interpreter calls.");
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await page.getByLabel(/The independent trial found/).check();
+  await check(page);
+  await cont(page);
+  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await expect(page.getByText(/PRIVATE-C01-MEMO: launch in English/)).toBeVisible();
+  await page.getByRole("button", { name: "Start from your first version" }).click();
+  await expect(page.getByLabel("Your answer")).toHaveValue(/PRIVATE-C01-MEMO/);
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+  await reviseAndFinish(page, /Evidence for each point/);
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}

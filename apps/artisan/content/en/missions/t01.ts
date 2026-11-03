@@ -285,7 +285,7 @@ export const t01: Mission = {
           items: ["note"],
         },
       ],
-      nextMissionId: null,
+      nextMissionId: "m08-newsroom",
     },
   ],
 };

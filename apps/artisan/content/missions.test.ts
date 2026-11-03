@@ -8,7 +8,13 @@ import { citeChoiceId, walk } from "@/lib/dialogue";
 import { evidenceItems } from "@/lib/evidence";
 import { segmentsOf } from "@/lib/mark";
 import { askMachine, goalMet } from "@/lib/sandbox";
-import { PROPOSAL, type AuditSpec, type Choice, type Step } from "./types";
+import { DELEGATION_ROLES, PROPOSAL, type AuditSpec, type Choice, type DelegationSpec, type Step } from "./types";
+import { bestRole } from "@/lib/delegation";
+import { allMet } from "@/lib/compose";
+import { barsFor, goalMet as chartGoalMet } from "@/lib/chart";
+import { missedGap, outcomes, thresholdGoalMet, withinCapacity } from "@/lib/threshold";
+import { runAll, startFailures } from "@/lib/workflow";
+import { planResult, plansWithinBudget } from "@/lib/allocation";
 
 const REQUIRED_KINDS: Step["kind"][] = ["brief", "refresher", "transfer", "debrief"];
 
@@ -222,6 +228,178 @@ describe.each(missions)("mission $id", (mission) => {
       }
   });
 
+  it("delegation tasks have one best role, every outcome explained, and support that matches the desk", () => {
+    for (const s of mission.steps) {
+      const spec: DelegationSpec | null = "delegation" in s ? s.delegation : null;
+      if (!spec) continue;
+      const ids = spec.tasks.map((x) => x.id);
+      expect(new Set(ids).size, s.id).toBe(ids.length);
+      for (const task of spec.tasks) {
+        const verdicts = DELEGATION_ROLES.map((r) => task.outcomes[r].verdict);
+        expect(verdicts.filter((v) => v === "correct"), task.id).toHaveLength(1);
+        for (const r of DELEGATION_ROLES) {
+          expect(task.outcomes[r].event.trim(), `${task.id}/${r}`).not.toBe("");
+          expect(task.outcomes[r].explanation.trim(), `${task.id}/${r}`).not.toBe("");
+        }
+        expect(task.responsible.trim(), task.id).not.toBe("");
+        if (spec.support === "independent") {
+          expect(task.factors, task.id).toBeUndefined();
+          expect(task.hint, task.id).toBeUndefined();
+        } else {
+          expect(task.factors, task.id).toBeDefined();
+          expect(task.hint, task.id).toBeTruthy();
+        }
+      }
+      // A case where not using AI is right is part of what M02 assesses, in the main desk and the transfer.
+      expect(spec.tasks.some((x) => bestRole(x) === "human"), s.id).toBe(true);
+    }
+  });
+
+  it("compose workspaces refer to real options, and every round can be finished", () => {
+    for (const s of mission.steps) {
+      if (!("compose" in s)) continue;
+      const spec = s.compose;
+      const options = new Map(spec.elements.map((e) => [e.id, e.options.map((o) => o.id)]));
+      const valid = (choices: Record<string, string>, where: string) => {
+        expect(Object.keys(choices).sort(), where).toEqual([...options.keys()].sort());
+        for (const [e, o] of Object.entries(choices)) expect(options.get(e), `${where}: ${e}`).toContain(o);
+      };
+      valid(spec.start, `${s.id} start`);
+      for (const id of spec.outputOrder ?? []) expect(options.has(id), id).toBe(true);
+      for (const e of spec.elements) expect(new Set(e.options.map((o) => o.id)).size, e.id).toBe(e.options.length);
+      for (const r of spec.rounds) {
+        valid(r.solution, `${s.id}/${r.id} solution`);
+        expect(allMet(r.criteria, r.solution), r.id).toBe(true);
+        expect(allMet(r.criteria, spec.start), `${r.id} must need some work`).toBe(false);
+        for (const c of r.criteria) {
+          expect(c.requires || c.anyOf, `${r.id}/${c.id} needs a rule`).toBeTruthy();
+          for (const set of [c.requires ?? {}, ...(c.anyOf ?? [])])
+            for (const [e, os] of Object.entries(set)) for (const o of os) expect(options.get(e), `${r.id}/${c.id}`).toContain(o);
+        }
+      }
+    }
+  });
+
+  it("chart labs compute every view, and every task can be done and isn't done already", () => {
+    for (const s of mission.steps) {
+      if (s.kind !== "chartLab") continue;
+      const c = s.chart;
+      const cats = c.categories.map((x) => x.id);
+      for (const q of c.quantities) expect(Object.keys(q.values).sort(), q.id).toEqual([...cats].sort());
+      for (const m of c.measures) {
+        expect(c.quantities.map((q) => q.id), m.id).toContain(m.numerator);
+        if (m.denominator) {
+          const d = c.quantities.find((q) => q.id === m.denominator)!;
+          for (const v of Object.values(d.values)) expect(v, m.id).toBeGreaterThan(0);
+        }
+      }
+      for (const r of c.ranges) for (const id of r.categoryIds) expect(cats, r.id).toContain(id);
+      const views = [c.start, ...c.tasks.map((x) => x.solution)];
+      for (const v of views) {
+        expect(c.measures.map((m) => m.id)).toContain(v.measure);
+        expect(c.baselines.map((b) => b.id)).toContain(v.baseline);
+        expect(c.ranges.map((r) => r.id)).toContain(v.range);
+        for (const bar of barsFor(c, v)) expect(Number.isFinite(bar.value), bar.id).toBe(true);
+      }
+      for (const task of c.tasks) {
+        expect(chartGoalMet(task.goal, task.solution), task.id).toBe(true);
+        expect(chartGoalMet(task.goal, c.start), task.id).toBe(false);
+      }
+    }
+  });
+
+  it("gym problems have one right answer, explain every option, and offer help that leaves the thinking to the learner", () => {
+    for (const s of mission.steps) {
+      if (s.kind !== "gym") continue;
+      for (const p of s.problems) {
+        expect(p.choices.filter((c) => c.verdict === "correct"), p.id).toHaveLength(1);
+        for (const c of p.choices) expect(c.explanation.trim(), `${p.id}/${c.id}`).not.toBe("");
+        expect(new Set(p.helps.map((h) => h.id)).size, p.id).toBe(p.helps.length);
+        for (const h of p.helps) expect(h.provides.trim(), `${p.id}/${h.id}`).not.toBe("");
+        expect(p.helps.some((h) => !h.givesAnswer), p.id).toBe(true);
+        expect(p.helps.some((h) => h.givesAnswer), `${p.id}: nobody gets stuck`).toBe(true);
+      }
+    }
+  });
+
+  it("casefiles point at real leads, can't all be followed when time is short, and include honest uncertainty", () => {
+    for (const s of mission.steps) {
+      const spec = "casefile" in s ? s.casefile : null;
+      if (!spec) continue;
+      const leads = spec.leads.map((l) => l.id);
+      expect(new Set(leads).size, s.id).toBe(leads.length);
+      for (const id of spec.keyLeads ?? []) expect(leads, s.id).toContain(id);
+      for (const st of spec.statements) {
+        for (const id of st.leadIds) expect(leads, `${s.id}/${st.id}`).toContain(id);
+        expect(st.explanation.trim(), st.id).not.toBe("");
+        if (st.status === "uncertain") expect(st.leadIds, `${st.id}: nothing settles an uncertain statement`).toEqual([]);
+      }
+      expect(spec.statements.some((st) => st.status === "uncertain"), s.id).toBe(true);
+      expect(spec.statements.some((st) => st.leadIds.length > 0), s.id).toBe(true);
+      if (spec.budget) {
+        expect(spec.budget.leads, s.id).toBeLessThan(spec.leads.length);
+        expect(spec.budget.leads, `${s.id}: key leads must fit the budget`).toBeGreaterThanOrEqual((spec.keyLeads ?? []).length);
+      }
+      const orders = [...(spec.timeline ?? []), ...spec.leads.flatMap((l) => (l.timeline ? [l.timeline] : []))].map((e) => e.order);
+      expect(new Set(orders).size, s.id).toBe(orders.length);
+    }
+  });
+
+  it("threshold labs give every applicant a score in every version, and every task can be done", () => {
+    for (const s of mission.steps) {
+      if (s.kind !== "thresholdLab") continue;
+      const lab = s.lab;
+      const groups = lab.groups.map((g) => g.id);
+      for (const a of lab.applicants) {
+        expect(groups, a.id).toContain(a.group);
+        for (const v of lab.versions) {
+          expect(a.scores[v.id], `${a.id}/${v.id}`).toBeGreaterThanOrEqual(lab.range.min);
+          expect(a.scores[v.id], `${a.id}/${v.id}`).toBeLessThanOrEqual(lab.range.max);
+        }
+      }
+      for (const task of lab.tasks) {
+        expect(thresholdGoalMet(lab, task.goal, task.solution), task.id).toBe(true);
+        expect(thresholdGoalMet(lab, task.goal, lab.start), task.id).toBe(false);
+      }
+    }
+  });
+
+  it("workflows fail at the start, pass with the reviewed arrangement, and each failure points at a real step", () => {
+    for (const s of mission.steps) {
+      const spec = "workflow" in s ? s.workflow : null;
+      if (!spec) continue;
+      const slots = new Map(spec.slots.map((x) => [x.id, x.options.map((o) => o.id)]));
+      for (const arrangement of [spec.start, spec.solution])
+        for (const [slot, option] of Object.entries(arrangement)) expect(slots.get(slot), `${s.id}/${slot}`).toContain(option);
+      for (const test of spec.tests)
+        for (const f of test.failsWhen) for (const o of f.options) expect(slots.get(f.slot), `${test.id}/${f.slot}`).toContain(o);
+      expect(runAll(spec, spec.solution).every((r) => r.passed), s.id).toBe(true);
+      expect(startFailures(spec).length, s.id).toBeGreaterThan(0);
+      // Every step that can fail matters to some test, so no choice is decoration.
+      for (const slot of spec.slots) expect(spec.tests.some((test) => test.failsWhen.some((f) => f.slot === slot.id)), slot.id).toBe(true);
+    }
+  });
+
+  it("allocations allow more than one sound plan, and no single option covers everything essential", () => {
+    for (const s of mission.steps) {
+      const spec = "allocation" in s ? s.allocation : null;
+      if (!spec) continue;
+      const concerns = spec.concerns.map((c) => c.id);
+      for (const o of spec.options) {
+        for (const c of o.addresses) expect(concerns, o.id).toContain(c);
+        expect(o.note.trim(), o.id).not.toBe("");
+      }
+      for (const c of spec.concerns) {
+        expect(spec.options.some((o) => o.addresses.includes(c.id)), `${c.id} can be covered`).toBe(true);
+        expect(c.why.trim(), c.id).not.toBe("");
+      }
+      const sound = plansWithinBudget(spec).filter((p) => planResult(spec, p).right);
+      expect(sound.length, `${s.id}: several defensible plans (PRD M13)`).toBeGreaterThanOrEqual(2);
+      expect(planResult(spec, spec.options.map((o) => o.id)).right, `${s.id}: choosing everything must not fit`).toBe(false);
+      for (const o of spec.options) expect(planResult(spec, [o.id]).right, o.id).toBe(false);
+    }
+  });
+
   it("fault traces point at real stages, with an explanation", () => {
     for (const s of mission.steps)
       if (s.kind === "faultTrace") {
@@ -255,6 +433,16 @@ describe.each(missions)("mission $id", (mission) => {
         const audit = source ? auditOf(source) : null;
         expect(audit?.reasonPrompt, s.id).toBeTruthy();
         expect(audit?.claims.map((c) => c.id), s.id).toContain(claimId);
+      }
+  });
+
+  it("an open response's earlier version comes from an earlier open response", () => {
+    for (const [i, s] of mission.steps.entries())
+      if (s.kind === "openResponse" && s.priorResponse) {
+        const at = mission.steps.findIndex((x) => x.id === s.priorResponse);
+        expect(at, s.id).toBeGreaterThanOrEqual(0);
+        expect(at, s.id).toBeLessThan(i);
+        expect(mission.steps[at].kind, s.id).toBe("openResponse");
       }
   });
 
@@ -350,6 +538,110 @@ describe("M05 conversation", () => {
     expect(passage("brochure-claim")).toContain("40%");
     expect(passage("brochure-price")).toContain("€6,000");
     expect(passage("budget-amount")).toContain("€12,000");
+  });
+});
+
+describe("M02 desk rewards reliance as well as caution (PRD §4)", () => {
+  const m02 = missions.find((m) => m.id === "m02-delegation")!;
+  const desk = m02.steps.find((s) => s.kind === "delegation");
+  const transfer = m02.steps.find((s) => s.kind === "transfer");
+  if (desk?.kind !== "delegation" || !transfer || !("delegation" in transfer)) throw new Error("no desks");
+
+  it("makes every role the best fit for at least one main task, and no role dominant", () => {
+    const best = desk.delegation.tasks.map(bestRole);
+    for (const r of DELEGATION_ROLES) expect(best.filter((b) => b === r).length, r).toBeGreaterThanOrEqual(1);
+    for (const r of DELEGATION_ROLES) expect(best.filter((b) => b === r).length, r).toBeLessThanOrEqual(best.length / 2);
+  });
+
+  it("keeps AI out of a task without that being right every time", () => {
+    const humanWeaker = desk.delegation.tasks.some((x) => x.outcomes.human.verdict === "weaker");
+    expect(humanWeaker).toBe(true);
+  });
+
+  it("covers every role in the transfer, which is fresh rather than a copy of the main desk", () => {
+    expect(new Set(transfer.delegation.tasks.map(bestRole))).toEqual(new Set(DELEGATION_ROLES));
+    const mainTexts = new Set(desk.delegation.tasks.map((x) => x.text));
+    for (const x of transfer.delegation.tasks) expect(mainTexts.has(x.text), x.id).toBe(false);
+  });
+});
+
+describe("M06 teach-back", () => {
+  const m = missions.find((x) => x.id === "m06-teach")!;
+  const step = m.steps.find((s) => s.kind === "dialogue");
+  if (step?.kind !== "dialogue") throw new Error("no dialogue");
+  const spec = step.dialogue;
+
+  it("every path records the opening move and the hand-back once each, and some path uncovers everything", () => {
+    const ends: string[][] = [];
+    const go = (choices: string[]) => {
+      const path = walk(spec, spec.start, choices);
+      if (path.ended) ends.push(choices);
+      const moves = [...path.options.map((c) => c.id), ...(path.canCite ? step.sources.flatMap((s) => s.passages.map((p) => citeChoiceId(p.id))) : [])];
+      for (const id of moves) go([...choices, id]);
+    };
+    go([]);
+    expect(ends.length).toBeGreaterThan(10);
+    let best = 0;
+    for (const choices of ends) {
+      const path = walk(spec, spec.start, choices);
+      const scored = path.turns.flatMap((t) => (t.choice?.scored ? [t.choice.scored.item] : []));
+      expect(scored.sort(), choices.join(">")).toEqual(["diagnose", "handback"]);
+      best = Math.max(best, path.discovered.length);
+    }
+    expect(best).toBe(spec.discoveries.length);
+  });
+});
+
+describe("M09 data tells the story the mission tells", () => {
+  const m09 = missions.find((m) => m.id === "m09-fairness")!;
+  const step = m09.steps.find((s) => s.kind === "thresholdLab");
+  if (step?.kind !== "thresholdLab") throw new Error("no lab");
+  const lab = step.lab;
+  const settings = (version: string) =>
+    Array.from({ length: lab.range.max - lab.range.min + 1 }, (_, i) => ({ version, threshold: lab.range.min + i })).filter((v) =>
+      withinCapacity(lab, outcomes(lab, v)),
+    );
+
+  it("no threshold on the original score closes the gap within capacity", () => {
+    const orig = settings("original");
+    expect(orig.length).toBeGreaterThan(0);
+    for (const v of orig) expect(missedGap(outcomes(lab, v)), String(v.threshold)).toBeGreaterThanOrEqual(3);
+  });
+
+  it("the revised score can, and selects no more unqualified applicants than the original does", () => {
+    const fair = settings("revised").filter((v) => missedGap(outcomes(lab, v)) <= 1);
+    expect(fair.length).toBeGreaterThan(0);
+    const wrong = (v: { version: string; threshold: number }) => outcomes(lab, v).reduce((n, g) => n + g.wrongPicks, 0);
+    const bestOriginal = Math.min(...settings("original").map(wrong));
+    for (const v of fair) expect(wrong(v)).toBeLessThanOrEqual(bestOriginal);
+  });
+
+  it("both groups have the same number of qualified applicants, so the gap isn't a difference in ability", () => {
+    const [a, b] = outcomes(lab, lab.start);
+    expect(a.qualified).toBe(b.qualified);
+  });
+});
+
+describe("M07 charts tell the story the mission tells", () => {
+  const m07 = missions.find((m) => m.id === "m07-numbers")!;
+  const chart = (id: string) => {
+    const s = m07.steps.find((x) => x.id === id);
+    if (s?.kind !== "chartLab") throw new Error(id);
+    return s.chart;
+  };
+
+  it("October is above June, so the slide's range starts at a dip", () => {
+    const c = chart("trend");
+    const bars = barsFor(c, { measure: "visits", baseline: "zero", range: "all" });
+    expect(bars[0].value).toBeGreaterThan(bars.at(-1)!.value);
+  });
+
+  it("the rate ranking reverses the count ranking", () => {
+    const c = chart("branches");
+    const order = (measure: string) => [...barsFor(c, { ...c.start, measure })].sort((a, b) => b.value - a.value).map((b) => b.id);
+    expect(order("count")[0]).toBe("riverside");
+    expect(order("rate")[0]).toBe("bramley");
+    expect(order("rate").at(-1)).toBe("riverside");
   });
 });
 
@@ -457,15 +749,33 @@ describe("review status (PRD §10, criterion 3)", () => {
 });
 
 describe("the pilot journey (PRD §10)", () => {
-  it("runs M01, M04, M05, T01 through each debrief's recommendation", () => {
+  it("runs M01, M04, M05, T01 through each debrief's recommendation, with released modules in curriculum order", () => {
     const next = (id: string) => {
       const d = missions.find((m) => m.id === id)?.steps.at(-1);
       return d?.kind === "debrief" ? d.nextMissionId : undefined;
     };
-    expect(next("m01-foundations")).toBe("m04-evidence");
+    // M02 (R4) sits between M01 and M04, matching the map's recommended order.
+    expect(next("m01-foundations")).toBe("m02-delegation");
+    expect(next("m02-delegation")).toBe("m03-briefing");
+    expect(next("m03-briefing")).toBe("b01-faq");
+    expect(next("b01-faq")).toBe("m04-evidence");
     expect(next("m04-evidence")).toBe("m05-argument");
-    expect(next("m05-argument")).toBe("t01-transfer");
-    expect(next("t01-transfer")).toBeNull();
+    expect(next("m05-argument")).toBe("m06-gym");
+    expect(next("m06-gym")).toBe("m06-teach");
+    expect(next("m06-teach")).toBe("m07-numbers");
+    expect(next("m07-numbers")).toBe("t01-transfer");
+    expect(next("t01-transfer")).toBe("m08-newsroom");
+    expect(next("m08-newsroom")).toBe("m09-fairness");
+    expect(next("m09-fairness")).toBe("m10-boundaries");
+    expect(next("m10-boundaries")).toBe("m11-cocreation");
+    expect(next("m11-cocreation")).toBe("b03-report");
+    expect(next("b03-report")).toBe("m12-systems");
+    expect(next("m12-systems")).toBe("m13-assembly");
+    expect(next("m13-assembly")).toBe("c01-scope");
+    expect(next("c01-scope")).toBe("c01-evidence");
+    expect(next("c01-evidence")).toBe("c01-workflow");
+    expect(next("c01-workflow")).toBe("c01-review");
+    expect(next("c01-review")).toBeNull();
   });
 
   it("T01 uses its own source pack, separate from M04's", () => {

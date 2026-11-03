@@ -519,7 +519,7 @@ export const m05: Mission = {
           items: ["strengthen"],
         },
       ],
-      nextMissionId: "t01-transfer",
+      nextMissionId: "m06-gym",
     },
   ],
 };

@@ -373,7 +373,7 @@ export const m01: Mission = {
           items: ["explain"],
         },
       ],
-      nextMissionId: "m04-evidence",
+      nextMissionId: "m02-delegation",
     },
   ],
 };

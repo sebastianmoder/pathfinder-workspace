@@ -121,7 +121,7 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await cont(page);
 
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The Evidence Bureau/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Recommended next mission: The Delegation Desk/ })).toBeVisible();
 
   // The debrief says what happened: the worked solution and the wrong predictions are not credited.
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
