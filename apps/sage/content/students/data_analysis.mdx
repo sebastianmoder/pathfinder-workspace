@@ -1,0 +1,134 @@
+import { Callout } from 'nextra/components'
+
+# AI-Assisted Data Analysis
+
+AI can propose an analysis plan, explain a formula, draft code, or critique a
+chart. Students still need to decide what the data can answer and reproduce the
+result. A working script or polished chart is insufficient evidence of a sound
+analysis.
+
+The American Statistical Association's ethical guidance emphasises data
+provenance, transparent assumptions, reproducible results, and valid
+interpretation.[^ASA] It provides professional principles for this guide, not
+evidence that the proposed AI activity improves learning.
+
+<Callout type="warning">
+  Start with synthetic or openly licensed teaching data. Real records may
+  contain personal, commercially sensitive, or research-confidential information.
+  Check the tool and data under [Responsible AI use](/genai/responsible_use).
+  Do not run generated code with access to protected files, credentials, or
+  services merely to see whether it works.
+</Callout>
+
+## Preserve the analytical decisions
+
+Before using AI, ask students to write the question, unit of observation,
+quantity to estimate, denominator, and a prediction they can justify. Decide
+which capabilities the [assignment](/teaching/course_ai_policy) requires them
+to perform independently.
+
+| Stage | Possible AI assistance | Student or educator verification |
+| --- | --- | --- |
+| Define the question | Suggest alternative formulations | Identify what the data actually measure and which claims are outside scope |
+| Inspect the data | Propose checks for types, missingness, duplicates, or unusual values | Compare with the data dictionary and inspect records |
+| Clean and combine | Draft transformations or joins | Record before/after counts, keys, dropped rows, and decisions about missing values |
+| Calculate or model | Explain an approved method or draft implementation | Check assumptions, hand-calculate a small case, and rerun the analysis |
+| Visualise | Propose a chart or labels | Verify scales, denominators, uncertainty, accessible presentation, and correspondence with the table |
+| Interpret | Identify possible alternative explanations | Separate association from causation and state the limits of the design |
+
+Do not select a statistical test because the model recommends it or repeatedly
+change methods until an appealing result appears. Use the methods taught in the
+course, document changes, and seek qualified guidance when the analysis exceeds
+the student's or educator's expertise.
+
+## Worked exercise: a misleading conversion rate
+
+Everything in this exercise is synthetic. It represents counts of website
+visits and purchases, not people or actual business results. A conversion here
+means a visit resulting in one purchase; assume at most one purchase per visit.
+
+```csv
+channel,visits,purchases
+A,90,9
+B,10,9
+```
+
+**Question:** what proportion of all recorded visits resulted in a purchase?
+
+Give learners this intentionally flawed AI-style report:
+
+> Channel A converts at 10% and B at 90%. The overall conversion rate is
+> therefore 50%. B's advertising caused more customers to buy, so all future
+> spending should move to B.
+
+The report is educator-authored for critique; no live model is needed. Ask
+students to mark each calculation, inference, and recommendation separately.
+
+### Educator answer key
+
+The two channel rates are 9 / 90 = 10% and 9 / 10 = 90%. Their simple mean is
+50%, but that is not the pooled proportion of purchases across visits. There
+are 18 purchases and 100 visits, giving **18%**. The weighted calculation gives
+the same result: (90 × 10% + 10 × 90%) / 100 = 18%.
+
+Channel B has the higher observed rate, but the table contains no random
+assignment, spending, customer characteristics, or repeated periods. It does
+not establish a causal advertising effect or support moving all spending.
+The small B denominator also makes a single additional purchase a much larger
+change in its rate than in A's. Students should identify the additional
+evidence needed rather than invent it.
+
+Use a labelled table alongside any chart. Inspect whether a truncated axis or
+unlabelled percentage exaggerates the comparison. Keep count data available to
+readers who cannot use the visual.
+
+### A second fault: duplicate rows after a join
+
+Suppose a channel-description table contains A once and B twice. Joining it to
+the dataset on channel would duplicate B's counts. A naive aggregation then
+reports 27 purchases / 110 visits, about 24.5%, rather than 18%.
+
+Ask students to explain the expected relationship between tables, check key
+uniqueness, and compare row counts and totals before and after the join. Resolve
+which description is valid; silently dropping a duplicate is not a substitute
+for understanding its origin. This check applies whether students use code,
+spreadsheets, or a graphical analysis tool.
+
+## A prompt that requests checks
+
+```text
+Help review my analysis plan; do not choose a method or claim a result for me.
+
+Question: [question and quantity to estimate]
+Data dictionary and permitted synthetic sample: [material]
+Methods taught and allowed: [methods]
+My plan and first calculation: [attempt]
+
+Identify assumptions, denominator choices, missing-data decisions, and join
+conditions that could change the answer. For each, suggest a check I can carry
+out independently. Flag questions the data cannot answer. Distinguish code you
+have actually executed from code you are proposing. Do not invent observations,
+results, references, or statistical significance.
+```
+
+If execution is available, inspect the code and environment before running it.
+Save the input version, transformations, formulas or script, relevant software
+versions, and output in approved storage. Reproduce the result from the original
+input, rather than accepting numbers copied from a chat.
+
+## Assess reasoning and transfer
+
+Ask for a short audit containing the question, data provenance, a reproducible
+calculation, one consequential check, and a justified interpretation. A selected
+decision record is usually more useful than a complete conversation.
+
+Use a fresh dataset to assess denominator choice and explanation without AI,
+under the announced conditions and accommodations. The [quantitative assessment
+example](/teaching/assessment_examples#example-2-a-quantitative-analysis-audit)
+provides a brief and rubric. For implementation skills, see [Teaching programming
+with AI](/students/programming); for evaluating claims and sources, use
+[Evaluating AI outputs](/students/ai_literacy).
+
+## References & Footnotes
+
+[^ASA]: American Statistical Association. (2022). **Ethical Guidelines for Statistical Practice**. https://www.amstat.org/your-career/ethical-guidelines-for-statistical-practice

@@ -1,0 +1,122 @@
+import { Callout } from 'nextra/components'
+
+# Adapting Learning Materials with AI
+
+AI can draft a clearer explanation, a description of a diagram, captions, or a
+translation. The educator must check that the adaptation preserves the meaning
+and the learning students are expected to do. This guide extends the production
+workflow in [Creating course materials](/teaching/course_materials).
+
+CAST's Universal Design for Learning guidelines address multiple means of
+engagement, representation, and action and expression, including language and
+access to assistive technology.[^CAST] They provide a design framework, not
+evidence that an AI-generated adaptation is accessible or educationally effective.
+
+<Callout type="info">
+  Use approved tools and permitted source material. Work from the barrier in the
+  resource rather than requesting a student's diagnosis or personal history.
+  Coordinate individual accommodations with the institution's accessibility team.
+</Callout>
+
+## Define what must stay the same
+
+State the learning outcome, disciplinary terms, relationships, uncertainty,
+numbers, and task demands that the adaptation must retain. Decide whether a
+difficult feature is part of the outcome or an avoidable access barrier.
+Shortening a problem can remove the reasoning it was intended to elicit.
+
+| Adaptation | Useful draft request | Human check |
+| --- | --- | --- |
+| Clearer language | Shorter sentences with essential terms defined | Qualifiers, causal direction, numerical meaning, and disciplinary precision remain |
+| Diagram description | Describe visible structure and relationships | The description matches the actual image and its educational purpose |
+| Captions or transcript | Draft from a permitted recording | Technical terms, speakers, equations, and meaningful sounds are accurate |
+| Translation or glossary | Preserve specified terminology and flag ambiguity | A competent reader checks meaning, register, notation, and language variety |
+| Alternative format | Convert a resource to structured text | Headings, reading order, tables, links, and interaction work in the delivery format |
+
+## Worked adaptation: preserve a statistical distinction
+
+This short source is educator-authored for practice:
+
+> In this observational sample, participants who attended the optional workshop
+> had higher average scores. Because participation was self-selected, the
+> comparison does not establish that attendance caused the difference.
+
+**Flawed AI-style simplification:** “The workshop helped students get higher
+scores.” It removes both the observational design and the limitation on a causal
+conclusion.
+
+**Reviewed adaptation:** “People who chose to attend the workshop had higher
+average scores in this sample. They were not assigned to attend. The comparison
+therefore does not show that the workshop caused the higher scores.”
+
+Ask learners to identify the relationship and its limitation in both the source
+and the adaptation. If interpreting observational evidence is the outcome, do
+not supply the conclusion as an answer to an assessment question. This example
+shows how to explain a distinction, not how to remove it from the task.
+
+## Worked description: a chart without an invented trend
+
+Suppose a teaching chart contains two labelled bars: Group A, 40%; Group B, 60%.
+Its vertical axis runs from 0% to 100%. No group sizes, time points, or uncertainty
+intervals are supplied. Provide the data table as an alternative representation.
+
+**Flawed description:** “Performance improved by 20% after the intervention.”
+The chart supplies neither a before/after comparison nor an intervention.
+
+**Reviewed description:** “Bar chart showing 40% for Group A and 60% for Group B
+on a 0–100% axis. B is 20 percentage points higher. Group sizes and uncertainty
+are not given.”
+
+Match the description to the activity. If the task assesses whether students
+can calculate the difference, supply the values and structure without giving
+the calculation away. Discuss an equivalent accessible representation with the
+accessibility team. A fuller description can accompany an explanatory resource.
+
+## Review captions and translations
+
+Do not distribute a generated transcript without checking it against the
+recording. For example, a missing “not” in “this result is not significant”
+reverses the claim. Check spoken symbols, subscripts, and units against the
+original visual or notes. Describe meaningful non-speech information and give
+students a way to report errors.
+
+For translation, maintain a short glossary of approved terms and ask the model
+to flag ambiguous phrases rather than silently selecting a meaning. A second
+AI translation back to the original language may expose issues, but is not
+independent validation. If a competent reviewer is unavailable, use approved
+language support or clearly limit the material's use; do not make an unverified
+translation the sole route to essential information.
+
+## Copyable adaptation prompt
+
+```text
+Draft an alternative version of this permitted teaching resource.
+Audience and purpose: [context without personal student data]
+Barrier to address: [language, visual access, format, or another barrier]
+Learning outcome and challenge to preserve: [outcome]
+Terms, numbers, qualifications, and relationships to retain: [list]
+Source resource: [permitted material]
+
+Return the adapted version and a comparison table locating each substantive
+change in the original. Flag ambiguity, lost information, and anything that
+requires specialist review. Do not add facts or certify accessibility. Do not
+answer a question that students are meant to solve themselves.
+```
+
+## Verify the final resource
+
+Review meaning against the source, then inspect the final document, learning
+platform, slide deck, or media player. Text accuracy alone does not establish
+correct reading order, keyboard access, caption timing, or screen-reader support.
+Use institutional accessibility checks and involve relevant users without
+requiring disclosure of personal circumstances.
+
+Retain the editable original, a change record, and the reviewed adaptation.
+Provide a correction route. Use the [pilot record](/teaching/evaluating_ai) to
+check whether learners can access the material and still practise the intended
+capability. For multilingual writing support and its assessment boundaries, see
+[AI-assisted writing](/students/writing_instruction#targeted-language-feedback-for-multilingual-students).
+
+## References & Footnotes
+
+[^CAST]: CAST. (2024). **Universal Design for Learning Guidelines version 3.0**. https://udlguidelines.cast.org/

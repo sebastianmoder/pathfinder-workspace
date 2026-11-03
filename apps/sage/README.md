@@ -33,10 +33,12 @@ sections are:
   AI-assisted work.
 - **Teachers' Tasks**: guidance for course and assignment AI rules, curriculum
   design, lesson planning, course materials, exam questions, rubrics, and
-  related teaching workflows.
+  related teaching workflows. Includes complete assessment examples, material
+  adaptations, source-based assistants, and a two-hour teacher workshop pack.
 - **Teaching and Learning with AI**: a progressive AI competency pathway plus
   guidance for assessment, tutoring, simulations, evaluation, and writing
-  instruction.
+  instruction, with worked data-analysis, programming, and entrepreneurial
+  learning activities.
 - **Draft sections**: incomplete pages live in `drafts/`, outside Nextra's
   routable content tree, until they meet the publication checklist.
 

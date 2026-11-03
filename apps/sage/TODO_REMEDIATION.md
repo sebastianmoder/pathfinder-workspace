@@ -57,9 +57,15 @@ source verification, editorial decisions, and validation results.
 
 ## Future development candidates
 
+The content-extension work is recorded in
+[CONTENT_EXTENSION_REVIEW.md](CONTENT_EXTENSION_REVIEW.md). It adds seven guides
+and practical examples in existing workflows. The teacher-training placeholder
+has been replaced by the published `teaching/teacher_training` pack.
+
 - Publish implementation case reports only when they include context,
   safeguards, observed results, failures, and reusable material.
-- Develop teacher-training facilitation materials from the AI-competency pathway.
+- Pilot and refine the teacher-training pack using documented participant work
+  and follow-up, without presenting the proposed workshop as validated training.
 - Add a maintained external-link check to continuous integration.
 - Consider administrative-work guidance after core teaching workflows are
   validated; keep vendor-specific tool directories unpublished unless someone
