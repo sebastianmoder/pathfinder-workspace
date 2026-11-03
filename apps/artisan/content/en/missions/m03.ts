@@ -1,0 +1,325 @@
+import type { Choice, Mission } from "../../types";
+
+const causeQuestion = "An AI tool gave you a vague, generic answer to a request. What is the most likely cause?";
+const causeChoices: Choice[] = [
+  {
+    id: "a",
+    label: "The tool isn't capable enough, and a newer model would give a sharper answer.",
+    verdict: "weaker",
+    explanation: "The same tool can give a sharp answer once it knows what the text is for, who will read it and what it must contain. A newer model can't guess facts you never gave it.",
+  },
+  {
+    id: "b",
+    label: "The request left out what it was for, who it was for, and what it needed.",
+    verdict: "correct",
+    explanation: "A model fills gaps with the most typical text. If the brief has no purpose, context or criteria, typical is what you get.",
+  },
+  {
+    id: "c",
+    label: "The task needs creativity, which AI tools can't really help with.",
+    verdict: "weaker",
+    explanation: "Creative tasks often go well with a clear brief. Generic output usually means generic instructions.",
+  },
+];
+
+/**
+ * M03 — The Briefing Studio.
+ * All cases are fictional. Outputs are authored per brief element and labelled as such in the interface.
+ */
+export const m03: Mission = {
+  id: "m03-briefing",
+  title: "The Briefing Studio",
+  outcome: "Give AI a clear objective, the context it needs, constraints and criteria, and judge the response against those criteria.",
+  scenario:
+    "You help Priya, the Homework Club coordinator at the Riverside Learning Commons, a fictional community learning centre. Eight new volunteers start on Saturday, and Priya has asked you to get the AI tool to draft their welcome email. Her first attempt didn't go well.",
+  approxMinutes: 12,
+  meta: {
+    version: "1.0",
+    reviewedOn: "2026-11-03",
+    reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
+    sourcesToReview: ["Outputs are authored, not generated; keep the label in the interface if the studio ever connects to a live model."],
+  },
+  steps: [
+    {
+      kind: "brief",
+      id: "brief",
+      title: "Your task",
+      body: "Improve a vague brief one element at a time, compare what each change does, and check the result against Priya's criteria.",
+    },
+    {
+      kind: "refresher",
+      id: "refresher",
+      title: "A quick refresher",
+      body: "A language model continues text with what is most typical for the words it is given. It doesn't know your situation unless you tell it. A useful brief says what you want (objective), what it needs to know (context), what it must include (criteria), and limits such as length or style (constraints). Facts it needs, like dates, should come from you, not from the model.",
+    },
+    {
+      kind: "initialJudgment",
+      id: "initial",
+      prompt: causeQuestion,
+      choices: causeChoices,
+    },
+    {
+      kind: "compose",
+      id: "studio",
+      title: "Fix the brief",
+      intro: "Priya's brief is on the left, with each part set to what she wrote. Change one part at a time, run it, and compare the new response with the previous one.",
+      compose: {
+        workspaceLabel: "The brief",
+        outputLabel: "The AI's response",
+        oneAtATime: true,
+        start: { objective: "vague", context: "none", criteria: "none", constraints: "none" },
+        elements: [
+          {
+            id: "objective",
+            label: "Objective",
+            help: "What you want produced, and what it is for.",
+            options: [
+              { id: "vague", label: "Write something about volunteering.", output: "Volunteering is one of the most rewarding ways to give back. Across the country, millions of people give their time to causes they care about, and studies suggest it can improve wellbeing." },
+              { id: "specific", label: "Write a welcome email to new Homework Club volunteers before their first session.", output: "Subject: Welcome to Homework Club!\nDear volunteer, welcome to Homework Club at the Riverside Learning Commons. We're delighted you're joining us." },
+            ],
+          },
+          {
+            id: "context",
+            label: "Context",
+            help: "What the AI can't know unless you tell it.",
+            options: [
+              { id: "none", label: "(no context given)", output: "" },
+              { id: "wrong", label: "The readers are experienced teachers who have tutored before.", output: "As experienced teachers, you'll know how to plan a lesson, so we'll leave the structure of each session to you." },
+              { id: "right", label: "The readers are adults, most new to tutoring. The first session is Saturday 9 November, 10:00, in Room 2.", output: "Your first session is on Saturday 9 November at 10:00 in Room 2. Most of our volunteers are new to tutoring, so there's nothing to plan: you'll be paired with a learner and a regular volunteer." },
+            ],
+          },
+          {
+            id: "criteria",
+            label: "What it must include",
+            help: "The things a reader needs, which you can check afterwards.",
+            options: [
+              { id: "none", label: "(no requirements given)", output: "" },
+              { id: "vague", label: "Make it engaging.", output: "\nGet ready for an amazing journey of learning and growth! Every Saturday is a new adventure, and we can't wait to see the magic you'll bring." },
+              { id: "right", label: "Say what to bring (photo ID for the sign-in desk), who to ask for (Priya), and how to cancel (text 07700 900123).", output: "\nPlease bring photo ID for the sign-in desk, and ask for Priya when you arrive. If you can't make it, text 07700 900123 by Friday evening." },
+            ],
+          },
+          {
+            id: "constraints",
+            label: "Length and style",
+            help: "Limits on form, such as length, tone or format.",
+            options: [
+              { id: "none", label: "(no constraints given)", output: "\nVolunteering also builds skills for your CV, helps you meet new people and connects you with your community. Many volunteers say it is the highlight of their week. Whatever brought you here, we hope you find it as rewarding as so many others have, and that you'll stay with us for many terms to come. Thank you again for choosing to give your time." },
+              { id: "formal", label: "Formal register, as an official letter.", output: "\nWe thank you for your esteemed commitment to our institution.\nYours faithfully,\nThe Management" },
+              { id: "short", label: "Under 120 words, plain and friendly.", output: "\nThank you for giving your time. See you on Saturday!\nPriya, Homework Club coordinator" },
+            ],
+          },
+        ],
+        rounds: [
+          {
+            id: "welcome",
+            title: "Priya's welcome email",
+            instruction: "Priya's criteria are in the checklist. Get a response that meets all four, and use the checklist to judge each version you run.",
+            criteria: [
+              { id: "audience", text: "It is written to new Homework Club volunteers.", requires: { objective: ["specific"] } },
+              { id: "details", text: "It gives the right date, time and room, and suits people new to tutoring.", requires: { context: ["right"] } },
+              { id: "practical", text: "It says what to bring, who to ask for and how to cancel.", requires: { criteria: ["right"] } },
+              { id: "plain", text: "It is short, plain and friendly.", requires: { constraints: ["short"] } },
+            ],
+            solution: { objective: "specific", context: "right", criteria: "right", constraints: "short" },
+            success: "Each criterion was met by the part of the brief that addressed it. Notice the version with the teachers' context: a fluent response to the wrong context is still wrong, and only you could tell.",
+          },
+        ],
+      },
+    },
+    {
+      kind: "sort",
+      id: "next-step",
+      prompt: "A better brief isn't always the answer. For each situation, choose the most useful next step.",
+      chooseLabel: "Choose a next step",
+      hints: [{ text: "Ask yourself: is the problem what I told the AI, a fact that needs a source, or something I was never told?" }],
+      categories: [
+        { id: "brief", label: "Improve the brief" },
+        { id: "evidence", label: "Find evidence" },
+        { id: "clarify", label: "Ask a clarifying question" },
+      ],
+      items: [
+        { id: "deadline", label: "The AI's summary of the funding rules is fluent, but you must quote the exact deadline to applicants.", categoryId: "evidence", explanation: "The brief isn't the problem. A deadline you will quote has to come from the funder's own document." },
+        { id: "bullets", label: "The output is a 600-word essay. You needed three bullet points for a slide.", categoryId: "brief", explanation: "You never stated the format. Say it in the brief." },
+        { id: "note", label: "Your manager asked for “a quick note to parents”, and you don't know if it's about the closure or the new timetable.", categoryId: "clarify", explanation: "No brief can fix a purpose you don't know. Ask the person who asked." },
+        { id: "hours", label: "The AI's poster has the wrong opening hours, and you didn't include the hours in your brief.", categoryId: "brief", explanation: "It can't know facts you didn't give it. Put the hours in the brief." },
+        { id: "grant", label: "The AI says a grant “typically” covers 80% of costs, and your budget depends on that figure.", categoryId: "evidence", explanation: "A figure a decision rests on needs a source. Asking again would only get you more generated text." },
+        { id: "leaflet", label: "The draft leaflet is aimed at teenagers, but you were never told who it is for.", categoryId: "clarify", explanation: "The audience is a fact about the job, not something to guess. Ask before rewriting." },
+      ],
+    },
+    {
+      kind: "quiz",
+      id: "parents",
+      prompt: "Priya likes the email and asks: “Can it go to the volunteers' parents too? Two of them are under 18.” What should you change?",
+      choices: [
+        { id: "a", label: "Nothing, since a brief that works well should work for any reader.", verdict: "weaker", explanation: "A brief works for the reader it describes. Parents need different information, such as safeguarding and pick-up details." },
+        { id: "b", label: "The audience and its must-haves: parents need other details.", verdict: "correct", explanation: "A new reader changes the context and the criteria. Update those, then check the new response against the new criteria." },
+        { id: "c", label: "Send it as it is, adding one line at the top that addresses parents.", verdict: "weaker", explanation: "A line at the top doesn't give parents what they need to know, and the rest still speaks to someone else." },
+      ],
+      hints: [{ text: "Which parts of the brief describe the reader and what the reader needs?" }],
+    },
+    {
+      kind: "revision",
+      id: "revision",
+      initialStepId: "initial",
+      prompt: `Having worked on the brief, answer the first question again. ${causeQuestion}`,
+      choices: causeChoices,
+      withConfidence: true,
+    },
+    {
+      kind: "transfer",
+      id: "transfer-studio",
+      title: "A new brief",
+      prompt:
+        "The Commons' repair café is changing its hours. Build a brief for a noticeboard notice. This time there is no guidance on each part, and you can change as many parts as you like between runs.",
+      compose: {
+        workspaceLabel: "The brief",
+        outputLabel: "The AI's response",
+        support: "independent",
+        start: { objective: "vague", context: "none", criteria: "none", constraints: "none" },
+        elements: [
+          {
+            id: "objective",
+            label: "Objective",
+            help: "",
+            options: [
+              { id: "vague", label: "Write about the repair café.", output: "Repair cafés are community events where people fix broken items together, reducing waste and sharing skills." },
+              { id: "specific", label: "Write a noticeboard notice announcing the repair café's new hours.", output: "NEW HOURS: Riverside Repair Café." },
+            ],
+          },
+          {
+            id: "context",
+            label: "Context",
+            help: "",
+            options: [
+              { id: "none", label: "(no context given)", output: "" },
+              { id: "old", label: "It runs every Thursday evening, as it always has.", output: "Every Thursday evening, as always." },
+              { id: "right", label: "From January, it runs on the first Saturday of each month, 10:00–13:00, in the Workshop, instead of Thursday evenings.", output: "From January: first Saturday of every month, 10:00–13:00, in the Workshop. No more Thursday evenings." },
+            ],
+          },
+          {
+            id: "criteria",
+            label: "What it must include",
+            help: "",
+            options: [
+              { id: "none", label: "(no requirements given)", output: "" },
+              { id: "vague", label: "Make it eye-catching.", output: "Don't miss out on the FIXING FUN!!!" },
+              { id: "right", label: "Say what can be repaired (small electricals, bikes and clothes) and that it is free.", output: "Bring small electricals, bikes and clothes. Free." },
+            ],
+          },
+          {
+            id: "constraints",
+            label: "Length and style",
+            help: "",
+            options: [
+              { id: "none", label: "(no constraints given)", output: "\nThe repair café movement began in Amsterdam in 2009 and has spread around the world. Volunteers share their knowledge, and visitors learn to fix things themselves, which keeps useful items out of landfill." },
+              { id: "long", label: "Detailed, including the café's history.", output: "\nOur café was founded by volunteers several years ago and has grown steadily, with many repairs completed and many friendships formed along the way." },
+              { id: "short", label: "Under 60 words, in short lines that are easy to read from a distance.", output: "" },
+            ],
+          },
+        ],
+        rounds: [
+          {
+            id: "notice",
+            title: "The repair café notice",
+            instruction: "Get a notice that meets all four criteria, then judge it with the checklist.",
+            criteria: [
+              { id: "purpose", text: "It is a notice about the new hours.", requires: { objective: ["specific"] } },
+              { id: "hours", text: "It gives the new day, time and place.", requires: { context: ["right"] } },
+              { id: "what", text: "It says what can be repaired, and that it is free.", requires: { criteria: ["right"] } },
+              { id: "short", text: "It is short and easy to read from a distance.", requires: { constraints: ["short"] } },
+            ],
+            solution: { objective: "specific", context: "right", criteria: "right", constraints: "short" },
+            success: "The notice works because every fact in it came from you, and every requirement was stated and then checked.",
+          },
+        ],
+      },
+    },
+    {
+      kind: "openResponse",
+      id: "write-brief",
+      prompt:
+        "Priya wants the AI tool to draft Homework Club's end-of-term report for the board. Write the brief you would give it.",
+      rubric: {
+        samples: [
+          { id: "weak", text: "Write a report about Homework Club this term. Make it good.", met: ["objective"], note: "It names the task, but the AI would have to invent the facts, the reader and what counts as good." },
+          {
+            id: "strong",
+            text: "Draft a one-page end-of-term report on Homework Club for the Commons' board, who decide its funding. Use only these figures: 14 sessions, an average of 31 learners, 9 volunteers. It must cover attendance, one problem we faced, and what we need next term. Plain language, headings, no more than 300 words.",
+            met: ["objective", "context", "criteria", "constraints"],
+            note: "Purpose, reader, the facts to use, what it must cover and limits on form are all there, so the response can be checked.",
+          },
+        ],
+        criteria: [
+          { id: "objective", text: "Says what to produce and what it is for." },
+          { id: "context", text: "Gives the reader and the facts to use, rather than leaving the AI to supply them." },
+          { id: "criteria", text: "States what it must include, in a way that can be checked." },
+          { id: "constraints", text: "Sets limits such as length, format or tone." },
+        ],
+        examples: [
+          "Write a short report for the board on Homework Club's autumn term. The board decides next year's funding. Use these facts only: 14 sessions, average attendance 31, 9 volunteers, and the room was double-booked twice. Cover what went well, one problem and one request. Under 300 words, plain English.",
+          "Objective: an end-of-term update for board members. Context: here are the attendance numbers and volunteer hours [attached]; don't add other figures. It must include a recommendation about a second session. Format: three short sections with headings, one page.",
+        ],
+      },
+    },
+    {
+      kind: "debrief",
+      id: "debrief",
+      takeaway: "Tell AI what you want, who it is for, the facts it needs and how you will judge it. Then judge it that way.",
+      skills: [
+        {
+          id: "one-element",
+          label: "Improving a brief one element at a time",
+          kind: "action",
+          items: ["studio/welcome"],
+          practice: {
+            prompt: "Your brief for a job advert gives the role and the hours, but the response invents a salary. What should you change first?",
+            choices: [
+              { id: "a", label: "Add the real salary, or tell it not to mention pay.", verdict: "correct", explanation: "The model filled a gap with a typical figure. Supply the fact, or rule it out." },
+              { id: "b", label: "Ask it to be more accurate and to stop inventing anything.", verdict: "weaker", explanation: "It doesn't know which details are invented. Without the real figure, it can only guess again." },
+              { id: "c", label: "Make the brief shorter, so it has less room to invent.", verdict: "weaker", explanation: "Shorter briefs leave more gaps, and gaps are what it fills with typical text." },
+            ],
+          },
+        },
+        {
+          id: "check-criteria",
+          label: "Judging a response against stated criteria",
+          kind: "action",
+          items: ["studio/welcome/checklist", "transfer-studio/notice/checklist"],
+        },
+        {
+          id: "next-step",
+          label: "Choosing between a better brief, evidence and a question",
+          kind: "knowledge",
+          items: ["next-step/deadline", "next-step/bullets", "next-step/note", "next-step/hours", "next-step/grant", "next-step/leaflet"],
+          practice: {
+            prompt: "The AI drafts a reply to a customer quoting a refund policy. You aren't sure the policy it describes is yours. What next?",
+            choices: [
+              { id: "a", label: "Rewrite the brief and ask it to describe the policy more carefully.", verdict: "weaker", explanation: "A better brief won't make it know your policy. Its description is still generated text." },
+              { id: "b", label: "Check the wording against your actual refund policy.", verdict: "correct", explanation: "The question is about a fact, so the answer is a source. Better still, put the policy in the brief next time." },
+              { id: "c", label: "Ask the customer what refund they were expecting.", verdict: "weaker", explanation: "The customer can't tell you what your policy says. That is your document to check." },
+            ],
+          },
+        },
+        {
+          id: "audience",
+          label: "Updating a brief when the reader changes",
+          kind: "knowledge",
+          items: ["parents", "revision"],
+        },
+        {
+          id: "new-brief",
+          label: "Building a brief for a new task without guidance",
+          kind: "transfer",
+          items: ["transfer-studio/notice", "transfer-studio/notice/checklist"],
+        },
+        {
+          id: "write-brief",
+          label: "Writing a complete brief in your own words",
+          kind: "reasoning",
+          items: ["write-brief"],
+        },
+      ],
+      nextMissionId: "b01-faq",
+    },
+  ],
+};
