@@ -8,7 +8,10 @@ test('collection is restricted to production canonical hosts and valid IDs', () 
  assert.equal(enabled(undefined,true,'ai-pathfinder.eu'),false);
 });
 test('URLs exclude query strings and fragments', () => assert.equal(safeLocation('https://guard.ai-pathfinder.eu/lab/demo?key=secret#answer'),'https://guard.ai-pathfinder.eu/lab/demo'));
-test('consent requires an exact affirmative cookie', () => {
+test('analytics defaults to enabled without a saved preference', () => {
+ for (const value of ['', 'other=yes', 'not_pf_analytics=no']) assert.equal(readConsent(value),true);
+});
+test('saved analytics preferences are honored with exact cookie matching', () => {
  assert.equal(readConsent('other=yes; pf_analytics=yes'),true);
- for (const value of ['', 'pf_analytics=no', 'not_pf_analytics=yes']) assert.equal(readConsent(value),false);
+ for (const value of ['pf_analytics=no', 'other=yes; pf_analytics=no; another=yes', 'pf_analytics=', 'pf_analytics=invalid', 'pf_analytics=yesterday']) assert.equal(readConsent(value),false);
 });

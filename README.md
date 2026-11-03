@@ -23,7 +23,7 @@ The canonical emblem is `pathfinder-refined.svg` at the workspace root. After ch
 
 Edit product URLs/status in `packages/brand/products.ts`. Navigation uses canonical production URLs so previews never silently switch products to unrelated preview deployments. SAGE retains Nextra and Pagefind; GUARD retains its runtime functions; ARTISAN retains its in-memory learning state.
 
-See [deployment and analytics cutover](docs/cutover.md) before changing live hosting. Analytics is disabled unless a production Netlify context and a measurement ID are supplied, the host is canonical, and the visitor has consented.
+See [deployment and analytics cutover](docs/cutover.md) before changing live hosting. Analytics defaults to enabled only with a production Netlify context, a measurement ID, and a canonical host. Saved `pf_analytics=no` preferences remain respected. Pages retain the main funding footer without an analytics preferences footer.
 
 ## Maintenance
 

@@ -2,7 +2,7 @@
 
 An interactive website for learning to think better with AI. See `ARTISAN-PRD.md` for the product scope.
 
-There are no accounts or database. Optional project analytics loads only after consent in production. Every route is prerendered, and learner state lives in memory for the active visit only. Mission passwords are static lookups that open a mission at its start.
+There are no accounts or database. Project analytics defaults to enabled on the canonical production host when configured, while honoring saved analytics declines. Every route is prerendered, and learner state lives in memory for the active visit only. Mission passwords are static lookups that open a mission at its start.
 
 ## Running it
 

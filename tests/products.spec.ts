@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 for (const [i,app] of ['pathfinder','sage','guard','artisan'].entries()) {
- test(`${app} has the intended navigation and stores consent without preview collection`, async ({ page }) => {
+ test(`${app} keeps navigation and funding footer without analytics preferences or preview collection`, async ({ page, context }) => {
   const tracking: string[] = [];
   page.on('request', req => { if (/googletagmanager|google-analytics/.test(req.url())) tracking.push(req.url()); });
   await page.goto(`http://localhost:${3200+i}`);
@@ -17,12 +17,20 @@ for (const [i,app] of ['pathfinder','sage','guard','artisan'].entries()) {
     const response = await page.request.get(`http://localhost:${3200+i}${asset}`);
     expect(response.ok()).toBe(true);
   }
-  await expect(page.getByRole('button',{name:'Decline analytics'})).toBeVisible();
-  await page.getByRole('button',{name:'Decline analytics'}).click();
+  const footer = page.locator('footer.pf-footer');
+  await expect(footer).toBeVisible();
+  await expect(footer).toContainText('Funded by the European Union.');
+  await expect(footer).toContainText('Neither the European Union nor EACEA can be held responsible for them.');
+  await expect(footer.getByRole('img',{name:'Funded by the European Union'})).toBeVisible();
+  await expect(page.locator('.pf-consent')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:/analytics/i})).toHaveCount(0);
+  expect((await context.cookies()).find(cookie => cookie.name === 'pf_analytics')).toBeUndefined();
+  await context.addCookies(['pf_analytics','_ga','_ga_TEST123'].map(name => ({name,value:name === 'pf_analytics' ? 'no' : 'existing-client',url:`http://localhost:${3200+i}`})));
   await page.reload();
-  await expect(page.getByRole('button',{name:'Analytics preferences'})).toBeVisible();
-  await page.getByRole('button',{name:'Analytics preferences'}).click();
-  await page.getByRole('button',{name:'Allow analytics'}).click();
+  await expect(footer).toBeVisible();
+  await expect(page.getByRole('button',{name:/analytics/i})).toHaveCount(0);
+  expect((await context.cookies()).find(cookie => cookie.name === 'pf_analytics')?.value).toBe('no');
+  await expect.poll(async () => (await context.cookies()).filter(cookie => cookie.name === '_ga' || cookie.name.startsWith('_ga_'))).toEqual([]);
   expect(tracking).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
  });
