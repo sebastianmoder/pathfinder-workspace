@@ -1,4 +1,5 @@
 [build]
+  ignore = "node ./scripts/netlify-ignore.mjs pathfinder"
   command = "pnpm --filter @pathfinder/pathfinder build"
   publish = "apps/pathfinder/.next"
 

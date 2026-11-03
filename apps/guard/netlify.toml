@@ -1,4 +1,5 @@
 [build]
+  ignore = "node ./scripts/netlify-ignore.mjs guard"
   command = "pnpm --filter @pathfinder/guard build"
   publish = "apps/guard/.next"
 

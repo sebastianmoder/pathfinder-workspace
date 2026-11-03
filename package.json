@@ -14,7 +14,7 @@
     "build": "pnpm --filter \"./apps/*\" --workspace-concurrency=1 -r build",
     "lint": "eslint packages tests playwright.config.ts && pnpm --filter \"./apps/*\" --if-present -r lint",
     "typecheck": "pnpm --filter \"./apps/*\" --if-present -r typecheck",
-    "test": "node --test packages/analytics/policy.test.mjs && pnpm --filter @pathfinder/artisan test",
+    "test": "node --test packages/analytics/policy.test.mjs scripts/netlify-ignore.test.mjs && pnpm --filter @pathfinder/artisan test",
     "test:e2e": "pnpm --filter @pathfinder/artisan test:e2e",
     "test:smoke": "playwright test",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"

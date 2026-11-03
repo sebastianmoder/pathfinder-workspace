@@ -8,7 +8,9 @@ Create a GitHub repository for this workspace and push its full history. Do not 
 
 ## Netlify
 
-Reconnect the existing sites individually to the new repository, retaining domains. Base directory: repository root (unset). Package directories: `apps/pathfinder`, `apps/sage`, `apps/guard`, `apps/artisan`, respectively. Each package contains netlify.toml with a root-relative filtered build command and publish directory. Do not set base to the app: workspace dependencies require the root installation. Set production branch to main and enable deploy previews. Do not add build-ignore rules yet: shared changes must deploy all consumers.
+Reconnect the existing sites individually to the new repository, retaining domains. Base directory: repository root (unset). Package directories: `apps/pathfinder`, `apps/sage`, `apps/guard`, `apps/artisan`, respectively. Each package contains netlify.toml with a root-relative filtered build command and publish directory. Do not set base to the app: workspace dependencies require the root installation. Set production branch to main and enable deploy previews.
+
+Each site's `build.ignore` command runs `scripts/netlify-ignore.mjs` before dependency installation. App-only changes rebuild that app, including GUARD functions and SAGE content. Changes to shared packages, scripts, root build settings, any app's dependency manifest or workspace patches rebuild all four apps. Only changes in other known apps, `docs/`, or root Markdown files can be skipped; unknown paths conservatively rebuild all sites. The script compares `CACHED_COMMIT_REF` with `COMMIT_REF` so changes since the last cached build are included. Missing or invalid history and equal refs (including cache-cleared rebuilds) always allow a build. Netlify build hooks bypass ignore rules. Regression checks run as part of `pnpm test`.
 
 | App | Canonical hostname | Environment |
 | --- | --- | --- |
