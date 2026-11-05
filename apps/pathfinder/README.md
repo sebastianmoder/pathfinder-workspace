@@ -34,7 +34,7 @@ Project reference:
 | Output  | Full name                                                                 | Audience               | Status       | Location                         |
 | ------- | ------------------------------------------------------------------------- | ---------------------- | ------------ | -------------------------------- |
 | SAGE    | Strategies for AI-Guided Education                                        | Educators              | Live         | <https://sage.ai-pathfinder.eu>  |
-| GUARD   | Generative Universal Assistant for Resourceful Development                | Educators              | Beta testing | <https://guard.ai-pathfinder.eu> |
+| GUARD   | Generative Universal Assistant for Resourceful Development                | Educators              | Live         | <https://guard.ai-pathfinder.eu> |
 | ARTISAN | AI Readiness Training for Insightful Systematic Adaptation and Navigation | Educators and students | Coming soon  | `/artisan`                       |
 
 SAGE provides a strategic framework for responsible AI integration in higher
@@ -75,7 +75,7 @@ Useful local routes:
 - `/` - homepage, project objective, deliverables, full consortium profiles and links at `/#consortium`
 - `/about` - permanent redirect to `/#consortium`
 - `/sage` - SAGE overview page, with a link to the live SAGE subdomain
-- `/guard` - GUARD overview page, with a link to the beta subdomain
+- `/guard` - GUARD overview page, with a link to the live application
 - `/artisan` - ARTISAN coming-soon page
 
 ## Scripts

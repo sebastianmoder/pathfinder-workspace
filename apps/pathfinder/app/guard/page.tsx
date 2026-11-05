@@ -12,15 +12,15 @@ export default function Guard() {
             bottom="Generative Universal Assistant for Resourceful Development"
           />
           <div className="mb-8 flex flex-wrap gap-2">
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
-              Status: Beta testing
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800">
+              Status: {products[2].status}
             </span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
               For: Educators
             </span>
           </div>
           <p className="mb-8">
-            GUARD is now open for beta testing at{" "}
+            GUARD is now live at{" "}
             <a
               href={products[2].url}
               target="_blank"
@@ -28,8 +28,7 @@ export default function Guard() {
               className="font-semibold text-eu-blue hover:underline">
               guard.ai-pathfinder.eu
             </a>
-            . Please expect errors during this testing phase. Updates will be published
-            on this Pathfinder website.
+            . Updates will be published on this Pathfinder website.
           </p>
           <p className="mb-8">
             GUARD is an AI assistant for educators. It is designed to help
