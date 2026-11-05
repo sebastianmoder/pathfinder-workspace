@@ -49,8 +49,7 @@ readiness learning journey for educators and students.
 - [TypeScript](https://www.typescriptlang.org/) with strict mode enabled
 - [Tailwind CSS](https://tailwindcss.com/) for layout and project styling
 - [Material UI](https://mui.com/) for existing form controls; shared Pathfinder navigation
-- [next-sitemap](https://github.com/iamvishnusankar/next-sitemap) for sitemap
-  and robots generation
+- Next.js App Router metadata routes for sitemap and robots generation
 
 ## Getting Started
 
@@ -87,8 +86,8 @@ Useful local routes:
 | `pnpm run build` | Create a production build and regenerate sitemap output. |
 | `pnpm run start` | Run the production server after a successful build.      |
 
-`pnpm run build` also runs the `postbuild` script, which calls
-`next-sitemap`.
+`pnpm run build` prerenders `/sitemap.xml` and `/robots.txt` from the App Router
+metadata routes, ready for Netlify's existing `.next` publish directory.
 
 ## Project Structure
 
@@ -99,6 +98,8 @@ app/
   sage/page.tsx     SAGE overview page
   guard/page.tsx    GUARD overview page
   artisan/page.tsx  ARTISAN overview page
+  sitemap.ts       Sitemap generated during the build
+  robots.ts        Crawler rules and sitemap URL
 
 components/
   Navigation.tsx    Responsive top navigation
@@ -111,7 +112,6 @@ components/
 public/
   images/           Project, partner, and EU funding images
 
-next-sitemap.config.js
 netlify.toml
 tailwind.config.ts
 tsconfig.json
@@ -125,7 +125,7 @@ elements live in `components/`. Static assets should be placed under
 `/images/pathfinder.png`.
 
 When adding, renaming, or removing routes, update the navigation if needed and
-run a production build so generated SEO files stay in sync.
+update `app/sitemap.ts` and run a production build so the sitemap stays in sync.
 
 Before opening a pull request, verify:
 
@@ -139,13 +139,10 @@ For UI changes, manually check the main routes: `/`, `/about`, `/guard`,
 
 ## Deployment and SEO
 
-The production site is configured around `https://ai-pathfinder.eu`. The sitemap
-configuration uses `SITE_URL` when provided and falls back to that production
-domain:
-
-```bash
-SITE_URL=https://ai-pathfinder.eu pnpm run build
-```
+The sitemap and robots routes use the canonical production URL from
+`packages/brand/products.ts`, including in deploy previews. The sitemap lists
+the homepage and the SAGE, GUARD and ARTISAN overview pages. `/about` redirects
+to the homepage and is omitted. No `SITE_URL` environment variable is needed.
 
 `netlify.toml` contains a redirect from the previous Netlify URL to the
 production domain. Keep this redirect in place unless the deployment target

@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `app/` contains Next.js App Router pages and route segments (`about/`, `guard/`, `artisan/`, `sage/`), plus global layout and styles.
 - `components/` holds reusable UI pieces, with focused subfolders like `components/forms/` and `components/svg/`.
-- `public/` stores static assets and generated SEO files (`public/sitemap.xml`, `public/robots.txt`, image assets).
+- `public/` stores static assets. `app/sitemap.ts` and `app/robots.ts` generate SEO routes during the Next.js build.
 - Root-level config files (`next.config.js`, `tailwind.config.ts`, `tsconfig.json`, `.eslintrc.json`, `.prettierrc`) define runtime and code quality behavior.
 
 ## Build, Test, and Development Commands
@@ -11,7 +11,7 @@
 - `npm run lint`: run ESLint with Next.js core web vitals rules.
 - `npm run build`: create a production build.
 - `npm run start`: run the production server after a successful build.
-- `npm run build` also triggers `postbuild` (`next-sitemap`) to regenerate sitemap output.
+- `npm run build` prerenders `/sitemap.xml` and `/robots.txt` from App Router metadata routes.
 
 ## Coding Style & Naming Conventions
 - Use TypeScript with `strict` mode enabled; keep types explicit and avoid `any` unless necessary.

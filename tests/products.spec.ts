@@ -1,12 +1,17 @@
 import { test, expect } from '@playwright/test';
+import { readFile, readdir } from 'node:fs/promises';
 
-for (const [app, port, contentPath] of [
- ['guard', 3202, '/lab/activity-planning'],
- ['artisan', 3203, '/missions/m01-foundations'],
+for (const [app, port, canonical, contentPath] of [
+ ['pathfinder', 3200, 'https://ai-pathfinder.eu', '/sage'],
+ ['sage', 3201, 'https://sage.ai-pathfinder.eu', '/teaching/feedback'],
+ ['guard', 3202, 'https://guard.ai-pathfinder.eu', '/lab/activity-planning'],
+ ['artisan', 3203, 'https://artisan.ai-pathfinder.eu', '/missions/m01-foundations'],
 ] as const) {
  test(`${app} production build serves its sitemap and advertises it to crawlers`, async ({ request }) => {
   const origin = `http://localhost:${port}`;
-  const canonical = `https://${app}.ai-pathfinder.eu`;
+  const manifest = JSON.parse(await readFile(`apps/${app}/.next/prerender-manifest.json`, 'utf8'));
+  expect(manifest.routes['/sitemap.xml']).toBeDefined();
+  expect(manifest.routes['/robots.txt']).toBeDefined();
   const response = await request.get(`${origin}/sitemap.xml`);
   expect(response.status()).toBe(200);
   expect(response.headers()['content-type']).toContain('application/xml');
@@ -19,11 +24,23 @@ for (const [app, port, contentPath] of [
   for (const location of locations) {
    const url = new URL(location);
    expect(url.origin).toBe(canonical);
+   expect(url.pathname).not.toMatch(/\.(svg|png|ico|xml|txt)$|^\/_pagefind\//);
    expect((await request.get(`${origin}${url.pathname}`)).status()).toBe(200);
   }
   const robots = await request.get(`${origin}/robots.txt`);
   expect(robots.status()).toBe(200);
   expect(await robots.text()).toContain(`Sitemap: ${canonical}/sitemap.xml`);
+  if (app === 'sage') {
+   const files = await readdir('apps/sage/content', { recursive: true });
+   const published = files.filter(file => /\.mdx?$/.test(file)).map(file => {
+    const path = file.replace(/(^|\/)index\.mdx?$/, '').replace(/\.mdx?$/, '');
+    return path ? `${canonical}/${path.split('/').map(encodeURIComponent).join('/')}` : canonical;
+   });
+   expect([...locations].sort()).toEqual(published.sort());
+   for (const draft of ['/aitools', '/casereports', '/teachertraining', '/students/promptathon', '/teaching/admin_work']) {
+    expect(locations).not.toContain(`${canonical}${draft}`);
+   }
+  }
  });
 }
 for (const [i,app] of ['pathfinder','sage','guard','artisan'].entries()) {

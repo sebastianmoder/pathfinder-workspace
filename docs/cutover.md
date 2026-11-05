@@ -14,8 +14,8 @@ Each site's `build.ignore` command runs `scripts/netlify-ignore.mjs` before depe
 
 | App | Canonical hostname | Environment |
 | --- | --- | --- |
-| Pathfinder | ai-pathfinder.eu | SITE_URL (optional sitemap override), analytics below |
-| SAGE | sage.ai-pathfinder.eu | SITE_URL (optional sitemap override), analytics below |
+| Pathfinder | ai-pathfinder.eu | analytics below |
+| SAGE | sage.ai-pathfinder.eu | analytics below |
 | GUARD | guard.ai-pathfinder.eu | OPENROUTER_API_KEY; CHAT_JOB_SIGNING_SECRET shared between Next functions and chat-worker, Functions scope; analytics below |
 | ARTISAN | artisan.ai-pathfinder.eu | analytics below |
 
@@ -23,7 +23,7 @@ Netlify supplies CONTEXT. Set NEXT_PUBLIC_GA_MEASUREMENT_ID only in production b
 
 GUARD functions directory is root-relative `apps/guard/netlify/functions`. Verify chat-worker and hourly cleanup-chat-jobs appear in the deployed function inventory; complete a real hosted chat, upload, resume history and check expiry cleanup. Check that all secrets retain their scopes. Local streaming alone does not validate hosted background jobs.
 
-GUARD and ARTISAN generate `/sitemap.xml` and `/robots.txt` during `next build` using App Router metadata routes. Netlify's Next.js adapter publishes these from the existing `.next` output; no postbuild copy step is needed. URLs come from `packages/brand/products.ts`, including in deploy previews. GUARD lists its home and lab pages; ARTISAN lists its home, start, map, continue and mission pages. Personal history, settings and session summaries are omitted. After deployment, verify `https://guard.ai-pathfinder.eu/sitemap.xml` and `https://artisan.ai-pathfinder.eu/sitemap.xml` return XML and each site's `/robots.txt` advertises its sitemap.
+All four apps generate `/sitemap.xml` and `/robots.txt` during `next build` using App Router metadata routes. Netlify's Next.js adapter publishes these from the existing `.next` output; no postbuild copy step is needed. URLs come from `packages/brand/products.ts`, including in deploy previews; `SITE_URL` is no longer used. Pathfinder lists its home and product overview pages. SAGE enumerates published MDX routes with Nextra's `generateStaticParamsFor`, the same registry used by its catch-all page; drafts outside `content/` and static assets are omitted automatically. GUARD lists its home and lab pages; ARTISAN lists its home, start, map, continue and mission pages. Personal history, settings and session summaries are omitted. After deployment, verify `/sitemap.xml` returns XML on all four canonical hosts and each site's `/robots.txt` advertises its sitemap. SAGE's Pagefind search index still runs separately in `postbuild`.
 
 ## GA4
 

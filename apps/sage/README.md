@@ -56,7 +56,7 @@ This project uses:
 - MDX content stored in `content/`.
 - Tailwind CSS and global CSS for styling.
 - Pagefind for static search indexing.
-- `next-sitemap` for sitemap and `robots.txt` generation.
+- Next.js App Router metadata routes for sitemap and `robots.txt` generation.
 
 ## Repository Structure
 
@@ -65,11 +65,10 @@ app/                       Next.js App Router layout and Nextra catch-all route
 components/                Shared React components
 content/                   Published MDX pages and navigation metadata
 drafts/                    Unpublished working content
-public/                    Static assets, generated sitemap, and Pagefind index
+public/                    Static assets and Pagefind index
 styles/                    Global CSS and chat component styles
 mdx-components.js          Nextra MDX component wiring
 next.config.mjs            Next.js and Nextra configuration
-next-sitemap.config.js     Sitemap and robots.txt configuration
 netlify.toml               Netlify redirect configuration
 package.json               Scripts, dependencies, and Node engine range
 ```
@@ -116,10 +115,15 @@ Build the site:
 pnpm build
 ```
 
-This runs the Next.js production build and then runs `postbuild`, which:
+The Next.js build prerenders `/sitemap.xml` and `/robots.txt` using
+`app/sitemap.js` and `app/robots.js`. The sitemap reads the same published
+content registry as the Nextra catch-all page via `generateStaticParamsFor`.
+New published MDX routes are included automatically; files in `drafts/`,
+navigation metadata and image assets are excluded. Netlify publishes these
+routes from the existing `.next` output.
 
-- generates `public/sitemap.xml` and `public/robots.txt` with `next-sitemap`;
-- regenerates the Pagefind search index in `public/_pagefind`.
+The `postbuild` script then regenerates the Pagefind search index in
+`public/_pagefind`.
 
 Serve the production build locally:
 
@@ -157,8 +161,9 @@ quality gate.
 
 ## Configuration Notes
 
-- The canonical site URL defaults to `https://sage.ai-pathfinder.eu`.
-- Set `SITE_URL` to override the sitemap URL during build.
+- Sitemap and robots URLs use the canonical production URL from
+  `packages/brand/products.ts`, including in deploy previews. No `SITE_URL`
+  environment variable is needed.
 - Theme, navbar, sidebar behavior, analytics, banner text, and footer wiring live
   in `app/layout.jsx`.
 - The footer includes the Erasmus+ project link and EU funding declaration.
