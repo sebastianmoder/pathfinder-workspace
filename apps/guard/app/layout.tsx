@@ -7,7 +7,7 @@ import '@pathfinder/brand/styles.css';
 
 
 export const metadata: Metadata = {
-  title: "GUARD - Generative Universal Assistant for Resourceful Development",
+  title: { default: "GUARD | Guided AI Labs", template: "%s | GUARD" },
   description:
     "A learning environment that teaches educators to use AI tools critically and pedagogically through structured, hands-on experimentation.",
 };

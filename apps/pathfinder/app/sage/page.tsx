@@ -1,7 +1,10 @@
 import { products } from '@pathfinder/brand/products';
+import type { Metadata } from "next";
 import React from "react";
 import Headings from "@/components/DoubleHeadings";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "SAGE" };
 
 export default function Sage() {
   return (

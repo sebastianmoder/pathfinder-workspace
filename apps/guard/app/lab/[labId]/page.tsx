@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { LabHeader } from '@/components/layout/LabHeader';
 import { LabWorkspace } from '@/components/lab/LabWorkspace';
@@ -14,6 +15,14 @@ const validLabIds: LabId[] = [
 
 interface LabPageProps {
   params: Promise<{ labId: string }>;
+}
+
+export async function generateMetadata({ params }: LabPageProps): Promise<Metadata> {
+  const { labId } = await params;
+  const labMeta = getLabMeta(labId);
+  if (!labMeta) notFound();
+
+  return { title: labMeta.title };
 }
 
 export default async function LabPage({ params }: LabPageProps) {

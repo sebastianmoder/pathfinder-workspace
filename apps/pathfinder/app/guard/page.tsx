@@ -1,6 +1,9 @@
 import { products } from '@pathfinder/brand/products';
+import type { Metadata } from "next";
 import React from "react";
 import Headings from "@/components/DoubleHeadings";
+
+export const metadata: Metadata = { title: "GUARD" };
 
 export default function Guard() {
   return (

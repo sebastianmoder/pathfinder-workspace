@@ -2,7 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { HistoryList } from "@/components/history/HistoryList";
 
 export const metadata = {
-  title: "Session History | GUARD",
+  title: "Session History",
 };
 
 export default function HistoryPage() {

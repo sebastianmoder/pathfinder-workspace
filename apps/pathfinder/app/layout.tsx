@@ -1,4 +1,5 @@
 import { Analytics } from '@pathfinder/analytics';
+import type { Metadata } from "next";
 import "./globals.css";
 import * as React from "react";
 import Navigation from "@/components/Navigation";
@@ -7,10 +8,9 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import '@pathfinder/brand/styles.css';
 
 
-// export const metadata: Metadata = {
-//   title: "Pathfinder",
-//   description: "An Erasmus+ project for higher education",
-// };
+export const metadata: Metadata = {
+  title: { default: "AI Pathfinder", template: "%s | AI Pathfinder" },
+};
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <meta
           property="og:title"
-          content="Pathfinder"
+          content="AI Pathfinder"
         />
         <meta
           property="og:description"
