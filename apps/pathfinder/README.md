@@ -24,7 +24,7 @@ This website has four main responsibilities:
 - Explain the Pathfinder mission and project context.
 - Present the consortium and participating organizations.
 - Publish the status of the project deliverables.
-- Route visitors to live or upcoming Pathfinder tools and learning resources.
+- Route visitors directly to Pathfinder tools and learning resources.
 
 Project reference:
 [`2023-2-LI01-KA220-HED-000178579`](https://erasmus-plus.ec.europa.eu/projects/search/details/2023-2-LI01-KA220-HED-000178579)
@@ -35,11 +35,10 @@ Project reference:
 | ------- | ------------------------------------------------------------------------- | ---------------------- | ------------ | -------------------------------- |
 | SAGE    | Strategies for AI-Guided Education                                        | Educators              | Live         | <https://sage.ai-pathfinder.eu>  |
 | GUARD   | Generative Universal Assistant for Resourceful Development                | Educators              | Live         | <https://guard.ai-pathfinder.eu> |
-| ARTISAN | AI Readiness Training for Insightful Systematic Adaptation and Navigation | Educators and students | Coming soon  | `/artisan`                       |
+| ARTISAN | AI Readiness Training for Insightful Systematic Adaptation and Navigation | Educators and students | Live         | <https://artisan.ai-pathfinder.eu> |
 
-SAGE provides a strategic framework for responsible AI integration in higher
-education. GUARD is an educator-facing assistant for lesson planning, teaching
-support, and classroom adaptation workflows. ARTISAN is planned as an AI
+SAGE provides practical guidance for responsible AI integration in higher
+education. GUARD offers guided AI labs for educators. ARTISAN is an AI
 readiness learning journey for educators and students.
 
 ## Tech Stack
@@ -73,9 +72,13 @@ Useful local routes:
 
 - `/` - homepage, project objective, deliverables, full consortium profiles and links at `/#consortium`
 - `/about` - permanent redirect to `/#consortium`
-- `/sage` - SAGE overview page, with a link to the live SAGE subdomain
-- `/guard` - GUARD overview page, with a link to the live application
-- `/artisan` - ARTISAN coming-soon page
+- `/sage` - permanent redirect to <https://sage.ai-pathfinder.eu>
+- `/guard` - permanent redirect to <https://guard.ai-pathfinder.eu>
+- `/artisan` - permanent redirect to <https://artisan.ai-pathfinder.eu>
+
+The homepage cards and shared product navigation link directly to these product
+sites. Legacy overview URLs are preserved as HTTP 308 redirects in `next.config.js`;
+their destinations come from `packages/brand/products.ts`.
 
 ## Scripts
 
@@ -95,9 +98,6 @@ metadata routes, ready for Netlify's existing `.next` publish directory.
 app/
   page.tsx          Homepage
   layout.tsx        Root layout, metadata, analytics, navigation, footer
-  sage/page.tsx     SAGE overview page
-  guard/page.tsx    GUARD overview page
-  artisan/page.tsx  ARTISAN overview page
   sitemap.ts       Sitemap generated during the build
   robots.ts        Crawler rules and sitemap URL
 
@@ -113,6 +113,7 @@ public/
   images/           Project, partner, and EU funding images
 
 netlify.toml
+next.config.js     Shared build settings and legacy route redirects
 tailwind.config.ts
 tsconfig.json
 ```
@@ -134,15 +135,15 @@ pnpm run lint
 pnpm run build
 ```
 
-For UI changes, manually check the main routes: `/`, `/about`, `/guard`,
-`/artisan`, and `/sage`.
+For UI changes, manually check `/` and its product links. Verify that `/about`,
+`/guard`, `/artisan`, and `/sage` return permanent redirects to their destinations.
 
 ## Deployment and SEO
 
 The sitemap and robots routes use the canonical production URL from
 `packages/brand/products.ts`, including in deploy previews. The sitemap lists
-the homepage and the SAGE, GUARD and ARTISAN overview pages. `/about` redirects
-to the homepage and is omitted. No `SITE_URL` environment variable is needed.
+only the homepage. The legacy `/about`, `/sage`, `/guard`, and `/artisan` URLs
+redirect permanently and are omitted. No `SITE_URL` environment variable is needed.
 
 `netlify.toml` contains a redirect from the previous Netlify URL to the
 production domain. Keep this redirect in place unless the deployment target

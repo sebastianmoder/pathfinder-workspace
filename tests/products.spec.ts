@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile, readdir } from 'node:fs/promises';
 
 for (const [app, port, canonical, contentPath] of [
- ['pathfinder', 3200, 'https://ai-pathfinder.eu', '/sage'],
+ ['pathfinder', 3200, 'https://ai-pathfinder.eu', ''],
  ['sage', 3201, 'https://sage.ai-pathfinder.eu', '/teaching/feedback'],
  ['guard', 3202, 'https://guard.ai-pathfinder.eu', '/lab/activity-planning'],
  ['artisan', 3203, 'https://artisan.ai-pathfinder.eu', '/missions/m01-foundations'],
@@ -20,6 +20,7 @@ for (const [app, port, canonical, contentPath] of [
   const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
   expect(locations).toContain(canonical);
   expect(locations).toContain(`${canonical}${contentPath}`);
+  if (app === 'pathfinder') expect(locations).toEqual([canonical]);
   expect(new Set(locations).size).toBe(locations.length);
   for (const location of locations) {
    const url = new URL(location);
@@ -43,6 +44,21 @@ for (const [app, port, canonical, contentPath] of [
   }
  });
 }
+
+test('Pathfinder permanently redirects retired pages to their destinations', async ({ request }) => {
+ for (const [path, destination] of [
+  ['/sage', 'https://sage.ai-pathfinder.eu'],
+  ['/guard', 'https://guard.ai-pathfinder.eu'],
+  ['/artisan', 'https://artisan.ai-pathfinder.eu'],
+  ['/about', '/#consortium'],
+ ]) {
+  const response = await request.get(`http://localhost:3200${path}`, { maxRedirects: 0 });
+  expect(response.status()).toBe(308);
+  expect(new URL(response.headers().location, response.url()).href)
+   .toBe(new URL(destination, response.url()).href);
+ }
+});
+
 for (const [i,app] of ['pathfinder','sage','guard','artisan'].entries()) {
  test(`${app} keeps navigation and funding footer without analytics preferences or preview collection`, async ({ page, context }) => {
   const tracking: string[] = [];

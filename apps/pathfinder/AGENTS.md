@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `app/` contains Next.js App Router pages and route segments (`about/`, `guard/`, `artisan/`, `sage/`), plus global layout and styles.
+- `app/` contains the homepage, global layout, styles, and SEO metadata routes. Legacy `/about`, `/guard`, `/artisan`, and `/sage` URLs redirect permanently via `next.config.js`.
 - `components/` holds reusable UI pieces, with focused subfolders like `components/forms/` and `components/svg/`.
 - `public/` stores static assets. `app/sitemap.ts` and `app/robots.ts` generate SEO routes during the Next.js build.
 - Root-level config files (`next.config.js`, `tailwind.config.ts`, `tsconfig.json`, `.eslintrc.json`, `.prettierrc`) define runtime and code quality behavior.
@@ -22,7 +22,7 @@
 ## Testing Guidelines
 - No automated test runner is configured yet (`package.json` has no `test` script).
 - Required verification before PR: run `npm run lint` and `npm run build`.
-- For UI changes, manually validate main routes (`/`, `/about`, `/guard`, `/artisan`, `/sage`).
+- For UI changes, manually validate `/` and its direct product links; verify permanent redirects for `/about`, `/guard`, `/artisan`, and `/sage`.
 - If adding tests, colocate them near source files with `*.test.ts(x)` or `*.spec.ts(x)` naming.
 
 ## Commit & Pull Request Guidelines
