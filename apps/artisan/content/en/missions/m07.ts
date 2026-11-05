@@ -227,6 +227,7 @@ export const m07: Mission = {
       intro: "This is the chart from slide 2, drawn from the register. Change how it is drawn, and see what the same numbers say.",
       chart: {
         claim: "Visits to the digital drop-in have soared since the AI helper arrived in March.",
+        slide: { title: "The digital drop-in in 2026", number: 2 },
         categoryLabel: "Month",
         categories: [
           { id: "oct", label: "Oct" },
@@ -277,6 +278,7 @@ export const m07: Mission = {
       intro: "Slide 5 compares the three branches' drop-ins in the last quarter, and recommends where the next AI helper should go.",
       chart: {
         claim: "Riverside's drop-in reaches far more people than Bramley's or Hollins's, so the next AI helper should go to Riverside.",
+        slide: { title: "Where the next AI helper should go", number: 5 },
         categoryLabel: "Branch",
         categories: [
           { id: "riverside", label: "Riverside" },
@@ -346,8 +348,8 @@ export const m07: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt:
-        "Another slide says: “Online bookings rose by just 10%, so the new booking page made little difference.” The register shows online bookings were 20% of all bookings last year, and 30% this year. Is the slide fair?",
+      prompt: "The register shows online bookings were 20% of all bookings last year, and 30% this year. Is this slide fair?",
+      artefact: { kind: "slide", title: "Online bookings", body: ["Online bookings rose by just 10%, so the new booking page made little difference."], number: 7 },
       choices: [
         { id: "a", label: "Yes: going from 20% to 30% is a rise of 10%.", verdict: "weaker", explanation: "It is a rise of 10 percentage points. Measured from where it started, that is half as much again: a 50% rise. The slide undersells it." },
         { id: "b", label: "No: 20% to 30% is half as much again, a 50% rise.", verdict: "correct", explanation: "Ten percentage points on a starting share of 20% is a 50% rise. Whether the page caused it is a separate question, which the register can't answer." },

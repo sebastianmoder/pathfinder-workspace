@@ -8,7 +8,7 @@ import { citeChoiceId, walk } from "@/lib/dialogue";
 import { evidenceItems } from "@/lib/evidence";
 import { segmentsOf } from "@/lib/mark";
 import { askMachine, goalMet } from "@/lib/sandbox";
-import { DELEGATION_ROLES, PROPOSAL, type AuditSpec, type Choice, type DelegationSpec, type Motif, type Step } from "./types";
+import { DELEGATION_ROLES, PROPOSAL, type Artefact, type AuditSpec, type Choice, type DelegationSpec, type Motif, type Step } from "./types";
 import { bestRole } from "@/lib/delegation";
 import { allMet } from "@/lib/compose";
 import { barsFor, goalMet as chartGoalMet } from "@/lib/chart";
@@ -197,6 +197,29 @@ describe.each(missions)("mission $id", (mission) => {
     for (const [id, cs] of choiceSets(mission)) {
       const ratio = correctLengthRatio(cs);
       if (ratio !== null) expect(ratio, `${id} (correct option ${ratio.toFixed(2)}× the others)`).toBeLessThanOrEqual(1.4);
+    }
+  });
+
+  it("artefacts describe every drawing, and framed outputs place parts that exist", () => {
+    const artefacts: Artefact[] = [];
+    for (const s of mission.steps) {
+      if ("artefact" in s && s.artefact) artefacts.push(s.artefact);
+      if ("casefile" in s) {
+        if (s.casefile.artefact) artefacts.push(s.casefile.artefact);
+        for (const l of s.casefile.leads) if (l.artefact) artefacts.push(l.artefact);
+      }
+      if ("compose" in s && s.compose.frame) {
+        const ids = s.compose.elements.map((e) => e.id);
+        const f = s.compose.frame;
+        for (const id of [f.kind === "poster" ? f.headline : undefined, "image" in f ? f.image : undefined, "footer" in f ? f.footer : undefined]) {
+          if (id) expect(ids, `${s.id}: frame names ${id}`).toContain(id);
+        }
+      }
+    }
+    for (const a of artefacts) {
+      if ((a.kind === "post" || a.kind === "article") && a.scene) expect(a.alt?.trim(), `${a.kind} drawing`).toBeTruthy();
+      if (a.kind === "photo") expect(a.alt.trim()).toBeTruthy();
+      if (a.kind === "chat") expect(a.messages.length).toBeGreaterThan(0);
     }
   });
 

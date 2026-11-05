@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import type { MarkOptions, MarkParagraph } from "@/content/types";
 import { gradeMarks, segmentsOf } from "@/lib/mark";
 import { t } from "@/lib/i18n/en";
+import { MarkShell } from "../artefacts/frames";
 import { ActionBar, useReveal } from "../step-ui";
 
 /**
@@ -18,6 +19,7 @@ export function MarkText({
   continueLabel,
   mode = "find",
   flow,
+  frame,
 }: MarkOptions & {
   paragraphs: MarkParagraph[];
   /** Used for a target with no explanation of its own. */
@@ -39,36 +41,34 @@ export function MarkText({
 
   return (
     <div>
-      <div className="mat p-3 sm:p-5">
-        <div className="sheet p-4 sm:p-5">
-          {paragraphs.map((paragraph, i) => (
-            <p key={i} className="mt-3 first:mt-0">
-              {paragraph.map((part, j) =>
-                typeof part === "string" ? (
-                  <span key={j}>{part}</span>
-                ) : (
-                  <span
-                    key={part.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={marked.includes(part.id)}
-                    onClick={() => toggle(part.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        toggle(part.id);
-                      }
-                    }}
-                    className={redact ? "claim redact" : "claim"}
-                  >
-                    {part.text}
-                  </span>
-                ),
-              )}
-            </p>
-          ))}
-        </div>
-      </div>
+      <MarkShell frame={frame}>
+        {paragraphs.map((paragraph, i) => (
+          <p key={i} className="mt-3 first:mt-0">
+            {paragraph.map((part, j) =>
+              typeof part === "string" ? (
+                <span key={j}>{part}</span>
+              ) : (
+                <span
+                  key={part.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={marked.includes(part.id)}
+                  onClick={() => toggle(part.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggle(part.id);
+                    }
+                  }}
+                  className={redact ? "claim redact" : "claim"}
+                >
+                  {part.text}
+                </span>
+              ),
+            )}
+          </p>
+        ))}
+      </MarkShell>
       <p className="mt-2 text-sm">{redact ? t.mark.redactHelp : t.mark.help} <strong>{t.mark.count(marked.length, redact)}</strong></p>
 
       <div ref={resultRef} className="reveal">

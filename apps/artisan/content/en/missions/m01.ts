@@ -1,7 +1,6 @@
 import type { Choice, Mission } from "../../types";
 
-const firstMove =
-  "Your colleague pastes an AI answer into the team chat: “The Riverside library opens at 9:00 on Saturdays, as it has since 2019.” It reads well, and they want it in tomorrow's newsletter. What do you do?";
+const firstMove = "Sam has pasted an AI answer into the team chat, and wants it in tomorrow's newsletter. It reads well. What do you do?";
 const firstChoices: Choice[] = [
   { id: "a", label: "Use it. It is specific and clearly worded.", verdict: "weaker", explanation: "Specific, clear wording is what a language model produces whether or not it is right. Nothing in how it reads shows that anyone checked the library's hours." },
   { id: "b", label: "Check the time against the library's own notice.", verdict: "correct", explanation: "A specific time is checkable, so check it at the source. How firmly it is worded tells you nothing about whether it is current." },
@@ -55,6 +54,13 @@ export const m01: Mission = {
       kind: "initialJudgment",
       id: "initial",
       prompt: firstMove,
+      artefact: {
+        kind: "chat",
+        messages: [
+          { from: "Sam, front desk", text: "Found this for the newsletter. Sounds right, so shall we use it?" },
+          { from: "AI assistant", ai: true, text: "The Riverside library opens at 9:00 on Saturdays, as it has since 2019." },
+        ],
+      },
       choices: firstChoices,
       withConfidence: true,
     },

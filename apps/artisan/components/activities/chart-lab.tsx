@@ -6,6 +6,7 @@ import { barsFor, baselineOf, goalMet, measureOf, niceMax, percentChange, values
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { ActionBar, useReveal } from "../step-ui";
+import { SlideBody, Specimen } from "../artefacts/frames";
 
 const fmt = (n: number) => n.toLocaleString("en-GB", { maximumFractionDigits: 1 });
 
@@ -67,10 +68,16 @@ export function ChartLab({
 
   return (
     <div>
-      <div className="rounded-lg border-l-4 border-[var(--highlighter)] bg-surface p-3">
-        <p className="text-sm font-bold">{t.chart.claim}</p>
-        <p className="mt-1">{spec.claim}</p>
-      </div>
+      {spec.slide ? (
+        <Specimen tag={t.artefact.tag.slide}>
+          <SlideBody title={spec.slide.title} body={[spec.claim]} number={spec.slide.number} />
+        </Specimen>
+      ) : (
+        <div className="rounded-lg border-l-4 border-[var(--highlighter)] bg-surface p-3">
+          <p className="text-sm font-bold">{t.chart.claim}</p>
+          <p className="mt-1">{spec.claim}</p>
+        </div>
+      )}
 
       <p className="mt-4 text-sm font-bold">{t.chart.task(taskIndex + 1, spec.tasks.length)}</p>
       <h3 ref={taskRef} tabIndex={-1} className="text-xl font-bold outline-offset-4">{task.title}</h3>

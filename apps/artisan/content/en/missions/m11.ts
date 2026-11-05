@@ -51,6 +51,7 @@ export const m11: Mission = {
       compose: {
         workspaceLabel: "The poster's parts",
         outputLabel: "The poster",
+        frame: { kind: "poster", headline: "headline", image: "image", footer: "footer" },
         record: true,
         start: { headline: "ai-dream", image: "ai-meadow", body: "ai", footer: "none" },
         elements: [
@@ -70,9 +71,9 @@ export const m11: Mission = {
             label: "Image",
             help: "Check the policy on photos and images.",
             options: [
-              { id: "ai-meadow", label: "AI-generated illustration of children reading in a meadow", output: "\n[Image: an AI-generated illustration of children reading in a meadow]", by: "ai" },
-              { id: "party", label: "Photo of last year's reading party (every person in it signed a consent form)", output: "\n[Image: last year's reading party at the Commons]", by: "supplied" },
-              { id: "web", label: "Photo of a famous library, found on a website", output: "\n[Image: a famous library, from a website]", by: "supplied" },
+              { id: "ai-meadow", label: "AI-generated illustration of children reading in a meadow", output: "\n[Image: an AI-generated illustration of children reading in a meadow]", by: "ai", scene: "meadow" },
+              { id: "party", label: "Photo of last year's reading party (every person in it signed a consent form)", output: "\n[Image: last year's reading party at the Commons]", by: "supplied", scene: "readingParty" },
+              { id: "web", label: "Photo of a famous library, found on a website", output: "\n[Image: a famous library, from a website]", by: "supplied", scene: "famousLibrary" },
             ],
           },
           {
@@ -178,6 +179,7 @@ export const m11: Mission = {
       compose: {
         workspaceLabel: "The card's parts",
         outputLabel: "The card",
+        frame: { kind: "card", image: "image", footer: "footer" },
         record: true,
         support: "independent",
         start: { message: "ai", image: "group", footer: "none" },
@@ -196,9 +198,9 @@ export const m11: Mission = {
             label: "Image",
             help: "",
             options: [
-              { id: "group", label: "Group photo from the volunteers' party (one person in it hasn't signed a consent form)", output: "\n[Image: group photo from the volunteers' party]", by: "supplied" },
-              { id: "ai-heart", label: "AI-generated illustration of a hand-drawn heart", output: "\n[Image: an AI-generated illustration of a heart]", by: "ai" },
-              { id: "licensed", label: "Stock photo of a thank-you card (the Commons holds a licence)", output: "\n[Image: licensed stock photo of a thank-you card]", by: "supplied" },
+              { id: "group", label: "Group photo from the volunteers' party (one person in it hasn't signed a consent form)", output: "\n[Image: group photo from the volunteers' party]", by: "supplied", scene: "groupParty" },
+              { id: "ai-heart", label: "AI-generated illustration of a hand-drawn heart", output: "\n[Image: an AI-generated illustration of a heart]", by: "ai", scene: "heart" },
+              { id: "licensed", label: "Stock photo of a thank-you card (the Commons holds a licence)", output: "\n[Image: licensed stock photo of a thank-you card]", by: "supplied", scene: "thankYou" },
             ],
           },
           {

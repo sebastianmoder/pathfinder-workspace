@@ -6,6 +6,8 @@ import { citeChoiceId, startNodeId, walk, type Walk } from "@/lib/dialogue";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { CastBadge } from "../artefacts/cast-badge";
+import { ArtefactFrame } from "../artefacts/frames";
 import { ActionBar, HowTo, useReveal } from "../step-ui";
 import { SourceDrawer } from "./claim-audit";
 
@@ -66,11 +68,14 @@ function Conversation({
           const isLatest = i === shown.length - 1;
           return (
             <li key={`${turn.node.id}-${i}`}>
-              <div ref={isLatest ? latest : undefined} tabIndex={-1} className="rounded-lg border border-border bg-surface p-3">
-                <p className="text-sm font-semibold">
-                  {who?.name} <span className="font-normal text-muted">({who?.role})</span>
-                </p>
-                <p className="mt-1">{turn.node.text}</p>
+              <div ref={isLatest ? latest : undefined} tabIndex={-1} className="flex gap-3 rounded-lg border border-border bg-surface p-3">
+                {who && <CastBadge name={who.name} />}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">
+                    {who?.name} <span className="font-normal text-muted">({who?.role})</span>
+                  </p>
+                  <p className="mt-1">{turn.node.text}</p>
+                </div>
               </div>
               {turn.choice && (
                 <div className="ml-4 mt-2 border-l-4 border-accent pl-3 sm:ml-8">
@@ -188,16 +193,22 @@ export function DialogueActivity({
       <HowTo steps={t.howTo.dialogue} />
       <p className="mt-3 border-l-4 border-border pl-3 text-sm">{t.dialogue.scripted}</p>
 
-      <details className="mt-3 rounded-lg border border-border bg-surface p-3">
+      <details className="mt-3 rounded-lg border border-border bg-surface p-3" open={!path.ended && path.turns.length <= 1}>
         <summary className="cursor-pointer font-bold">{t.dialogue.cast}</summary>
-        <ul className="mt-2 space-y-2 text-sm">
+        <ul className={`mt-3 grid gap-3 text-sm ${spec.characters.length > 1 ? "sm:grid-cols-2 lg:grid-cols-3" : ""}`}>
           {spec.characters.map((c) => (
-            <li key={c.id}>
-              <strong>{c.name}, {c.role}.</strong> {t.dialogue.knows}: {c.knows} {t.dialogue.wants}: {c.wants}
+            <li key={c.id} className="flex gap-3 rounded border border-border bg-background p-3">
+              <CastBadge name={c.name} />
+              <div>
+                <p><strong>{c.name}</strong>, {c.role}</p>
+                <p className="mt-1"><span className="font-bold">{t.dialogue.knows}:</span> {c.knows}</p>
+                <p className="mt-1"><span className="font-bold">{t.dialogue.wants}:</span> {c.wants}</p>
+              </div>
             </li>
           ))}
         </ul>
       </details>
+      {step.artefact && <ArtefactFrame artefact={step.artefact} className="mt-4" />}
 
       <div className="mt-4 lg:grid lg:grid-cols-2 lg:gap-6">
         <div>

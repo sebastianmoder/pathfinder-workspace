@@ -17,6 +17,7 @@ import {
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { ActionBar, useReveal } from "../step-ui";
+import { ComposeOutput } from "../artefacts/frames";
 
 /**
  * Workspace, comparison, checklist and version tree (PRD M03, M11). Outputs are authored per option, so
@@ -154,12 +155,12 @@ export function ComposeStudio({
             <p className="mt-2 text-muted">{t.compose.noRun}</p>
           ) : (
             <>
-              <div className="mat mt-2 p-3">
-                <div className="sheet p-4">
-                  <p className="text-sm text-muted">{t.compose.versionLabel(current.id)} · {t.compose.words(wordCount(output))}</p>
-                  {output.map((p, i) => <p key={i} className="mt-2">{p}</p>)}
-                </div>
-              </div>
+              <ComposeOutput
+                spec={spec}
+                choices={current.choices}
+                output={output}
+                heading={<>{t.compose.versionLabel(current.id)}, {t.compose.words(wordCount(output))}</>}
+              />
               {before && (
                 <details className="mt-3 rounded-lg border border-border p-3" open>
                   <summary className="cursor-pointer font-bold">

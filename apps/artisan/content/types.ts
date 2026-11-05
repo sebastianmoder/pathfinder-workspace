@@ -1,5 +1,32 @@
 export type MissionId = string;
 
+/** Drawings that stand in for photos and images in a case. Each is labelled as a drawing wherever it appears. */
+export type SceneId = "flood" | "library" | "readingParty" | "meadow" | "famousLibrary" | "groupParty" | "heart" | "thankYou";
+
+/**
+ * Something from the case, shown as what it is (a chat, an email, a post) rather than as a paragraph about it.
+ * Every frame is labelled as fictional, and everything in it is real text, so nothing depends on seeing it.
+ */
+export type Artefact =
+  | { kind: "chat"; messages: { from: string; text: string; /** A message the AI tool wrote, quoted in the chat. */ ai?: boolean }[] }
+  | { kind: "email"; from: string; to: string; subject: string; body: string[] }
+  | { kind: "post"; account: string; posted: string; text: string; scene?: SceneId; /** What the drawing shows. */ alt?: string; reach?: string }
+  | { kind: "article"; outlet: string; date: string; headline: string; scene?: SceneId; alt?: string; caption?: string }
+  | { kind: "slide"; title: string; body: string[]; number?: number }
+  | { kind: "worksheet"; title: string; owner: string; lines: { question: string; answer: string; mark?: "right" | "wrong"; note?: string }[]; teacherNote?: string }
+  | { kind: "document"; title: string; meta?: string; body: string[] }
+  | { kind: "photo"; scene: SceneId; alt: string; caption: string };
+
+/** The frame around text a learner marks or redacts, so it reads as the email or document it is. */
+export type MarkFrame = { kind: "email"; from: string; to: string; subject: string } | { kind: "document"; title: string; meta?: string };
+
+/** The frame around a compose workspace's output. Poster and card parts are placed by element id. */
+export type ComposeFrame =
+  | { kind: "email"; from: string; to: string }
+  | { kind: "notice" }
+  | { kind: "poster"; headline: string; image?: string; footer?: string }
+  | { kind: "card"; image?: string; footer?: string };
+
 export interface ContentMeta {
   version: string;
   reviewedOn: string | null; // ISO date; null = draft not yet reviewed
@@ -266,6 +293,8 @@ export interface ComposeOption {
   /** The part of the authored output this option produces. Empty adds nothing. */
   output: string;
   by?: Contributor;
+  /** A drawing shown for this option in a framed output, such as an image on a poster. */
+  scene?: SceneId;
 }
 
 export interface ComposeElement {
@@ -303,6 +332,8 @@ export interface ComposeRound {
 export interface ComposeSpec {
   workspaceLabel: string;
   outputLabel: string;
+  /** Show the output as the thing it is: an email, a notice, a poster or a card. */
+  frame?: ComposeFrame;
   elements: ComposeElement[];
   /** Order in which elements' outputs are joined. Defaults to element order. */
   outputOrder?: string[];
@@ -330,6 +361,8 @@ export interface ChartView {
 export interface ChartLabSpec {
   /** What the AI-generated material claims, shown above the chart for comparison. */
   claim: string;
+  /** The slide the claim is on, shown as a slide. */
+  slide?: { title: string; number?: number };
   categoryLabel: string;
   categories: { id: string; label: string }[];
   quantities: { id: string; label: string; values: Record<string, number> }[];
@@ -398,6 +431,7 @@ export interface GymProblem {
  */
 export interface MarkOptions {
   mode?: "find" | "redact";
+  frame?: MarkFrame;
   /** Who receives the text once it leaves you, in order. The first receives the redacted text. */
   flow?: { label: string; note: string }[];
 }
@@ -413,6 +447,8 @@ export interface CaseLead {
   finding: string;
   /** A dated entry added to the timeline when this lead is followed. Ordered by `order`. */
   timeline?: { order: number; when: string; text: string };
+  /** What following the lead turns up, shown beside the case's own artefact to compare. */
+  artefact?: Artefact;
   /** A message from someone in the case, such as an editor pressing for a decision. */
   pressure?: string;
 }
@@ -433,6 +469,8 @@ export interface CaseStatement {
  */
 export interface CasefileSpec {
   artifact: { label: string; title: string; body: string; meta: string };
+  /** The artifact shown as what it is. The text version above is then left out. */
+  artefact?: Artefact;
   budget?: { leads: number; note: string };
   leads: CaseLead[];
   timeline?: { order: number; when: string; text: string }[];
@@ -535,12 +573,13 @@ type StepUnion =
       kind: "initialJudgment";
       id: string;
       prompt: string;
+      artefact?: Artefact;
       choices: Choice[];
       hints?: Hint[];
       /** Ask how confident the learner is. Kept for missions where confidence itself is the subject (PRD §9). */
       withConfidence?: boolean;
     }
-  | { kind: "quiz"; id: string; prompt: string; choices: Choice[]; hints?: Hint[] }
+  | { kind: "quiz"; id: string; prompt: string; artefact?: Artefact; choices: Choice[]; hints?: Hint[] }
   | {
       kind: "openResponse";
       id: string;
@@ -610,6 +649,7 @@ type StepUnion =
        * re-asks it instead.
        */
       prompt: string;
+      artefact?: Artefact;
       choices: Choice[];
       /** Ask for confidence again and show it beside the first value. */
       withConfidence?: boolean;
@@ -640,6 +680,8 @@ type StepUnion =
       intro: string;
       initialStepId: string;
       sources: Source[];
+      /** Shown above the conversation, such as the homework being talked about. */
+      artefact?: Artefact;
       reflectionPrompt: string;
       dialogue: DialogueSpec;
       /** Label for moving on once the conversation ends. Defaults to the M05 wording. */

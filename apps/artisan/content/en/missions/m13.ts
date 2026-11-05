@@ -53,6 +53,14 @@ export const m13: Mission = {
           body: "The assistant would answer questions about council tax, benefits, housing and bins, and book appointments. Staff would handle what it can't.",
           meta: "Council vote: 15 December 2026",
         },
+        artefact: {
+          kind: "document",
+          title: "Proposal: replace half of the walk-in service desk hours with an AI assistant",
+          meta: "Riverside town council. For the council vote on 15 December 2026.",
+          body: [
+            "From April 2027, an AI assistant would answer questions about council tax, benefits, housing and bins, by chat and phone, and book appointments. Staff would handle what it can't.",
+          ],
+        },
         budget: { leads: 5, note: "The panel reports next week." },
         timeline: [{ order: 90, when: "15 December 2026", text: "Council vote on the proposal." }],
         keyLeads: ["pilot", "survey"],

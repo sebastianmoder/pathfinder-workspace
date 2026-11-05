@@ -1,7 +1,6 @@
 import type { Choice, Mission } from "../../types";
 
-const firstMove =
-  "Priya typed “Write something about volunteering” and got three paragraphs on why volunteering is rewarding. She asks you: “Should I try a different AI tool?” What do you say?";
+const firstMove = "Priya has messaged you about her first attempt. What do you say?";
 const firstChoices: Choice[] = [
   {
     id: "a",
@@ -57,6 +56,12 @@ export const m03: Mission = {
       kind: "initialJudgment",
       id: "initial",
       prompt: firstMove,
+      artefact: {
+        kind: "chat",
+        messages: [
+          { from: "Priya, Homework Club coordinator", text: "I typed “Write something about volunteering” and got three paragraphs on why volunteering is rewarding. Nothing about Saturday! Should I try a different AI tool?" },
+        ],
+      },
       choices: firstChoices,
     },
     {
@@ -89,6 +94,7 @@ export const m03: Mission = {
       compose: {
         workspaceLabel: "The brief",
         outputLabel: "The AI's response",
+        frame: { kind: "email", from: "Draft from the AI tool, for Priya", to: "New Homework Club volunteers" },
         oneAtATime: true,
         start: { objective: "vague", context: "none", criteria: "none", constraints: "none" },
         elements: [
@@ -200,6 +206,7 @@ export const m03: Mission = {
       compose: {
         workspaceLabel: "The brief",
         outputLabel: "The AI's response",
+        frame: { kind: "notice" },
         support: "independent",
         start: { objective: "vague", context: "none", criteria: "none", constraints: "none" },
         elements: [

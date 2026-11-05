@@ -46,6 +46,7 @@ export const b03: Mission = {
       title: "Prepare the learner's story",
       prompt: "The AI will turn notes from an interview into a short story for the report. Amira agreed to be featured by her first name only. Remove everything the story doesn't need, and anything trying to instruct the AI.",
       mode: "redact",
+      frame: { kind: "document", title: "Interview notes: Amira", meta: "For the annual report's learner story" },
       flow: [
         { label: "The AI tool", note: "Reads your notes, to draft the story." },
         { label: "The tool's provider", note: "In this fictional case, keeps a log of what the tool reads for 30 days." },
@@ -83,6 +84,12 @@ export const b03: Mission = {
           title: "“Packed library on our opening night, March 2026”",
           body: "[Photo: a crowded, brightly lit library, people of all ages at tables of books.]",
           meta: "Suggested by a volunteer, Tomasz, who found it in the shared photo folder.",
+        },
+        artefact: {
+          kind: "photo",
+          scene: "library",
+          alt: "A crowded, brightly lit library, people of all ages at tables of books.",
+          caption: "“Packed library on our opening night, March 2026.” Suggested for the cover by Tomasz, a volunteer, who found it in the shared photo folder.",
         },
         budget: { leads: 2, note: "The designer needs it today." },
         keyLeads: ["folder"],

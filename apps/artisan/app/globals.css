@@ -298,6 +298,244 @@
     background: var(--surface);
     padding: 0.75rem 1rem;
   }
+  /* Case artefacts lying on the mat. The tag says what the object is, and that it is fictional. */
+  .specimen {
+    margin: 0;
+  }
+  .specimen-tag {
+    display: inline-block;
+    margin-bottom: 0.6rem;
+    border: 1px solid var(--mat-ink);
+    border-radius: 0.2rem;
+    padding: 0.05rem 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--mat-ink);
+  }
+  .specimen-meta {
+    margin: -0.25rem 0 0.6rem;
+    font-size: 0.875rem;
+    color: var(--mat-ink);
+    opacity: 0.85;
+  }
+  .specimen > .sheet,
+  .specimen > ol.sheet,
+  .specimen > article.sheet,
+  .specimen > div.sheet {
+    max-width: 44rem;
+  }
+
+  .chat-message {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .chat-bubble {
+    margin-top: 0.15rem;
+    border: 1px solid var(--border);
+    border-radius: 0 0.6rem 0.6rem 0.6rem;
+    background: var(--background);
+    padding: 0.45rem 0.75rem;
+  }
+  .chat-quote {
+    margin-left: 2.6rem;
+    border-left: 4px solid var(--highlighter);
+    background: var(--background);
+    padding: 0.45rem 0.75rem;
+  }
+
+  .email-head {
+    display: grid;
+    gap: 0.15rem;
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+  .email-head > div {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: 0.5rem;
+  }
+  .email-head dt {
+    color: var(--muted);
+  }
+
+  .document-title,
+  .worksheet-title,
+  .article-outlet {
+    font-family: var(--font-zilla), Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .document {
+    border-top: 6px solid var(--accent);
+  }
+  .article-headline {
+    margin-top: 0.4rem;
+    font-family: var(--font-zilla), Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  .drawing {
+    border: 1px solid var(--border);
+  }
+  .drawing-note {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  /* A slide: the deck's colour bar across the top, a big title, the slide number in the corner. */
+  .slide {
+    position: relative;
+    min-height: 8rem;
+    padding: 1.25rem 1.5rem 2.25rem;
+    border-top: 10px solid var(--accent);
+  }
+  .slide-title {
+    font-family: var(--font-zilla), Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .slide-number {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.6rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  /* Squared maths paper with a margin, a learner's handwriting, and the teacher's red pencil. */
+  .worksheet {
+    padding: 1rem 1rem 1rem 3rem;
+    background-color: var(--surface);
+    background-image:
+      linear-gradient(90deg, transparent 2.2rem, var(--mark-no) 2.2rem, var(--mark-no) calc(2.2rem + 1px), transparent calc(2.2rem + 1px)),
+      linear-gradient(color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px);
+    background-size: 100% 100%, 0.75rem 0.75rem, 0.75rem 0.75rem;
+  }
+  .handwriting {
+    font-family: var(--font-zilla), Georgia, serif;
+    font-style: italic;
+    font-size: 1.125rem;
+    color: #2d4f8a;
+  }
+  @media (prefers-color-scheme: dark) {
+    .handwriting {
+      color: #a9c4ff;
+    }
+  }
+  .margin-note {
+    font-size: 0.9375rem;
+    font-style: italic;
+    color: var(--muted);
+  }
+  .teacher-note {
+    margin-top: 1rem;
+    font-family: var(--font-zilla), Georgia, serif;
+    font-style: italic;
+    color: var(--mark-no);
+  }
+
+  .notice {
+    position: relative;
+    max-width: 26rem !important;
+    padding: 1.6rem 1.25rem 1.25rem;
+    transform: rotate(-0.6deg);
+  }
+  .notice::before {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-left: -0.4rem;
+    border-radius: 999px;
+    background: var(--mark-no);
+  }
+  .notice-head {
+    font-family: var(--font-zilla), Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  /* The poster is the one loud object on the mat: highlighter paper, ink headline. */
+  .poster {
+    max-width: 24rem !important;
+    padding: 1.25rem;
+    background: var(--highlighter);
+    color: var(--highlighter-ink);
+  }
+  .poster-headline {
+    font-family: var(--font-zilla), Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .poster-footer {
+    margin-top: 1rem;
+    border-top: 1px solid currentColor;
+    padding-top: 0.4rem;
+    font-size: 0.8125rem;
+  }
+  .poster .drawing {
+    border-color: var(--highlighter-ink);
+    background: #ffffff;
+  }
+  .poster .drawing-note {
+    color: #33443d;
+  }
+  .card {
+    max-width: 24rem !important;
+    padding: 1.25rem;
+    border-left: 10px solid var(--mark-no);
+  }
+  .card-message {
+    font-family: var(--font-zilla), Georgia, serif;
+    font-size: 1.25rem;
+    font-style: italic;
+  }
+
+  /* A cast member's initials. Tones are fixed so a character looks the same in every mission and theme. */
+  .cast-badge {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .cast-badge-sm {
+    width: 1.9rem;
+    height: 1.9rem;
+    font-size: 0.75rem;
+  }
+  .badge-mat {
+    background: #17594a;
+    color: #ffffff;
+  }
+  .badge-highlighter {
+    background: #f2d544;
+    color: #14241e;
+  }
+  .badge-pencil {
+    background: #a82a1e;
+    color: #ffffff;
+  }
+  .badge-ink {
+    background: #2d4f8a;
+    color: #ffffff;
+  }
+
   /* Sorting: an item is a chip; selecting one marks it like a highlighter, and bins show where things are. */
   .chip {
     display: inline-flex;
@@ -479,6 +717,11 @@
   .sheet {
     box-shadow: none;
     background: none;
+    color: #000;
+  }
+  .specimen-tag,
+  .specimen-meta {
+    border-color: #000;
     color: #000;
   }
 }

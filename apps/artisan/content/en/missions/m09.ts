@@ -18,8 +18,7 @@ const applicants = [
   ...careerBreak.map(([score, qualified], i) => ({ id: `b${i + 1}`, group: "break", qualified, scores: { original: score, revised: Math.min(score + PENALTY, 99) } })),
 ];
 
-const firstMove =
-  "Martin, the programme manager, says: “The screening tool is fair. It uses the same pass mark for every applicant.” Joy, who took a career break, wasn't invited. What do you say to Martin?";
+const firstMove = "Joy, who took a career break, wasn't invited to interview. Martin replies in the panel's chat. What do you say to him?";
 const firstChoices: Choice[] = [
   { id: "a", label: "Agreed: one pass mark for everyone is fair by definition.", verdict: "weaker", explanation: "The same pass mark applied to scores that are systematically lower for one group still produces uneven outcomes." },
   { id: "b", label: "Only if the scores are fair: check who it rejects, by group.", verdict: "correct", explanation: "A threshold is only as fair as the scores it is applied to. Uneven scores come from the data, the labels or the objective." },
@@ -52,7 +51,16 @@ export const m09: Mission = {
       title: "A quick refresher",
       body: "A screening tool turns each applicant into a score, and everyone above a threshold is selected. It makes two kinds of error: rejecting someone who would have done well, and selecting someone who wouldn't. A score learned from past decisions can repeat what those decisions favoured (the Numbers Lab showed how much depends on what you compare).",
     },
-    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
+    {
+      kind: "initialJudgment",
+      id: "initial",
+      prompt: firstMove,
+      artefact: {
+        kind: "chat",
+        messages: [{ from: "Martin, programme manager", text: "The screening tool is fair. It uses the same pass mark for every applicant." }],
+      },
+      choices: firstChoices,
+    },
     {
       kind: "thresholdLab",
       id: "council",

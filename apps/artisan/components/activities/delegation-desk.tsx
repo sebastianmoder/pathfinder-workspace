@@ -6,6 +6,7 @@ import { carryNotes, delegationResults, isSound, wavesOf } from "@/lib/delegatio
 import type { EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { ActionBar } from "../step-ui";
+import { CastBadge } from "../artefacts/cast-badge";
 
 const FACTORS = ["stakes", "evidence", "sensitivity", "reversibility"] as const;
 const roleLabel = (role: DelegationRole) => t.delegation.roles[role].label;
@@ -119,8 +120,13 @@ export function DelegationDesk({
       <ul className="mt-2 space-y-4">
         {tasks.map((task) => (
           <li key={task.id} className="ticket">
-            <h4 className="text-lg">{task.title}</h4>
-            <p className="text-sm text-muted">{t.delegation.from}: {task.from}</p>
+            <div className="flex items-start gap-3">
+              <CastBadge name={task.from} />
+              <div className="min-w-0">
+                <h4 className="text-lg">{task.title}</h4>
+                <p className="text-sm text-muted">{t.delegation.from}: {task.from}</p>
+              </div>
+            </div>
             <p className="mt-2">{task.text}</p>
             {guided && task.factors && (
               <details className="mt-3">

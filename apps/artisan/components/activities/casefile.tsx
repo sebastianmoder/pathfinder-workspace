@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import type { CasefileSpec, CaseStatus } from "@/content/types";
+import type { Artefact, CaseLead, CasefileSpec, CaseStatus } from "@/content/types";
 import { expectedStatus, timelineFor } from "@/lib/casefile";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { ActionBar, useReveal } from "../step-ui";
+import { ArtefactFrame } from "../artefacts/frames";
 
 const STATUSES: CaseStatus[] = ["known", "uncertain", "contradicted"];
 
@@ -42,7 +43,11 @@ export function Casefile({
   const notFollowed = spec.leads.filter((l) => !followed.includes(l.id));
   const resultsRef = useReveal<HTMLUListElement>(checked);
 
-  const Artifact = (
+  // What a followed lead turned up sits beside the case's own artefact, so the two can be compared.
+  const found = followed.map((id) => spec.leads.find((l) => l.id === id)).filter((l): l is CaseLead & { artefact: Artefact } => !!l?.artefact);
+  const original = spec.artefact ? (
+    <ArtefactFrame artefact={spec.artefact} />
+  ) : (
     <div className="mat p-3 sm:p-5">
       <div className="sheet p-4 sm:p-5">
         <p className="text-sm text-muted">{spec.artifact.label}</p>
@@ -51,6 +56,22 @@ export function Casefile({
         <p className="mt-2 text-sm text-muted">{spec.artifact.meta}</p>
       </div>
     </div>
+  );
+  const Artifact = found.length ? (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section aria-label={t.casefile.underInvestigation}>
+        <p className="mb-2 text-sm font-bold">{t.casefile.underInvestigation}</p>
+        {original}
+      </section>
+      {found.map((lead) => (
+        <section key={lead.id} aria-label={t.casefile.foundBy(lead.label)}>
+          <p className="mb-2 text-sm font-bold">{t.casefile.foundBy(lead.label)}</p>
+          <ArtefactFrame artefact={lead.artefact} />
+        </section>
+      ))}
+    </div>
+  ) : (
+    original
   );
 
   const Timeline = timeline.length > 0 && (

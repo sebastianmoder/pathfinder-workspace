@@ -67,6 +67,17 @@ export const m06Teach: Mission = {
       intro: "Choose how to respond to Leo. You can also show him something from his own homework sheet.",
       initialStepId: "initial",
       sources,
+      artefact: {
+        kind: "worksheet",
+        title: "Percentages homework",
+        owner: "Leo",
+        lines: [
+          { question: "Q1. A €40 bag is reduced by 50%. Then the sale price goes up by 50%. What does it cost now?", answer: "€40", mark: "wrong", note: "In the margin: “app says they cancel”" },
+          { question: "Q2. A €100 coat is reduced by 10%, then increased by 10%. What does it cost now?", answer: "€100", mark: "wrong" },
+          { question: "Q3. What is 10% of €90?", answer: "€9", mark: "right" },
+        ],
+        teacherNote: "Q1 and Q2 are wrong. Show your working next time.",
+      },
       reflectionPrompt: "What do you think Leo believes, and why?",
       continueLabel: "Continue",
       dialogue: {

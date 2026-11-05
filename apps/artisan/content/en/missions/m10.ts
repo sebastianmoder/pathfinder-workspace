@@ -50,6 +50,7 @@ export const m10: Mission = {
       prompt:
         "The assistant will draft a reply offering Ms Okafor a new time for her son's tutoring session. Remove every detail the reply doesn't need. Keep what it does need.",
       mode: "redact",
+      frame: { kind: "email", from: "Contact form on the Commons website", to: "Bookings team", subject: "Moving a tutoring session" },
       flow: [
         { label: "The AI assistant", note: "Reads what you give it, to draft the reply." },
         { label: "The assistant's provider", note: "In this fictional case, keeps a log of everything the assistant reads for 30 days." },
@@ -57,9 +58,7 @@ export const m10: Mission = {
       ],
       mark: [
         [
-          "From: ",
-          { id: "name", text: "Grace Okafor", target: false, explanation: "The reply is addressed to her, so her name is needed." },
-          ". Hello, I need to move ",
+          "Hello, I need to move ",
           { id: "son", text: "my son Daniel's", target: false, optional: true, explanation: "The reply can say “your son”, but his first name is low risk and makes the reply personal. Either is reasonable." },
           " Thursday tutoring session at ",
           { id: "time", text: "4pm", target: false, explanation: "The reply has to offer an alternative to this session, so it needs the time." },
@@ -80,6 +79,7 @@ export const m10: Mission = {
           { id: "bank", text: "account 41-22-07 90031742", target: true, explanation: "Bank details should never go to a drafting assistant. Changes are free in any case." },
           ".",
         ],
+        ["Thanks, ", { id: "name", text: "Grace Okafor", target: false, explanation: "The reply is addressed to her, so her name is needed." }],
       ],
     },
     {
@@ -105,12 +105,12 @@ export const m10: Mission = {
     {
       kind: "mark",
       id: "injection",
+      frame: { kind: "document", title: "Brightwell Computers: quote for the Riverside Learning Commons", meta: "Received by email, 4 November" },
       title: "Check the supplier's quote",
       prompt:
         "The assistant is comparing three quotes for new laptops. One quote contains text aimed at AI assistants rather than at you. Mark every passage that tries to instruct the assistant. Leave the ordinary content of the quote.",
       mark: [
         [
-          "Brightwell Computers: quote for the Riverside Learning Commons. ",
           { id: "items", text: "12 laptops at €540 each, including a three-year warranty.", target: false, explanation: "This is the quote itself: what is offered, at what price." },
           " ",
           { id: "valid", text: "Prices are valid until 30 November.", target: false, explanation: "A normal condition of a quote, and something the comparison should note." },
@@ -142,8 +142,14 @@ export const m10: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt:
-        "A member emails: “Sorry, I can't make Thursday. I'm having chemotherapy that week.” The reply only needs to offer a new time. Sam asks whether the assistant should see the email.",
+      prompt: "The reply to this email only needs to offer a new time. Sam asks whether the assistant should see the email.",
+      artefact: {
+        kind: "email",
+        from: "Contact form on the Commons website",
+        to: "Bookings team",
+        subject: "Thursday",
+        body: ["Sorry, I can't make Thursday. I'm having chemotherapy that week.", "Best wishes, Ade"],
+      },
       choices: [
         { id: "a", label: "Yes, unchanged, so the reply can be kind about the treatment.", verdict: "weaker", explanation: "Kindness doesn't need the diagnosis: “I'm sorry you can't make it” works. The treatment detail would reach the assistant and its provider for no benefit to the task." },
         { id: "b", label: "Yes, with the treatment removed; Sam can add a kind word.", verdict: "correct", explanation: "The task is rescheduling. Removing the one sensitive detail leaves everything the draft needs, and the personal touch can come from Sam." },
@@ -157,6 +163,7 @@ export const m10: Mission = {
       prompt:
         "The assistant will summarise a volunteer application for the rota planner, who needs to know availability and skills. Remove everything that shouldn't reach the assistant: details the summary doesn't need, and anything trying to instruct it.",
       mode: "redact",
+      frame: { kind: "document", title: "Volunteer application", meta: "Submitted through the Commons website" },
       flow: [
         { label: "The AI assistant", note: "Reads the application, to write the summary." },
         { label: "The rota planner", note: "Reads the summary." },

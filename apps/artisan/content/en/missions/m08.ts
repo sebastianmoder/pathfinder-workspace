@@ -5,8 +5,9 @@ import type { Choice, Mission } from "../../types";
  * All people, accounts, outlets and records are fictional. Media are described in text (PRD M08: start with text and still images).
  */
 
-const firstMove =
-  "Rosa drops the viral flood photo on your desk: “Looks real to me. Can we run it?” You have a few minutes before you start checking. What is your first move?";
+const FLOOD = "Brown floodwater over the road at Riverside Bridge, a car stranded halfway across, the bridge railings just visible above the water.";
+
+const firstMove = "Rosa drops this on your desk: “Looks real to me. Can we run it?” You have a few minutes before you start checking. What is your first move?";
 const firstChoices: Choice[] = [
   { id: "a", label: "Zoom in and look for signs the photo has been edited.", verdict: "weaker", explanation: "A genuine, unedited photo can still be from another day or another place. How it looks can't tell you when it was taken." },
   { id: "b", label: "Find out where and when the photo first appeared.", verdict: "correct", explanation: "Provenance answers the caption's actual claim, “right now”. An earlier copy settles it whatever the image looks like." },
@@ -39,7 +40,22 @@ export const m08: Mission = {
       title: "A quick refresher",
       body: "Check a claim against evidence, not against how convincing it looks: a fluent caption or a sharp photo can be wrong. With images, ask: where did this first appear, when, and what else confirms it? Independent records and people on the scene count for more than repeats of the same post.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices, withConfidence: true },
+    {
+      kind: "initialJudgment",
+      id: "initial",
+      prompt: firstMove,
+      artefact: {
+        kind: "post",
+        account: "@river_watcher_22",
+        posted: "Today, 08:12",
+        text: "Flooding at Riverside Bridge RIGHT NOW. Council hasn't warned anyone!! #RiversideFlood",
+        scene: "flood",
+        alt: FLOOD,
+        reach: "Shared about 4,000 times",
+      },
+      choices: firstChoices,
+      withConfidence: true,
+    },
     {
       kind: "casefile",
       id: "desk",
@@ -51,6 +67,15 @@ export const m08: Mission = {
           title: "Flooding at Riverside Bridge RIGHT NOW. Council hasn't warned anyone!! #RiversideFlood",
           body: "[Photo: brown floodwater over the road at Riverside Bridge, a car stranded halfway across, the bridge railings just visible above the water.]",
           meta: "Posted at 08:12 today by @river_watcher_22 · shared about 4,000 times",
+        },
+        artefact: {
+          kind: "post",
+          account: "@river_watcher_22",
+          posted: "Today, 08:12",
+          text: "Flooding at Riverside Bridge RIGHT NOW. Council hasn't warned anyone!! #RiversideFlood",
+          scene: "flood",
+          alt: FLOOD,
+          reach: "Shared about 4,000 times",
         },
         budget: { leads: 4, note: "Rosa wants a decision by 10:00." },
         timeline: [{ order: 50, when: "Today, 08:12", text: "@river_watcher_22 posts the photo, captioned as happening now." }],
@@ -70,6 +95,15 @@ export const m08: Mission = {
             kind: "check",
             description: "Find where this image appeared before this morning, if anywhere.",
             finding: "The same photo, car and all, appears in this paper's own article on the spring floods of March 2024.",
+            artefact: {
+              kind: "article",
+              outlet: "Riverside Gazette",
+              date: "14 March 2024",
+              headline: "Spring floods close Riverside Bridge",
+              scene: "flood",
+              alt: FLOOD,
+              caption: "Riverside Bridge on Thursday afternoon, after the river burst its banks.",
+            },
             timeline: { order: 10, when: "March 2024", text: "The photo appears in the Riverside Gazette's report on the spring floods." },
           },
           {
@@ -161,6 +195,13 @@ export const m08: Mission = {
           body: "[Screenshot styled like a news headline, with the mayor's photo and the council's logo.]",
           meta: "Posted yesterday by @riverside_truth · shared about 2,000 times",
         },
+        artefact: {
+          kind: "post",
+          account: "@riverside_truth",
+          posted: "Yesterday",
+          text: "Screenshot, styled like a news headline with the mayor's photo and the council's logo: “Mayor Hale, 3 May: ‘Libraries are a waste of public money.’”",
+          reach: "Shared about 2,000 times",
+        },
         budget: { leads: 3, note: "The story conference starts soon." },
         keyLeads: ["transcript", "satire"],
         leads: [
@@ -178,6 +219,13 @@ export const m08: Mission = {
             kind: "check",
             description: "Look for the earliest appearance of the exact words.",
             finding: "It first appeared on 5 May on The Riverside Onion, a satire site, labelled as satire.",
+            artefact: {
+              kind: "article",
+              outlet: "The Riverside Onion",
+              date: "5 May",
+              headline: "Mayor: “Libraries are a waste of public money”, says mayor who has never seen a library",
+              caption: "A banner across the top of the page reads: “Satire. Nothing on this site is true.”",
+            },
             timeline: { order: 20, when: "5 May", text: "The wording appears on a satire site, labelled as satire." },
           },
           {

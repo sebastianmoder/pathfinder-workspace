@@ -1,7 +1,6 @@
 import type { Choice, Mission } from "../../types";
 
-const firstMove =
-  "Joanna asks: “Could the AI tool send the weekly room-availability email? It lists free rooms from the booking system, goes to staff only, and anyone can reply with a correction.” What do you tell her?";
+const firstMove = "Joanna, the director, has emailed you about the new AI tool. What do you tell her?";
 const firstChoices: Choice[] = [
   {
     id: "a",
@@ -64,6 +63,16 @@ export const m02: Mission = {
       kind: "initialJudgment",
       id: "initial",
       prompt: firstMove,
+      artefact: {
+        kind: "email",
+        from: "Joanna, director",
+        to: "You",
+        subject: "The weekly room email",
+        body: [
+          "Could the AI tool send the weekly room-availability email? It lists free rooms from the booking system, goes to staff only, and anyone can reply with a correction.",
+          "Joanna",
+        ],
+      },
       choices: firstChoices,
       motifs: ["decisiveFits"],
     },

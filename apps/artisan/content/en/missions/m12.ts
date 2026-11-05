@@ -5,8 +5,7 @@ import type { Choice, Mission } from "../../types";
  * A simulated assistant: nothing runs a real model, sends email or books anything. Every result is authored per step.
  */
 
-const firstMove =
-  "In its first trial run, the assistant tells a member the library opens at 9:00. It opens at 10:00. Sam says: “Let's pay for the more advanced model.” What do you say?";
+const firstMove = "The assistant has had its first trial run. What do you say to Sam?";
 const firstChoices: Choice[] = [
   { id: "a", label: "Good idea: a more capable model makes fewer mistakes.", verdict: "weaker", explanation: "A better model still can't know your opening hours, and will still follow instructions it shouldn't. Most failures come from what surrounds it." },
   { id: "b", label: "First check where its answers come from, and its checks.", verdict: "correct", explanation: "Where answers come from, what happens when it doesn't know, and which steps a person checks decide most outcomes." },
@@ -39,7 +38,20 @@ export const m12: Mission = {
       title: "A quick refresher",
       body: "A model produces plausible text from patterns, so it needs reliable sources for facts. Text inside documents can try to instruct it (the Boundary Room). Actions that can't be undone need a person's approval, and a task can go to AI, to a person, or to both (the Delegation Desk). A workflow combines all of these. Everything here is simulated.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
+    {
+      kind: "initialJudgment",
+      id: "initial",
+      prompt: firstMove,
+      artefact: {
+        kind: "chat",
+        messages: [
+          { from: "Sam, front desk", text: "First trial run. A member asked when we open on Saturday, and it said this. We open at 10:00!" },
+          { from: "Email assistant (trial)", ai: true, text: "The library opens at 9:00 on Saturdays." },
+          { from: "Sam, front desk", text: "Let's pay for the more advanced model." },
+        ],
+      },
+      choices: firstChoices,
+    },
     {
       kind: "workflow",
       id: "workshop",

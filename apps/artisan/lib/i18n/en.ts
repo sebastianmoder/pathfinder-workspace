@@ -644,6 +644,8 @@ export const en = {
     nextProblem: "Next problem",
   },
   casefile: {
+    underInvestigation: "What you're checking",
+    foundBy: (lead: string) => `What you found: ${lead}`,
     leftShort: (n: number) => `${n} ${n === 1 ? "lead" : "leads"} left`,
     finishNote: "Finish when you have followed the leads you want. You can't follow more afterwards.",
     leads: "Leads",
@@ -741,6 +743,29 @@ export const en = {
     backToTray: "Back to the tray",
     placed: (item: string, category: string) => `Placed “${item}” in “${category}”.`,
     returned: (item: string) => `“${item}” is back in the tray.`,
+  },
+
+  artefact: {
+    tag: {
+      chat: "Fictional chat",
+      email: "Fictional email",
+      post: "Fictional post",
+      article: "Fictional newspaper article",
+      slide: "Fictional slide, made with an AI tool",
+      worksheet: "Fictional homework sheet",
+      document: "Fictional document",
+      photo: "Drawing of a fictional photo",
+      draft: "Written in advance for the options you chose",
+    },
+    from: "From",
+    to: "To",
+    subject: "Subject",
+    noSubject: "(no subject)",
+    drawing: "Drawing",
+    name: "Name",
+    teacher: "Teacher's note",
+    marked: { right: "marked right", wrong: "marked wrong" },
+    slideNumber: (n: number) => `Slide ${n}`,
   },
 
   debrief: {

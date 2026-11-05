@@ -27,6 +27,7 @@ import { ThresholdLab } from "./activities/threshold-lab";
 import { WorkflowRunner } from "./activities/workflow-runner";
 import { AllocationBoard } from "./activities/allocation-board";
 import { ActionBar, FamiliarContext, HowTo, StepIntro } from "./step-ui";
+import { ArtefactFrame } from "./artefacts/frames";
 import { activityKey, ownScreen, phasesOf, PHASES } from "@/lib/phases";
 
 interface Props {
@@ -240,18 +241,21 @@ function StepView({
     case "initialJudgment":
     case "quiz":
       return (
-        <ChoiceQuestion
-          howTo={step.kind === "initialJudgment" ? (step.withConfidence ? t.howTo.initialJudgment : t.howTo.initialJudgmentPlain) : undefined}
-          name={step.id}
-          prompt={step.prompt}
-          choices={step.choices}
-          hints={step.hints}
-          withConfidence={step.kind === "initialJudgment" && !!step.withConfidence}
-          recordOnly={step.kind === "initialJudgment"}
-          onCommit={onAnswer}
-          onEvidence={recordStep}
-          onContinue={onContinue}
-        />
+        <>
+          {step.artefact && <ArtefactFrame artefact={step.artefact} className="mb-5" />}
+          <ChoiceQuestion
+            howTo={step.kind === "initialJudgment" ? (step.withConfidence ? t.howTo.initialJudgment : t.howTo.initialJudgmentPlain) : undefined}
+            name={step.id}
+            prompt={step.prompt}
+            choices={step.choices}
+            hints={step.hints}
+            withConfidence={step.kind === "initialJudgment" && !!step.withConfidence}
+            recordOnly={step.kind === "initialJudgment"}
+            onCommit={onAnswer}
+            onEvidence={recordStep}
+            onContinue={onContinue}
+          />
+        </>
       );
 
     case "transfer": {
@@ -295,6 +299,7 @@ function StepView({
               paragraphs={step.mark}
               mode={step.mode}
               flow={step.flow}
+              frame={step.frame}
               onResult={(id, right) => record(itemKey(step.id, id), { right })}
               onContinue={onContinue}
             />
@@ -351,6 +356,7 @@ function StepView({
             paragraphs={step.mark}
             mode={step.mode}
             flow={step.flow}
+            frame={step.frame}
             onResult={(id, right) => record(itemKey(step.id, id), { right })}
             onContinue={onContinue}
           />
@@ -402,6 +408,7 @@ function StepView({
         <>
           <h2 className="text-2xl">{reAsk ? step.prompt : t.mission.revisitTitle}</h2>
           <HowTo steps={reAsk ? t.howTo.revision : t.howTo.revisionVariant} />
+          {step.artefact && <ArtefactFrame artefact={step.artefact} className="mt-4" />}
           <p className="mt-3 rounded border border-border bg-surface p-3 text-sm">
             <strong>{reAsk ? t.mission.before : t.mission.firstMove}:</strong> {before?.label ?? "—"}
             {first?.confidence !== undefined && <> ({label(first.confidence)})</>}
