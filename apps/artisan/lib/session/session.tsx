@@ -23,6 +23,8 @@ interface SessionState {
   missions: Record<string, MissionProgress>;
   completed: string[];
   orientation: Record<string, string>;
+  /** Kinds of activity finished this visit, so instructions for familiar ones can fade (PRD §4). */
+  seen: string[];
 }
 
 interface SessionApi {
@@ -40,13 +42,15 @@ interface SessionApi {
   restart(missionId: string): void;
   orientation: Record<string, string>;
   setOrientation(questionId: string, choiceId: string): void;
+  hasSeen(key: string): boolean;
+  markSeen(key: string): void;
 }
 
 const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {}, evidence: {} };
 const SessionContext = createContext<SessionApi | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<SessionState>({ missions: {}, completed: [], orientation: {} });
+  const [state, setState] = useState<SessionState>({ missions: {}, completed: [], orientation: {}, seen: [] });
   const [orderSeed, setOrderSeed] = useState(0);
   // Pages are prerendered, so this has to wait until the browser. Answer options only appear after a
   // learner has moved past a mission's first step, so nobody sees them reorder.
@@ -95,6 +99,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       orientation: state.orientation,
       setOrientation: (questionId, choiceId) =>
         setState((s) => ({ ...s, orientation: { ...s.orientation, [questionId]: choiceId } })),
+      hasSeen: (key) => state.seen.includes(key),
+      markSeen: (key) => setState((s) => (s.seen.includes(key) ? s : { ...s, seen: [...s.seen, key] })),
     }),
     [state, update, orderSeed],
   );

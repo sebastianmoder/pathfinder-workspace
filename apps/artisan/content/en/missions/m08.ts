@@ -5,11 +5,12 @@ import type { Choice, Mission } from "../../types";
  * All people, accounts, outlets and records are fictional. Media are described in text (PRD M08: start with text and still images).
  */
 
-const realQuestion = "A dramatic photo is spreading fast online, captioned as happening today. What is the best first test of whether the caption is true?";
-const realChoices: Choice[] = [
-  { id: "a", label: "Look closely at the image for signs that it has been edited.", verdict: "weaker", explanation: "A genuine, unedited photo can still be from another day or another place. How it looks can't tell you when it was taken." },
-  { id: "b", label: "Find out where and when the image first appeared.", verdict: "correct", explanation: "Provenance answers the caption's actual claim, “today”. An earlier copy settles it whatever the image looks like." },
-  { id: "c", label: "Check how many people have shared it and who they are.", verdict: "weaker", explanation: "Popularity measures attention, not accuracy. False posts often spread fastest." },
+const firstMove =
+  "Rosa drops the viral flood photo on your desk: “Looks real to me. Can we run it?” You have a few minutes before you start checking. What is your first move?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "Zoom in and look for signs the photo has been edited.", verdict: "weaker", explanation: "A genuine, unedited photo can still be from another day or another place. How it looks can't tell you when it was taken." },
+  { id: "b", label: "Find out where and when the photo first appeared.", verdict: "correct", explanation: "Provenance answers the caption's actual claim, “right now”. An earlier copy settles it whatever the image looks like." },
+  { id: "c", label: "See how many people have shared it, and who they are.", verdict: "weaker", explanation: "Popularity measures attention, not accuracy. False posts often spread fastest." },
 ];
 
 export const m08: Mission = {
@@ -17,7 +18,7 @@ export const m08: Mission = {
   title: "The Newsroom",
   outcome: "Judge a viral image or claim by its provenance, corroboration and context, and decide whether to publish, qualify, investigate or hold.",
   scenario:
-    "You are on the Riverside Gazette's news desk, at a fictional local newspaper. A photo of flooding at Riverside Bridge is spreading fast. Your editor, Rosa, wants something online by 10:00.",
+    "You are on the news desk at the Riverside Gazette, a local newspaper. A photo of flooding at Riverside Bridge is spreading fast. Your editor, Rosa, wants something online by 10:00.",
   approxMinutes: 14,
   meta: {
     version: "1.0",
@@ -38,7 +39,7 @@ export const m08: Mission = {
       title: "A quick refresher",
       body: "Check a claim against evidence, not against how convincing it looks: a fluent caption or a sharp photo can be wrong. With images, ask: where did this first appear, when, and what else confirms it? Independent records and people on the scene count for more than repeats of the same post.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: realQuestion, choices: realChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices, withConfidence: true },
     {
       kind: "casefile",
       id: "desk",
@@ -126,6 +127,7 @@ export const m08: Mission = {
     {
       kind: "quiz",
       id: "decide",
+      motifs: ["decisiveFits"],
       prompt: "It's 10:00. Rosa needs your decision. What should the Gazette do?",
       choices: [
         { id: "a", label: "Run the photo with “unverified” in the caption, as other outlets have.", verdict: "weaker", explanation: "A label doesn't stop a false picture from spreading, and you have evidence that it is false." },
@@ -138,8 +140,13 @@ export const m08: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having checked the photo, answer the first question again. ${realQuestion}`,
-      choices: realChoices,
+      prompt:
+        "An hour later, the café owner sends a photo of the bridge this morning: dry road, open traffic, today's newspaper held up in the shot. What does that photo add?",
+      choices: [
+        { id: "a", label: "It settles it: a dated newspaper proves the day.", verdict: "weaker", explanation: "It's good evidence, but a newspaper can be held up on any day. It counts because it fits the river gauge and comes from a named witness, not because of what it shows." },
+        { id: "b", label: "It backs up the gauge, from a named person on the scene.", verdict: "correct", explanation: "It is independent, from someone on the scene, and it agrees with the records. Together they outweigh how real any single image looks." },
+        { id: "c", label: "Little: photos can be faked, so only records count.", verdict: "weaker", explanation: "Photos can mislead, but a dated photo from a named witness that matches the records is real corroboration." },
+      ],
       withConfidence: true,
     },
     {
@@ -199,7 +206,13 @@ export const m08: Mission = {
     {
       kind: "openResponse",
       id: "explain",
-      prompt: "Write a note to your editor about the mayor screenshot: what is established, what is uncertain, and what the paper should do.",
+      prompt: "Write a note to your editor about the mayor screenshot.",
+      format: "structured",
+      fields: [
+        { id: "known", label: "What is established, and how you know" },
+        { id: "uncertain", label: "What is still uncertain" },
+        { id: "decision", label: "What the paper should do" },
+      ],
       rubric: {
         samples: [
           { id: "weak", text: "It looks fake, so we should ignore it.", met: [], note: "It rests on appearance, says nothing about how you know, and ignoring it leaves readers misled." },

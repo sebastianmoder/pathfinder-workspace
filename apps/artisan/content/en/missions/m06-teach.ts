@@ -5,11 +5,12 @@ import type { Choice, DialogueChoice, Mission, Source } from "../../types";
  * Arithmetic to re-check on review: €40 −50% = €20, +50% = €30; €100 −10% = €90, +10% = €99.
  */
 
-const teachQuestion = "Someone is stuck because they believe something that isn't true. What usually helps them most?";
-const teachChoices: Choice[] = [
-  { id: "a", label: "Telling them the correct answer clearly, so they don't stay confused.", verdict: "weaker", explanation: "They can write the answer down and still hold the same belief, so the next problem goes wrong the same way." },
-  { id: "b", label: "Finding out what they think, then giving them a case that tests it.", verdict: "correct", explanation: "A belief that a person has tested and seen fail is one they can replace. You can only choose the right test once you know what they believe." },
-  { id: "c", label: "Explaining the correct idea in full before they try again.", verdict: "weaker", explanation: "An explanation that doesn't touch what they already believe often slides past it. It helps more after you've found the belief." },
+const firstMove =
+  "Before Leo arrives, another learner tells you that multiplying always makes a number bigger, “because 3 × 4 is 12”. What do you do first?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "Tell them it isn't always true, and give them the rule.", verdict: "weaker", explanation: "They can note the rule and still believe what they believed, so the next problem goes wrong the same way." },
+  { id: "b", label: "Ask what they'd get for 4 × ½, and let them work it out.", verdict: "correct", explanation: "A case they can work out themselves tests their rule. They see it fail, which is what lets them replace it." },
+  { id: "c", label: "Explain how multiplying by fractions works, from the start.", verdict: "weaker", explanation: "Accurate, but it doesn't touch the rule they're using. It helps more once you've found the belief and tested it." },
 ];
 
 const sources: Source[] = [
@@ -37,7 +38,7 @@ export const m06Teach: Mission = {
   title: "The Thinking Gym: teach it back",
   outcome: "Help someone replace a misconception by finding out what they think, testing it, and handing the thinking back to them.",
   scenario:
-    "You volunteer at Homework Club at the Riverside Learning Commons, a fictional community learning centre. Leo, who is 14, has been using an AI app for his percentages homework, and two answers have come back marked wrong.",
+    "You volunteer at Homework Club at the Riverside Learning Commons, a community learning centre. Leo, who is 14, has been using an AI app for his percentages homework, and two answers have come back marked wrong.",
   approxMinutes: 10,
   meta: {
     version: "1.0",
@@ -56,9 +57,9 @@ export const m06Teach: Mission = {
       kind: "refresher",
       id: "refresher",
       title: "A quick refresher",
-      body: "A percentage is always a percentage of something. When a price falls by 50% and then rises by 50%, the rise is 50% of the lower price, so it doesn't get back to where it started. Explaining an idea to someone else is a strong test of whether you understand it yourself.",
+      body: "A percentage is always a percentage of something: 10% of €90 is €9. A misconception is a belief that gives wrong answers in a consistent way, so it is worth finding out what someone believes before you explain anything. Explaining an idea to someone else is also a strong test of whether you understand it yourself.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: teachQuestion, choices: teachChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "dialogue",
       id: "teach",
@@ -203,9 +204,13 @@ export const m06Teach: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having helped Leo, answer the first question again. ${teachQuestion}`,
-      choices: teachChoices,
-      withConfidence: true,
+      prompt:
+        "Leo's friend asks the AI app why his answer was wrong. It replies with a clear, correct paragraph. He says “Got it” and moves on. What would show whether his idea has changed?",
+      choices: [
+        { id: "a", label: "Asking him to do a new one and talk you through it.", verdict: "correct", explanation: "What he does with a fresh problem shows what he now believes. Talking it through shows where his rule still goes wrong, if it does." },
+        { id: "b", label: "Asking him whether the app's explanation made sense.", verdict: "weaker", explanation: "Feeling that it made sense isn't the same as being able to do it. Clear explanations are easy to nod along to." },
+        { id: "c", label: "Reading the app's explanation to check it was right.", verdict: "weaker", explanation: "A correct explanation can still slide past what he believes. Whether it changed his idea shows only in what he does next." },
+      ],
     },
     {
       kind: "transfer",
@@ -221,17 +226,30 @@ export const m06Teach: Mission = {
     {
       kind: "openResponse",
       id: "teach-it",
-      prompt: "In a few sentences, explain to Leo why a 50% fall followed by a 50% rise doesn't bring a price back to where it started.",
+      prompt: "Leo asks for something to stick in his book: why doesn't a 50% fall followed by a 50% rise bring a price back to where it started?",
+      format: "pickImprove",
+      drafts: [
+        {
+          id: "plain",
+          label: "Each percentage is of the price at that moment, so the second 50% is of a smaller amount and adds back less.",
+          verdict: "correct",
+          explanation: "It names the reason in words a 14-year-old can follow. It still gives Leo nothing to check with his own numbers.",
+        },
+        {
+          id: "formal",
+          label: "Percentage changes are multiplicative rather than additive, so 0.5 × 1.5 = 0.75 of the original price.",
+          verdict: "weaker",
+          explanation: "It's correct, but the wording would lose Leo, and it gives him nothing he can work out for himself.",
+        },
+        {
+          id: "verdict",
+          label: "The app gave you the wrong answer, so don't trust it, and ask me whenever you get stuck again.",
+          verdict: "weaker",
+          explanation: "It settles the app's answer but explains nothing, so his rule is still there for the next problem.",
+        },
+      ],
+      improvePrompt: "Improve it: add an example with numbers Leo can check himself.",
       rubric: {
-        samples: [
-          { id: "weak", text: "Because percentages don't work like that.", met: [], note: "It says that the rule fails, but not why, and it gives Leo nothing to check." },
-          {
-            id: "strong",
-            text: "Each percentage is of the price at that moment. Half of €40 is €20, so the sale price is €20. Then the rise is half of €20, which is only €10, so you get to €30, not €40.",
-            met: ["of", "numbers", "plain"],
-            note: "It names the reason, shows it with numbers he can check, and stays in plain words.",
-          },
-        ],
         criteria: [
           { id: "of", text: "Says each percentage is of a different amount." },
           { id: "numbers", text: "Shows it with numbers a learner can check." },
@@ -266,6 +284,7 @@ export const m06Teach: Mission = {
           },
         },
         { id: "new-learner", label: "Choosing a first move with a new misconception", kind: "transfer", items: ["transfer"] },
+        { id: "pick-explanation", label: "Choosing an explanation a learner can follow", kind: "action", items: ["teach-it/pick"] },
         { id: "explain", label: "Explaining a concept clearly in your own words", kind: "reasoning", items: ["teach-it"] },
       ],
       nextMissionId: "m07-numbers",

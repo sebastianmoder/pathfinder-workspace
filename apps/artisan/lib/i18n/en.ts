@@ -60,6 +60,12 @@ export const en = {
     confidence: ["Not at all", "A little", "Somewhat", "Fairly", "Very"],
     before: "Your first answer",
     after: "Your answer now",
+    firstMove: "Your first move",
+    revisitTitle: "A new case, the same idea",
+    lookBack: "Looking back at your first move",
+    refresherToggle: "Need a refresher first?",
+    phaseLabel: "Mission phases",
+    phases: { start: "Start", investigate: "Investigate", rethink: "Rethink", apply: "Apply", wrapUp: "Wrap up" },
     restart: "Restart this mission",
     verdict: { correct: "Fits the case", defensible: "Defensible", weaker: "Weaker fit" },
     fictional: "Fictional case.",
@@ -75,15 +81,25 @@ export const en = {
   /** The moves each kind of step asks for, shown above the activity so nobody has to guess. */
   howTo: {
     label: "How to do this step",
+    familiar: "(you've done one like this already)",
     initialJudgment: [
       "Choose the answer you would give right now.",
       "Say how confident you are.",
-      "Record it. There is no verdict yet: you will come back to it at the end.",
+      "Record it. There is no verdict yet: you will come back to it later.",
+    ],
+    initialJudgmentPlain: [
+      "Choose what you would do right now.",
+      "Record it. There is no verdict yet: you will come back to it later.",
     ],
     quiz: ["Choose the answer that fits best.", "Check it. If it's a weaker fit, try another option or show the answer."],
     revision: [
       "Your first answer is shown for comparison.",
       "Choose again. Keeping your first answer is fine if your reasons still hold.",
+    ],
+    revisionVariant: [
+      "Your first move is shown for comparison.",
+      "Answer this new case. It tests the same idea in a different situation.",
+      "Then see how your first move holds up.",
     ],
     transferChoice: ["This is a new case, with no hints.", "Choose the answer that fits best, then check it."],
     sort: ["Choose a category from the menu under every item.", "When all are placed, check your answers."],
@@ -133,6 +149,15 @@ export const en = {
       "Choose a score version and move the threshold.",
       "Read who is selected in the plot and the table.",
       "When the setting meets the task, check it.",
+    ],
+    openStructured: [
+      "Write a sentence or two in each part.",
+      "Compare with the criteria, and point at where you did each one.",
+    ],
+    openPick: [
+      "Choose the strongest draft, and check it.",
+      "Improve it in your own words: add what it is missing.",
+      "Compare with the criteria, and point at where you did each one.",
     ],
     markFind: ["Select every passage that answers the question. Select again to unmark.", "Check your answer."],
     markRedact: [
@@ -314,6 +339,9 @@ export const en = {
     startFromEarlier: "Start from your first version",
     priorHelp: "Compare this with the criteria below. You can also write an improved version.",
     criteriaList: "What a good answer does",
+    practiseFirst: "Practise on two example answers first",
+    pickPrompt: "Which draft is strongest? Choose it, then improve it.",
+    improve: "Improve the draft: add what it is missing",
   },
   dialogue: {
     scripted: "Scripted conversation. People wrote these lines in advance, and the characters respond only to the choices you pick. They do not read your notes.",
@@ -419,8 +447,8 @@ export const en = {
     empty: "You have not started a mission during this visit, so there is nothing to summarise yet.",
     openMap: "Open the mission map",
     notFinished: "Not finished during this visit.",
-    before: "First judgment",
-    after: "Final judgment",
+    before: "At the start",
+    after: "After investigating",
     takeaway: "Takeaway",
     shown: "What you showed",
     selfAssessed: "Your own assessment, not checked",

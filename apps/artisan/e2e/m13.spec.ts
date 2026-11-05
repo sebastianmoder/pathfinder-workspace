@@ -13,10 +13,9 @@ test("M13 is completable end to end", async ({ page }) => {
 
 test("the stakeholder map shows whose concerns a plan leaves out, and a different plan can also be sound", async ({ page }) => {
   await page.goto("/missions/m13-assembly");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Who benefits, who bears/, "Fairly");
-  for (const lead of ["Read the Eastfield pilot", "Read the residents' digital", "Read the provider's energy"]) await followLead(page, lead);
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /First ask who gains/);
+  for (const lead of ["Read the Kelmere pilot", "Read the residents' digital", "Read the provider's energy"]) await followLead(page, lead);
   await page.getByRole("button", { name: "Finish investigating" }).click();
   await judgeStatements(page, [
     [/most routine enquiries/, "Established"],

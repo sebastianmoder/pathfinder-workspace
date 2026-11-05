@@ -4,8 +4,7 @@ import { auditClaim, cont, firstRead, markAndCheck, narrow } from "./helpers";
 
 test("M04: first read, claim feedback, a learner-made briefing, and a decision with consequences", async ({ page }) => {
   await page.goto("/missions/m04-evidence");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
 
   // No source is open yet, and starting needs a first read of every claim.
   await expect(page.getByRole("heading", { name: "Source pack" })).toHaveCount(0);
@@ -90,8 +89,7 @@ test("M04: first read, claim feedback, a learner-made briefing, and a decision w
 
 test("finding claims does not depend on being right, and every claim is still available to audit", async ({ page }) => {
   await page.goto("/missions/t01-transfer");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await page.getByRole("button", { name: /Everyone at the Commons can be proud/ }).click();
   await page.getByRole("button", { name: "Check my answer" }).click();
   await expect(page.getByText("You marked 0 of 6, and 1 that does not belong.")).toBeVisible();
@@ -103,8 +101,7 @@ test("finding claims does not depend on being right, and every claim is still av
 
 test("claims and sources work by keyboard", async ({ page }) => {
   await page.goto("/missions/m04-evidence");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await firstRead(page, "Not sure");
 
   if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();
@@ -122,8 +119,7 @@ test("claims and sources work by keyboard", async ({ page }) => {
 
 test("selections survive switching views, and the audit survives leaving the page", async ({ page }) => {
   await page.goto("/missions/m04-evidence");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await firstRead(page, "Not sure");
 
   await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", calc: "31", status: "Supported", action: "Retain" });

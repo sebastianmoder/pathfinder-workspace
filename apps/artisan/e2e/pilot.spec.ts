@@ -72,8 +72,8 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
   // P5.
   await page.getByRole("link", { name: "See your session summary" }).click();
   await expect(page.locator("strong", { hasText: "Open the source and read the relevant part" })).toBeVisible();
-  await expect(page.getByText(/It is probably correct.*\(Very\)/)).toBeVisible();
-  await expect(page.getByText(/It tells me little; I need evidence\. \(Somewhat\)/)).toBeVisible();
+  await expect(page.getByText(/Use it\. It is specific.*\(Very\)/)).toBeVisible();
+  await expect(page.getByText(/Whether the café's own records say the same thing\. \(Somewhat\)/)).toBeVisible();
   for (const { code } of passwords)
     await expect(page.locator("li").getByText(code).locator("visible=true")).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -84,7 +84,7 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
   await expect(page.getByText("Summary copied")).toBeVisible();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   expect(copied).toContain("BIRCH-HARBOUR-58");
-  expect(copied).toContain("It tells me little; I need evidence. (Somewhat)");
+  expect(copied).toContain("Whether the café's own records say the same thing. (Somewhat)");
   expect(copied).not.toContain("PRIVATE-");
   expect(copied).toContain("You would have relied on 7 claims"); // M04's first read, against the evidence
   // No score for the learner. (M09 is about a screening tool's score, so the word alone is fine.)
@@ -114,8 +114,6 @@ const variants = [(c: string) => c, (c: string) => c.toLowerCase().replace(/-/g,
 for (const [i, { code: published, missionId: id }] of passwords.entries()) {
   const mission = missions.find((m) => m.id === id)!;
   const title = mission.title;
-  const second = mission.steps[1];
-  const secondHeading = "title" in second ? second.title : "";
   const code = variants[i % variants.length](published);
   test(`criteria 2, 6, 7: ${title} opens from its password in a fresh browser, claiming no history`, async ({ browser }) => {
     const context = await browser.newContext();
@@ -127,9 +125,10 @@ for (const [i, { code: published, missionId: id }] of passwords.entries()) {
     await page.getByRole("link", { name: "Start mission" }).click();
     await expect(page).toHaveURL(new RegExp(`/missions/${id}$`));
     await expect(page.getByText(/^Step 1 of/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: secondHeading })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Your task" })).toBeVisible();
     await page.getByRole("button", { name: "Continue", exact: true }).click();
-    await expect(page.getByRole("heading", { name: secondHeading })).toBeVisible();
+    await expect(page.getByText(/^Step 2 of/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your task" })).toHaveCount(0);
 
     // Nothing was inferred from the password.
     await page.getByRole("link", { name: "Mission map", exact: true }).click();
@@ -143,7 +142,7 @@ test("criterion 9: refreshing mid-activity gives a clear restart on every missio
   for (const { id } of missions) {
     await page.goto(`/missions/${id}`);
     await page.getByRole("button", { name: "Continue", exact: true }).click();
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(page.getByText(/^Step 2 of/)).toBeVisible();
     await page.reload();
     await expect(page.getByText(/^Step 1 of/)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Your task" })).toBeVisible();
@@ -191,12 +190,10 @@ test("regression: pages kept alive in the background do not interfere with the v
   await page.getByRole("link", { name: "Mission map", exact: true }).click();
   await page.getByRole("link", { name: /Open mission.*Inside the Machine/ }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByLabel(/It is probably correct/).check();
+  await page.getByLabel(/Use it\. It is specific/).check();
 
   await page.getByRole("link", { name: "Mission map", exact: true }).click();
   await page.getByRole("link", { name: /Open mission.*The Evidence Bureau/ }).click();
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   const answer = page.getByRole("group", { name: /Attendance averaged/ }).getByRole("radio", { name: "Not sure" });
   await answer.check();
@@ -205,7 +202,7 @@ test("regression: pages kept alive in the background do not interfere with the v
   // Back in M01, the earlier selection is intact, and ids in the document are unique.
   await page.getByRole("link", { name: "Mission map", exact: true }).click();
   await page.getByRole("link", { name: /Open mission.*Inside the Machine/ }).click();
-  await expect(page.getByLabel(/It is probably correct/)).toBeChecked();
+  await expect(page.getByLabel(/Use it\. It is specific/)).toBeChecked();
   const duplicates = await page.evaluate(() => {
     const ids = [...document.querySelectorAll("[id]")].map((e) => e.id);
     return ids.filter((id, i) => ids.indexOf(id) !== i);
@@ -216,12 +213,11 @@ test("regression: pages kept alive in the background do not interfere with the v
 test("Help reminds the learner of the method without losing their place", async ({ page }) => {
   await page.goto("/missions/t01-transfer");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await expect(page.getByText(/^Step 3 of/)).toBeVisible();
+  await expect(page.getByText(/^Step 2 of/)).toBeVisible();
   await page.getByRole("button", { name: "Help", exact: true }).click();
   await expect(page.getByRole("dialog").getByText(/Find the passage that bears on each claim/)).toBeVisible();
   await page.getByRole("button", { name: "Back to the mission" }).click();
-  await expect(page.getByText(/^Step 3 of/)).toBeVisible();
+  await expect(page.getByText(/^Step 2 of/)).toBeVisible();
 });
 
 test("the welcome page offers a real judgment before any explanation", async ({ page }) => {

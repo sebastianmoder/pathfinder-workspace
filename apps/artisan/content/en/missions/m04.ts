@@ -249,7 +249,7 @@ export const m04: Mission = {
   title: "The Evidence Bureau",
   outcome: "Identify checkable claims, assess whether sources support them, and decide what to keep, qualify, correct or remove.",
   scenario:
-    "You are the researcher at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted a briefing for tomorrow's board meeting on the Saturday Homework Club. You have the source pack, and your job is to audit the draft.",
+    "You are the researcher at the Riverside Learning Commons, a community learning centre. An AI assistant has drafted a briefing for tomorrow's board meeting on the Saturday Homework Club. You have the source pack, and your job is to audit the draft.",
   approxMinutes: 16,
   meta: {
     version: "1.2",
@@ -273,6 +273,7 @@ export const m04: Mission = {
     {
       kind: "claimAudit",
       id: "audit",
+      motifs: ["selfSelectedSample"],
       title: "Audit the briefing",
       intro: "Select each underlined claim in turn. Evidence here means a specific passage you have read, not just the name of a source. You can check as often as you like, and moving on is always allowed.",
       audit,
@@ -333,8 +334,8 @@ export const m04: Mission = {
             prompt: "An AI draft says “membership grew by about 20%”. The source says membership rose from 500 to 604. What should you do with the claim?",
             choices: [
               { id: "a", label: "Retain it, since the figures support “about 20%”.", verdict: "correct", explanation: "104 on a base of 500 is about 21%, so “about 20%” is a fair summary. Keeping a sound claim is good judgment." },
-              { id: "b", label: "Remove it; AI figures need a rewrite.", verdict: "weaker", explanation: "It has been checked and it holds. Where it came from no longer matters." },
-              { id: "c", label: "Correct it to “about 21%”.", verdict: "weaker", explanation: "“About 20%” is fair, and it says that it is rounded. Nothing here needs correcting." },
+              { id: "b", label: "Remove it, since AI-written figures need rewriting.", verdict: "weaker", explanation: "It has been checked and it holds. Where it came from no longer matters." },
+              { id: "c", label: "Correct it to “about 21%”, the exact figure.", verdict: "weaker", explanation: "“About 20%” is fair, and it says that it is rounded. Nothing here needs correcting." },
             ],
           },
         },

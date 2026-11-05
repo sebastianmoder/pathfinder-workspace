@@ -5,11 +5,12 @@ import type { Choice, Mission } from "../../types";
  * A simulated assistant: nothing runs a real model, sends email or books anything. Every result is authored per step.
  */
 
-const fixQuestion = "An AI assistant gives a member a wrong answer. Where is the problem most likely to be fixed?";
-const fixChoices: Choice[] = [
-  { id: "a", label: "In the model: switch to a more capable one.", verdict: "weaker", explanation: "A better model still can't know your opening hours, and will still follow instructions it shouldn't. Most failures come from what surrounds it." },
-  { id: "b", label: "In the workflow: its sources, its checks, and who approves what.", verdict: "correct", explanation: "Where answers come from, what happens when it doesn't know, and which steps a person checks decide most outcomes." },
-  { id: "c", label: "In the question: members should learn to ask more precisely.", verdict: "weaker", explanation: "Members will always ask in their own words. A system has to cope with that." },
+const firstMove =
+  "In its first trial run, the assistant tells a member the library opens at 9:00. It opens at 10:00. Sam says: “Let's pay for the more advanced model.” What do you say?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "Good idea: a more capable model makes fewer mistakes.", verdict: "weaker", explanation: "A better model still can't know your opening hours, and will still follow instructions it shouldn't. Most failures come from what surrounds it." },
+  { id: "b", label: "First check where its answers come from, and its checks.", verdict: "correct", explanation: "Where answers come from, what happens when it doesn't know, and which steps a person checks decide most outcomes." },
+  { id: "c", label: "The member should have asked the front desk instead.", verdict: "weaker", explanation: "Members will always ask in their own words, and wherever is easiest. A system has to cope with that." },
 ];
 
 export const m12: Mission = {
@@ -17,7 +18,7 @@ export const m12: Mission = {
   title: "The Systems Workshop",
   outcome: "Explain how sources, permissions, tests and human review combine in an AI workflow, and make a defensible launch or hold decision.",
   scenario:
-    "The Riverside Learning Commons, a fictional community learning centre, wants an assistant to answer members' emails. You assemble it from a set of steps and test it before anyone relies on it.",
+    "The Riverside Learning Commons, a community learning centre, wants an assistant to answer members' emails. You assemble it from a set of steps and test it before anyone relies on it.",
   approxMinutes: 14,
   meta: {
     version: "1.0",
@@ -38,10 +39,11 @@ export const m12: Mission = {
       title: "A quick refresher",
       body: "A model produces plausible text from patterns, so it needs reliable sources for facts. Text inside documents can try to instruct it (the Boundary Room). Actions that can't be undone need a person's approval, and a task can go to AI, to a person, or to both (the Delegation Desk). A workflow combines all of these. Everything here is simulated.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: fixQuestion, choices: fixChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "workflow",
       id: "workshop",
+      motifs: ["inventedDetail"],
       title: "Build and test the assistant",
       intro: "The assistant starts with the simplest choice at each step. Run the tests, diagnose the failures, then improve it.",
       workflow: {
@@ -147,11 +149,12 @@ export const m12: Mission = {
     {
       kind: "quiz",
       id: "launch",
+      motifs: ["stagedTrial"],
       prompt: "All six tests now pass. Should the Commons launch the assistant?",
       choices: [
-        { id: "a", label: "Yes: every test passes, so it is ready for all members.", verdict: "weaker", explanation: "The tests cover the cases someone thought of. Members will send others." },
-        { id: "b", label: "Launch to a small group, with staff checking a sample and a way to report bad replies.", verdict: "correct", explanation: "A limited launch with monitoring finds the failures the tests missed, while the cost of each one stays small." },
-        { id: "c", label: "Hold until it never makes a mistake.", verdict: "weaker", explanation: "No system reaches that. The question is whether mistakes are caught and put right." },
+        { id: "a", label: "Yes: all six tests pass, so open it to every member now.", verdict: "weaker", explanation: "The tests cover the cases someone thought of. Members will send others." },
+        { id: "b", label: "Start with a small group, checking a sample of replies.", verdict: "correct", explanation: "A limited launch with monitoring, and a way for members to report bad replies, finds the failures the tests missed while each one stays small." },
+        { id: "c", label: "Hold it back until the tests show it never makes mistakes.", verdict: "weaker", explanation: "No system reaches that. The question is whether mistakes are caught and put right." },
       ],
       hints: [{ text: "What do six passing tests tell you, and what don't they?" }],
     },
@@ -159,9 +162,13 @@ export const m12: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having built the assistant, answer the first question again. ${fixQuestion}`,
-      choices: fixChoices,
-      withConfidence: true,
+      prompt:
+        "A month after launch, the assistant tells a member a course is full when it isn't. The handbook was updated yesterday, but the assistant reads a copy that is a week old. Where is the fix?",
+      choices: [
+        { id: "a", label: "In the model: retrain it on the latest course list.", verdict: "weaker", explanation: "The model doesn't need to know course places; it needs a current source. Retraining for every update would be slow and costly." },
+        { id: "b", label: "In the workflow: keep the copy it reads up to date.", verdict: "correct", explanation: "The failure is in where answers come from. A source that updates when the handbook does fixes this case and every one like it." },
+        { id: "c", label: "In the reply: tell members to check with staff too.", verdict: "weaker", explanation: "A warning on every reply moves the work to members and leaves the out-of-date source in place." },
+      ],
     },
     {
       kind: "transfer",

@@ -18,11 +18,12 @@ const applicants = [
   ...careerBreak.map(([score, qualified], i) => ({ id: `b${i + 1}`, group: "break", qualified, scores: { original: score, revised: Math.min(score + PENALTY, 99) } })),
 ];
 
-const fairQuestion = "A screening tool applies the same pass mark to every applicant. Can it still treat groups unfairly?";
-const fairChoices: Choice[] = [
-  { id: "a", label: "No, because applying the same rule to everyone is fair by definition.", verdict: "weaker", explanation: "The same pass mark applied to scores that are systematically lower for one group still produces uneven outcomes." },
-  { id: "b", label: "Yes, if its scores are systematically lower for one group.", verdict: "correct", explanation: "A threshold is only as fair as the scores it is applied to. Uneven scores come from the data, the labels or the objective." },
-  { id: "c", label: "Only if someone deliberately programmed it to discriminate.", verdict: "weaker", explanation: "Most unfair outcomes are unintended. They come from patterns in past data that nobody chose to include." },
+const firstMove =
+  "Martin, the programme manager, says: “The screening tool is fair. It uses the same pass mark for every applicant.” Joy, who took a career break, wasn't invited. What do you say to Martin?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "Agreed: one pass mark for everyone is fair by definition.", verdict: "weaker", explanation: "The same pass mark applied to scores that are systematically lower for one group still produces uneven outcomes." },
+  { id: "b", label: "Only if the scores are fair: check who it rejects, by group.", verdict: "correct", explanation: "A threshold is only as fair as the scores it is applied to. Uneven scores come from the data, the labels or the objective." },
+  { id: "c", label: "It's only unfair if someone built it to discriminate.", verdict: "weaker", explanation: "Most unfair outcomes are unintended. They come from patterns in past data that nobody chose to include." },
 ];
 
 export const m09: Mission = {
@@ -30,7 +31,7 @@ export const m09: Mission = {
   title: "The Fairness Council",
   outcome: "Recognise how data, labels, objectives and deployment choices can produce uneven outcomes, propose a change, and name its trade-offs.",
   scenario:
-    "The Riverside Learning Commons, a fictional community learning centre, is recruiting tutors. A screening tool scores 24 applicants, and the top scorers get interviews. You sit on the panel that reviews the tool.",
+    "The Riverside Learning Commons, a community learning centre, is recruiting tutors. A screening tool scores 24 applicants, and the top scorers get interviews. You sit on the panel that reviews the tool.",
   approxMinutes: 14,
   meta: {
     version: "1.0",
@@ -51,7 +52,7 @@ export const m09: Mission = {
       title: "A quick refresher",
       body: "A screening tool turns each applicant into a score, and everyone above a threshold is selected. It makes two kinds of error: rejecting someone who would have done well, and selecting someone who wouldn't. A score learned from past decisions can repeat what those decisions favoured (the Numbers Lab showed how much depends on what you compare).",
     },
-    { kind: "initialJudgment", id: "initial", prompt: fairQuestion, choices: fairChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "thresholdLab",
       id: "council",
@@ -130,9 +131,13 @@ export const m09: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having reviewed the tool, answer the first question again. ${fairQuestion}`,
-      choices: fairChoices,
-      withConfidence: true,
+      prompt:
+        "A library's tool ranks volunteers for the most popular shifts. It never sees anyone's age. Older volunteers still get those shifts less often. How could that happen?",
+      choices: [
+        { id: "a", label: "It can't: a tool that never sees age can't be unfair by age.", verdict: "weaker", explanation: "Other inputs can stand in for age, such as years since a qualification, or the hours people say they're free." },
+        { id: "b", label: "Something it does see, or learned from, tracks age.", verdict: "correct", explanation: "Leaving a field out doesn't remove the pattern. If past choices or other inputs track age, the scores will too." },
+        { id: "c", label: "By chance: with small numbers, groups always differ.", verdict: "weaker", explanation: "Chance could explain a small gap that comes and goes. A steady pattern calls for checking what the scores learned." },
+      ],
     },
     {
       kind: "transfer",
@@ -149,17 +154,30 @@ export const m09: Mission = {
     {
       kind: "openResponse",
       id: "propose",
-      prompt: "Propose one change to the clinic's tool or how it is used, and describe one trade-off or limitation of your change.",
+      prompt: "The clinic asks for one change to its tool, or to how it is used. Which proposal goes furthest, and what does it still leave out?",
+      format: "pickImprove",
+      drafts: [
+        {
+          id: "use",
+          label: "Stop double-booking on the prediction, and use it to offer reminder calls and bus-friendly times.",
+          verdict: "correct",
+          explanation: "It changes how the prediction is used, so the patients it flags get help rather than longer waits. It doesn't yet say where the problem came from or what the change costs.",
+        },
+        {
+          id: "cutoff",
+          label: "Raise the cut-off for double-booking, so that fewer patients are double-booked than now.",
+          verdict: "weaker",
+          explanation: "Fewer would be double-booked, but the same patients would still be picked first, because the label still reflects bus access.",
+        },
+        {
+          id: "earlier",
+          label: "Tell patients who rely on buses to leave home earlier, so they stop missing appointments.",
+          verdict: "weaker",
+          explanation: "It puts the fix on the people bearing the harm, and leaves the tool learning the same pattern.",
+        },
+      ],
+      improvePrompt: "Improve it: say where the unfairness comes from, and add one trade-off or limitation.",
       rubric: {
-        samples: [
-          { id: "weak", text: "Make the AI fair.", met: [], note: "It doesn't say what to change, why, or what it costs." },
-          {
-            id: "strong",
-            text: "Instead of double-booking, use the prediction to offer a reminder call or a bus-friendly time. The source of the problem is that “missed before” reflects transport. The trade-off is staff time for calls, and some empty slots when people still can't come.",
-            met: ["source", "change", "tradeoff"],
-            note: "It ties the change to the source of the problem and names what it costs.",
-          },
-        ],
         criteria: [
           { id: "source", text: "Names where the unfairness comes from." },
           { id: "change", text: "Proposes a specific change to the data, the label, the objective or how the tool is used." },
@@ -194,6 +212,7 @@ export const m09: Mission = {
         },
         { id: "limits", label: "Naming the limits of a fix", kind: "knowledge", items: ["limits", "revision"] },
         { id: "new-system", label: "Finding the source of unfairness in a new system", kind: "transfer", items: ["transfer"] },
+        { id: "choose-change", label: "Choosing a change that tackles the harm, not just its size", kind: "action", items: ["propose/pick"] },
         { id: "propose", label: "Proposing a change and its trade-off", kind: "reasoning", items: ["propose"] },
       ],
       nextMissionId: "m10-boundaries",

@@ -27,24 +27,16 @@ const refresher = (focus: string) => ({
 
 /* ---------- Chapter 1: Scope ---------- */
 
-const scopeQuestion = "What should decide which questions an AI information service is allowed to answer on its own?";
-const scopeChoices: Choice[] = [
-  { id: "a", label: "Whether the AI can produce a fluent, helpful-sounding answer.", verdict: "weaker", explanation: "It can produce one for almost anything. Fluency doesn't tell you what a wrong answer would cost." },
-  { id: "b", label: "What a wrong answer would cost, and whether a person would catch it.", verdict: "correct", explanation: "Low-stakes, checkable questions can be automated; decisions about people's entitlements or safety need a person." },
-  { id: "c", label: "Whether residents ask that kind of question often.", verdict: "weaker", explanation: "Frequency tells you where time is saved, not whether it is safe to save it." },
-];
-
 export const c01Scope: Mission = {
   id: "c01-scope",
   title: "The Commission, chapter 1: scope",
   outcome: "Decide what the service should do, what a person must do, and what information it should be given.",
-  scenario: "You lead a commission on “Riverside Answers”, a fictional AI chat service for residents. First, decide its scope.",
+  scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. First, decide its scope.",
   approxMinutes: 12,
   meta: META,
   steps: [
     { kind: "brief", id: "brief", title: "Your task", body: "Assign a role for AI to each use the planners propose, and prepare the data they want to give the service. This is the capstone: there are no hints." },
     refresher("This chapter uses choosing a role for AI (the Delegation Desk) and sharing only what a task needs (the Boundary Room)."),
-    { kind: "initialJudgment", id: "initial", prompt: scopeQuestion, choices: scopeChoices },
     {
       kind: "transfer",
       id: "uses",
@@ -150,7 +142,6 @@ export const c01Scope: Mission = {
         { id: "c", label: "No one in particular, since answers are generated automatically.", verdict: "weaker", explanation: "Automation doesn't remove responsibility. If nobody owns a wrong answer, nobody fixes its cause." },
       ],
     },
-    { kind: "revision", id: "revision", initialStepId: "initial", prompt: `Having scoped the service, answer the first question again. ${scopeQuestion}`, choices: scopeChoices, withConfidence: true },
     {
       kind: "debrief",
       id: "debrief",
@@ -158,7 +149,7 @@ export const c01Scope: Mission = {
       skills: [
         { id: "scope", label: "Scoping AI's role across a service", kind: "transfer", items: ["uses/courses", "uses/benefits", "uses/risk", "uses/events"] },
         { id: "data", label: "Minimising the data a vendor receives", kind: "transfer", items: ["data/name1", "data/phone1", "data/name2", "data/case2", "data/q1", "data/q2", "data/q3"] },
-        { id: "owner", label: "Naming who answers for the service", kind: "transfer", items: ["owner", "revision"] },
+        { id: "owner", label: "Naming who answers for the service", kind: "transfer", items: ["owner"] },
       ],
       nextMissionId: "c01-evidence",
     },
@@ -166,13 +157,6 @@ export const c01Scope: Mission = {
 };
 
 /* ---------- Chapter 2: Evidence ---------- */
-
-const evidenceQuestion = "A vendor says its assistant is “95% accurate”. What do you most need to know before relying on that?";
-const evidenceChoices: Choice[] = [
-  { id: "a", label: "Whether other councils have bought the same product.", verdict: "weaker", explanation: "Popularity isn't evidence of accuracy, and other councils' questions may differ from yours." },
-  { id: "b", label: "Accurate on what questions, measured how, and for whom.", verdict: "correct", explanation: "An overall figure can hide poor results on the questions or the people that matter most." },
-  { id: "c", label: "Whether the figure appears in the vendor's official brochure.", verdict: "weaker", explanation: "Being printed in a brochure doesn't make a claim checked. The brochure is the vendor's own claim." },
-];
 
 const pitch: AuditSpec = {
   support: "independent",
@@ -249,13 +233,12 @@ export const c01Evidence: Mission = {
   id: "c01-evidence",
   title: "The Commission, chapter 2: evidence",
   outcome: "Check the vendor's claims against independent evidence, and test whether the headline figure holds for everyone.",
-  scenario: "You lead a commission on “Riverside Answers”, a fictional AI chat service for residents. The vendor has made its case; check it.",
+  scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. The vendor has made its case; check it.",
   approxMinutes: 14,
   meta: META,
   steps: [
     { kind: "brief", id: "brief", title: "Your task", body: "Audit the vendor's case against an independent evaluation, and look at what its accuracy figure hides. This is the capstone: there are no hints." },
     refresher("This chapter uses checking claims against sources (the Evidence Bureau) and comparing groups fairly with rates (the Numbers Lab, the Fairness Council)."),
-    { kind: "initialJudgment", id: "initial", prompt: evidenceQuestion, choices: evidenceChoices },
     {
       kind: "transfer",
       id: "pitch",
@@ -309,7 +292,6 @@ export const c01Evidence: Mission = {
         { id: "c", label: "Reject the service, since it isn't equally good for everyone.", verdict: "defensible", explanation: "Cautious, but it denies an English service that works well to the majority. A condition can protect the others." },
       ],
     },
-    { kind: "revision", id: "revision", initialStepId: "initial", prompt: `Having checked the evidence, answer the first question again. ${evidenceQuestion}`, choices: evidenceChoices, withConfidence: true },
     {
       kind: "debrief",
       id: "debrief",
@@ -326,27 +308,20 @@ export const c01Evidence: Mission = {
 
 /* ---------- Chapter 3: Workflow ---------- */
 
-const workflowQuestion = "The service will sometimes be wrong. What matters most in how it is set up?";
-const workflowChoices: Choice[] = [
-  { id: "a", label: "Choosing the most accurate model available.", verdict: "weaker", explanation: "Even the best model will be wrong sometimes. What matters is what happens when it is." },
-  { id: "b", label: "That mistakes are caught, and people can reach a person.", verdict: "correct", explanation: "A workflow designed for failure (sources, honest gaps, handovers and checks) limits the harm of mistakes." },
-  { id: "c", label: "That every answer sounds confident and complete.", verdict: "weaker", explanation: "Confidence hides uncertainty. Residents need to know when to check." },
-];
-
 export const c01Workflow: Mission = {
   id: "c01-workflow",
   title: "The Commission, chapter 3: workflow",
   outcome: "Set up and test the service's workflow so that it fails safely.",
-  scenario: "You lead a commission on “Riverside Answers”, a fictional AI chat service for residents. Test how it is set up before anyone relies on it.",
+  scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. Test how it is set up before anyone relies on it.",
   approxMinutes: 12,
   meta: META,
   steps: [
     { kind: "brief", id: "brief", title: "Your task", body: "Configure the service from its steps, run the trial cases, diagnose the failures and fix them. This is the capstone: there are no hints." },
     refresher("This chapter uses testing a workflow (the Systems Workshop), keeping decisions about people with people (the Delegation Desk), and treating document text as content (the Boundary Room)."),
-    { kind: "initialJudgment", id: "initial", prompt: workflowQuestion, choices: workflowChoices },
     {
       kind: "transfer",
       id: "service",
+      motifs: ["inventedDetail"],
       title: "Configure and test the service",
       prompt: "Run the five trial cases, diagnose what failed, and fix it.",
       workflow: {
@@ -374,6 +349,7 @@ export const c01Workflow: Mission = {
     {
       kind: "quiz",
       id: "ready",
+      motifs: ["stagedTrial"],
       prompt: "All five trial cases now pass. What should the commission say about launch?",
       choices: [
         { id: "a", label: "Launch to everyone, since every trial case now passes.", verdict: "weaker", explanation: "Five cases are the ones someone thought of. Residents will ask others." },
@@ -381,7 +357,6 @@ export const c01Workflow: Mission = {
         { id: "c", label: "Hold until the service is right in every language.", verdict: "defensible", explanation: "Cautious, but the English service works and the interpreter route covers other languages meanwhile." },
       ],
     },
-    { kind: "revision", id: "revision", initialStepId: "initial", prompt: `Having tested the service, answer the first question again. ${workflowQuestion}`, choices: workflowChoices, withConfidence: true },
     {
       kind: "debrief",
       id: "debrief",
@@ -389,7 +364,7 @@ export const c01Workflow: Mission = {
       skills: [
         { id: "diagnose", label: "Diagnosing failures in the service's workflow", kind: "transfer", items: ["course", "support", "danger", "polish", "parking"].map((id) => `service/diagnose/${id}`) },
         { id: "fix", label: "Fixing the workflow so every trial case passes", kind: "transfer", items: ["service/fixed"] },
-        { id: "launch", label: "Recommending a staged, monitored launch", kind: "transfer", items: ["ready", "revision"] },
+        { id: "launch", label: "Recommending a staged, monitored launch", kind: "transfer", items: ["ready"] },
       ],
       nextMissionId: "c01-review",
     },
@@ -426,18 +401,19 @@ const memoRubric = (extra?: { id: string; text: string }): Rubric => ({
   ],
 });
 
-const reviewQuestion = "A commission's recommendation is challenged at the council meeting. What makes it hold up?";
-const reviewChoices: Choice[] = [
-  { id: "a", label: "Answering the challenge with confidence, and not giving ground.", verdict: "weaker", explanation: "Confidence persuades some people briefly. Evidence persuades, and survives being checked." },
-  { id: "b", label: "Evidence for each point, clear conditions, and honesty about what is unknown.", verdict: "correct", explanation: "A recommendation that shows its evidence and its limits can be challenged without collapsing." },
-  { id: "c", label: "Agreeing with whoever has the most authority in the room.", verdict: "weaker", explanation: "Authority isn't evidence. Changing your view should come from a better reason." },
+const firstMove =
+  "Before the council meeting, a colleague advises: “If they push back, just sound certain. Councillors respect confidence.” What is your plan instead?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "Sound certain anyway, and don't give ground on anything.", verdict: "weaker", explanation: "Confidence persuades some people briefly. Evidence persuades, and survives being checked." },
+  { id: "b", label: "Bring the evidence for each point, and say what's unknown.", verdict: "correct", explanation: "A recommendation that shows its evidence and its limits can be challenged without collapsing." },
+  { id: "c", label: "Agree with whoever has the most authority in the room.", verdict: "weaker", explanation: "Authority isn't evidence. Changing your view should come from a better reason." },
 ];
 
 export const c01Review: Mission = {
   id: "c01-review",
   title: "The Commission, chapter 4: the review meeting",
   outcome: "Set conditions, write an evidence-based recommendation, and revise it after a challenge.",
-  scenario: "You lead a commission on “Riverside Answers”, a fictional AI chat service for residents. The council meets to hear your recommendation.",
+  scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. The council meets to hear your recommendation.",
   approxMinutes: 15,
   meta: META,
   steps: [
@@ -448,7 +424,7 @@ export const c01Review: Mission = {
       body: "The findings so far: in an independent trial, about 90% of answers were correct overall, about 95% in English, and about two-thirds in Polish and Arabic. All three risk conversations were handed to a person within a minute. Eligibility decisions and risks must stay with people. Set conditions, write your recommendation, and defend it.",
     },
     refresher("This chapter brings together everything: evidence, fairness, boundaries, workflow and the views of the people affected (the Citizens' Assembly)."),
-    { kind: "initialJudgment", id: "initial", prompt: reviewQuestion, choices: reviewChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "transfer",
       id: "conditions",
@@ -485,9 +461,9 @@ export const c01Review: Mission = {
       id: "challenge",
       prompt: "A councillor challenges you: “The vendor says it's 95% accurate in every language. Your conditions cost €30,000. Why not just trust the vendor?” What is the strongest reply?",
       choices: [
-        { id: "a", label: "“The independent trial found about two-thirds in Polish and Arabic, so the 95% doesn't hold for everyone.”", verdict: "correct", explanation: "It answers the challenge with the specific evidence, and shows why the conditions follow from it." },
+        { id: "a", label: "“The independent trial found Polish and Arabic far lower.”", verdict: "correct", explanation: "It answers the challenge with the specific evidence, and shows why the conditions follow from it." },
         { id: "b", label: "“AI vendors always exaggerate, so we shouldn't believe them.”", verdict: "weaker", explanation: "A generalisation, not evidence. It invites the councillor to dismiss your view the same way." },
-        { id: "c", label: "“You may be right; perhaps we can drop the conditions.”", verdict: "weaker", explanation: "Changing your view is good when there's a better reason. Here the evidence is on your side." },
+        { id: "c", label: "“You may be right; perhaps we could drop the conditions.”", verdict: "weaker", explanation: "Changing your view is good when there's a better reason. Here the evidence is on your side." },
       ],
     },
     {
@@ -497,7 +473,17 @@ export const c01Review: Mission = {
       prompt: "Revise your recommendation so it answers the councillor's challenge directly. You can start from your first version.",
       rubric: memoRubric({ id: "challenge", text: "Answers the challenge with specific evidence." }),
     },
-    { kind: "revision", id: "revision", initialStepId: "initial", prompt: `Having defended the recommendation, answer the first question again. ${reviewQuestion}`, choices: reviewChoices, withConfidence: true },
+    {
+      kind: "revision",
+      id: "revision",
+      initialStepId: "initial",
+      prompt: "A week after the meeting, a councillor emails: “New figures from Northbrook: Polish answers are now right 90% of the time.” What should happen to your recommendation?",
+      choices: [
+        { id: "a", label: "Nothing: the council has heard it, and changing would look weak.", verdict: "weaker", explanation: "Changing your view for a better reason is a strength. Holding on to save face is how recommendations go stale." },
+        { id: "b", label: "Check the new figures, and revise the language condition if they hold.", verdict: "correct", explanation: "A recommendation built on evidence should move when the evidence does, once you know where the new figures come from and what they measured." },
+        { id: "c", label: "Drop the interpreter condition now, since the problem is fixed.", verdict: "weaker", explanation: "One email isn't yet evidence. Check where the figures come from and what they measured, then decide." },
+      ],
+    },
     {
       kind: "debrief",
       id: "debrief",

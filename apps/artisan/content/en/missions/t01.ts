@@ -150,7 +150,7 @@ export const t01: Mission = {
   title: "The Newsletter Desk",
   outcome: "Use claim checking and assumption spotting together on a new case, with less help.",
   scenario:
-    "You are the editor of the newsletter at the Riverside Learning Commons, a fictional community learning centre. An AI assistant has drafted the lead article about a digital skills course, and a colleague has added an argument for expanding it.",
+    "You are the editor of the newsletter at the Riverside Learning Commons, a community learning centre. An AI assistant has drafted the lead article about a digital skills course, and a colleague has added an argument for expanding it.",
   approxMinutes: 13,
   meta: {
     version: "1.2",
@@ -174,6 +174,7 @@ export const t01: Mission = {
     {
       kind: "transfer",
       id: "audit",
+      motifs: ["selfSelectedSample"],
       title: "Audit the draft",
       prompt: "The newsletter goes out today, and the draft reads well. Check what it says before it goes.",
       audit,

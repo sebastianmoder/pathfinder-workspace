@@ -5,11 +5,12 @@ import type { Choice, Mission } from "../../types";
  * and M11 (disclosure) in one case, with support faded. All people, records and the policy are fictional.
  */
 
-const riskQuestion = "You're preparing a public report with AI help. Which problem is most likely to slip through unnoticed?";
-const riskChoices: Choice[] = [
-  { id: "a", label: "Spelling and grammar mistakes in the AI's drafts.", verdict: "weaker", explanation: "Those are easy to see and easy to fix. The risky problems look fine on the page." },
-  { id: "b", label: "Things that read well but aren't checked: whose data, which photo, what claim.", verdict: "correct", explanation: "Personal details, an image's origin and a fairness claim all look fine in a finished report. Only checking finds them." },
-  { id: "c", label: "The AI refusing to write some sections of the report.", verdict: "weaker", explanation: "A refusal is visible. You'll notice it and work around it." },
+const firstMove =
+  "Joanna wants the annual report at the printers by Friday. The AI drafted most of it, and it reads beautifully. Where do you spend your checking time?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "On spelling and layout, since those are what readers notice.", verdict: "weaker", explanation: "Those are easy to see and easy to fix. The risky problems look fine on the page." },
+  { id: "b", label: "On names, photos and claims that could be wrong underneath.", verdict: "correct", explanation: "Personal details, an image's origin and a fairness claim all look fine in a finished report. Only checking finds them." },
+  { id: "c", label: "On any sections the AI refused to write, since those are gaps.", verdict: "weaker", explanation: "A refusal is visible. You'll notice it and work around it." },
 ];
 
 export const b03: Mission = {
@@ -17,7 +18,7 @@ export const b03: Mission = {
   title: "The Annual Report",
   outcome: "Bring together boundaries, provenance, fairness and disclosure while preparing a public report.",
   scenario:
-    "The Riverside Learning Commons, a fictional community learning centre, is publishing its annual report. You're preparing three parts of it with the AI tool's help, under the Commons' publishing policy.",
+    "The Riverside Learning Commons, a community learning centre, is publishing its annual report. You're preparing three parts of it with the AI tool's help, under the Commons' publishing policy.",
   approxMinutes: 12,
   meta: {
     version: "1.0",
@@ -38,7 +39,7 @@ export const b03: Mission = {
       title: "A quick refresher",
       body: "Give AI only what a task needs (the Boundary Room). Check where an image came from before trusting its caption (the Newsroom). The same rule for everyone isn't fair if the scores behind it aren't (the Fairness Council). The Commons' policy: say when AI generated an image or wrote text published largely unchanged, and use photos of people only with signed consent (the Co-Creation Studio).",
     },
-    { kind: "initialJudgment", id: "initial", prompt: riskQuestion, choices: riskChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "transfer",
       id: "story",
@@ -140,9 +141,14 @@ export const b03: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having prepared the report, answer the first question again. ${riskQuestion}`,
-      choices: riskChoices,
-      withConfidence: true,
+      motifs: ["selfSelectedSample"],
+      prompt:
+        "A last page arrives: a chart titled “Learners love our AI study helper: 9 in 10 rate it highly”. The figures come from the helper's own pop-up, which asks learners to rate it. What does the page need before printing?",
+      choices: [
+        { id: "a", label: "Nothing: figures from the tool's own data are accurate.", verdict: "weaker", explanation: "The count may be accurate, but a pop-up answered by whoever chooses to can't stand for “learners”. It looks as finished as a checked claim." },
+        { id: "b", label: "How many were asked and answered, and who chose to.", verdict: "correct", explanation: "A finished chart can still overstate who it describes. Say how many answered out of how many asked, or don't print the claim." },
+        { id: "c", label: "An AI disclosure, since the chart is about an AI tool.", verdict: "weaker", explanation: "The policy asks for disclosure when AI made an image or wrote text published largely unchanged. The problem here is the evidence." },
+      ],
     },
     {
       kind: "debrief",
@@ -152,7 +158,8 @@ export const b03: Mission = {
         { id: "boundaries", label: "Keeping private details out of what AI reads", kind: "transfer", items: ["story/surname", "story/status", "story/address", "story/inject", "story/name", "story/progress", "story/quote"] },
         { id: "provenance", label: "Checking an image's origin and consent", kind: "transfer", items: ["cover/lead/folder", "cover/ours", "cover/consent-ok", "cover/tomasz"] },
         { id: "fairness", label: "Asking for evidence behind a fairness claim", kind: "transfer", items: ["fair-claim"] },
-        { id: "disclosure", label: "Applying a disclosure rule", kind: "transfer", items: ["foreword", "revision"] },
+        { id: "disclosure", label: "Applying a disclosure rule", kind: "transfer", items: ["foreword"] },
+        { id: "who-answered", label: "Asking who a finished chart actually describes", kind: "transfer", items: ["revision"] },
       ],
       nextMissionId: "m12-systems",
     },

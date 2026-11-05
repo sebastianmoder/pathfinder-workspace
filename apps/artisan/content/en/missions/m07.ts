@@ -3,29 +3,31 @@ import type { AuditSpec, Choice, Mission } from "../../types";
 /**
  * M07 — The Numbers Lab.
  * All organisations and figures are fictional.
- * Arithmetic to re-check on review: 92→101 is +9.8%; 97→101 is +4.1%; 10/12 is 83.3%; per 1,000 residents
- * Riverside 300/15,000 = 20, Bramley 150/3,000 = 50, Eastfield 210/7,000 = 30; 80→120 is +50%; 6→18 is +200%; 27/30 is 90%.
+ * Arithmetic to re-check on review: 92→101 is +9.8%; 97→101 is +4.1%; (380×40 + 20×420)/400 = 59 minutes; per 1,000
+ * residents Riverside 300/15,000 = 20, Bramley 150/3,000 = 50, Hollins 210/7,000 = 30; 80→120 is +50%; 6→18 is +200%;
+ * 4→2 injuries is −50% on tiny counts; 20%→30% is +10 points, a 50% rise.
  */
 
-const chartQuestion = "An AI-made slide shows visits climbing steeply, captioned “Visits soared after we introduced the AI helper.” What would most change whether you believe it?";
-const chartChoices: Choice[] = [
+const firstMove =
+  "The AI-made slide shows bars that look as if visits doubled, captioned “Visits soared after we introduced the AI helper.” The board meets in an hour. What do you check first?";
+const firstChoices: Choice[] = [
   {
     id: "a",
-    label: "Whether the chart's numbers match the records exactly.",
+    label: "That the bar labels match the register's figures.",
     verdict: "weaker",
     explanation: "Accurate numbers can still be drawn to exaggerate a change, picked from a convenient period, or used to imply a cause they can't show.",
   },
   {
     id: "b",
-    label: "How the axis, the time range and the comparison were chosen, and what else changed at the time.",
+    label: "How the chart is drawn, and what else changed.",
     verdict: "correct",
-    explanation: "Each of those choices can make a small change look large, or a coincidence look like a cause. They are where to look first.",
+    explanation: "The axis, the period shown and the comparison can make a small change look large, and timing alone doesn't show a cause. They are where to look first.",
   },
   {
     id: "c",
-    label: "Whether the chart looks professional and comes from a tool you trust.",
+    label: "That the tool that made the slide is a reliable one.",
     verdict: "weaker",
-    explanation: "A polished chart is as easy to make from a misleading choice as from a fair one. Its look is not evidence.",
+    explanation: "A polished chart is as easy to make from a misleading choice as from a fair one. Its look and its origin are not evidence.",
   },
 ];
 
@@ -40,16 +42,7 @@ const audit: AuditSpec = {
         { id: "reg-visits", text: "Recorded visits, January to June 2026: 92, 95, 97, 96, 99 and 101 a month. October to December 2025: 104, 100 and 88." },
         { id: "reg-closure", text: "The Commons was closed from 22 December 2025 to 4 January 2026." },
         { id: "reg-helper", text: "The AI helper was installed on the drop-in laptops on 2 March 2026. Staff did not record which visitors used it." },
-      ],
-    },
-    {
-      id: "cards",
-      title: "Visitor feedback cards",
-      description: "Paper cards left at the drop-in desk for anyone to fill in.",
-      date: "March–June 2026",
-      passages: [
-        { id: "cards-result", text: "12 feedback cards were returned between March and June. 10 rated the drop-in “good” or “very good”." },
-        { id: "cards-scope", text: "Staff did not record how many visitors were offered a card." },
+        { id: "reg-length", text: "Visit lengths, April to June: 380 visits averaged 40 minutes, and none of them lasted more than an hour. The other 20 were all-day study sessions of about 7 hours." },
       ],
     },
     {
@@ -62,7 +55,7 @@ const audit: AuditSpec = {
   ],
   briefing: [
     ["Slide 2: The digital drop-in in 2026. ", { claimId: "rise" }, " ", { claimId: "caused" }],
-    ["Slide 3: What visitors think. ", { claimId: "satisfied" }],
+    ["Slide 3: How the drop-in is used. ", { claimId: "typical" }],
     ["Slide 4: Value for money. ", { claimId: "cost" }],
   ],
   claims: [
@@ -97,20 +90,20 @@ const audit: AuditSpec = {
       ifKept: "The board renewed the licence because the helper “caused” the rise. A year later, visits were flat, and nobody could say whether the helper had ever made a difference.",
     },
     {
-      id: "satisfied",
-      text: "83% of visitors are satisfied with the drop-in [Feedback cards, spring 2026].",
+      id: "typical",
+      text: "The typical visit now lasts about an hour [Register summary, July 2026].",
       status: "misleading",
-      passageIds: ["cards-result"],
+      passageIds: ["reg-length"],
       bestAction: "qualify",
       defensibleActions: ["correct"],
-      evidenceExplanation: "The results passage says 10 of 12 returned cards were positive.",
-      statusExplanation: "10 of 12 is 83%, but 12 cards from around 400 visits, filled in by whoever chose to, can't stand for “visitors”. The sample is tiny and self-selected.",
-      actionExplanation: "Keep the finding and say whose views it is. Rewording it as a correction is also defensible.",
-      finalText: "Of the 12 feedback cards returned, 10 rated the drop-in good or very good [Feedback cards, spring 2026].",
-      repair: ["Of the ", { id: "returned", accept: ["12"] }, " feedback cards returned, ", { id: "positive", accept: ["10"] }, " rated the drop-in good or very good [Feedback cards, spring 2026]."],
-      hint: "83% of how many?",
-      calculation: { prompt: "Work it out: what percentage of returned cards were positive?", min: 83, max: 84, explanation: "10 of 12 is 83.3%. The arithmetic is right; the problem is who the 12 were." },
-      ifKept: "The funder quoted “83% of visitors satisfied” in its own report, then asked for the survey method and found 12 cards.",
+      evidenceExplanation: "The visit-length passage gives both groups: 380 visits averaging 40 minutes, and 20 all-day sessions of about 7 hours.",
+      statusExplanation: "The arithmetic behind “about an hour” is right: the mean of all 400 visits is about 59 minutes. But 20 all-day sessions pull it up. The other 380 visits averaged 40 minutes and none lasted over an hour, so “typical” describes them, not the mean.",
+      actionExplanation: "Keep the finding and say what most visits look like. Rewording it as a correction is also defensible.",
+      finalText: "Most visits last under an hour, averaging 40 minutes; 20 all-day study sessions raise the overall average to about an hour [Register summary, July 2026].",
+      repair: ["Most visits last under an hour, averaging ", { id: "most", accept: ["40"] }, " minutes; ", { id: "long", accept: ["20"] }, " all-day study sessions raise the overall average to about an hour [Register summary, July 2026]."],
+      hint: "Does the average look like most visits?",
+      calculation: { prompt: "Work it out: what is the average length of all 400 visits, in minutes?", min: 57, max: 61, explanation: "380 visits of 40 minutes and 20 of about 420 minutes make 23,600 minutes over 400 visits: about 59. The average is right; it just isn't typical." },
+      ifKept: "The board planned the drop-in's staffing around hour-long visits. Most visitors left within 40 minutes, and the extra cover sat idle.",
     },
     {
       id: "cost",
@@ -145,15 +138,15 @@ const transferAudit: AuditSpec = {
       ],
     },
     {
-      id: "survey",
-      title: "Parent survey",
-      description: "Online survey emailed by the club to every registered family.",
-      date: "December 2025",
-      passages: [{ id: "survey-active", text: "The survey went to all 120 families, and 30 replied. Of those, 27 said their child had become more active." }],
+      id: "injury-log",
+      title: "Club injury log",
+      description: "Training injuries recorded by the club's first-aid volunteer.",
+      date: "January 2026",
+      passages: [{ id: "log-injuries", text: "Training injuries needing first aid: 4 in 2024 and 2 in 2025. Nothing about how training is run changed between the two years." }],
     },
   ],
   briefing: [
-    ["Eastfield Youth Football Club: our case for a council grant. ", { decoyId: "community" }, " ", { claimId: "growth" }, " ", { claimId: "girls" }, " ", { claimId: "active" }],
+    ["Millbrook Youth Football Club: our case for a council grant. ", { decoyId: "community" }, " ", { claimId: "growth" }, " ", { claimId: "girls" }, " ", { claimId: "injuries" }],
   ],
   claims: [
     {
@@ -184,18 +177,18 @@ const transferAudit: AuditSpec = {
       ifKept: "A council officer checked the arithmetic and marked the whole application down for accuracy.",
     },
     {
-      id: "active",
-      text: "Nine in ten parents say their child is more active [Parent survey].",
+      id: "injuries",
+      text: "Injuries at training fell by half in 2025, thanks to the club's new focus on safety [Injury log].",
       status: "misleading",
-      passageIds: ["survey-active"],
+      passageIds: ["log-injuries"],
       bestAction: "qualify",
       defensibleActions: ["correct"],
-      evidenceExplanation: "The survey passage gives 27 of 30 replies, from 120 families asked.",
-      statusExplanation: "27 of 30 is 90%, but only a quarter of families replied, and the happiest parents may be the likeliest to answer.",
-      actionExplanation: "Keep the finding and say who it describes.",
-      finalText: "Of the 30 parents who replied, out of 120 asked, 27 said their child had become more active [Parent survey].",
-      repair: ["Of the ", { id: "replied", accept: ["30"] }, " parents who replied, out of ", { id: "asked", accept: ["120"] }, " asked, ", { id: "said", accept: ["27"] }, " said their child had become more active [Parent survey]."],
-      ifKept: "The council funded the club as having “clear evidence” of more active children, then found that three-quarters of families had not answered.",
+      evidenceExplanation: "The injury log gives 4 injuries in 2024 and 2 in 2025, and says nothing about training changed.",
+      statusExplanation: "4 to 2 is half, but with counts this small one injury either way swings the percentage wildly. The log also says nothing changed, so “thanks to a focus on safety” has nothing behind it.",
+      actionExplanation: "Give the actual counts, and drop the cause the records don't show.",
+      finalText: "Training injuries needing first aid went from 4 in 2024 to 2 in 2025 [Injury log].",
+      repair: ["Training injuries needing first aid went from ", { id: "from", accept: ["4", "four"] }, " in 2024 to ", { id: "to", accept: ["2", "two"] }, " in 2025 [Injury log]."],
+      ifKept: "The council quoted “injuries halved” in its sport report. The next year the club recorded five, and the same report had to say injuries had more than doubled.",
     },
   ],
 };
@@ -205,7 +198,7 @@ export const m07: Mission = {
   title: "The Numbers Lab",
   outcome: "Check numerical claims, and spot misleading charts, comparisons, samples and causal conclusions.",
   scenario:
-    "You are the researcher at the Riverside Learning Commons, a fictional community learning centre. An AI tool has built a slide deck about the digital drop-in for the board, which will decide whether to renew the drop-in's AI helper. Check the numbers before the board does.",
+    "You are the researcher at the Riverside Learning Commons, a community learning centre. An AI tool has built a slide deck about the digital drop-in for the board, which will decide whether to renew the drop-in's AI helper. Check the numbers before the board does.",
   approxMinutes: 16,
   meta: {
     version: "1.0",
@@ -226,7 +219,7 @@ export const m07: Mission = {
       title: "A quick refresher",
       body: "A claim that cites a source still needs checking against it (the method from the Evidence Bureau). With numbers, also ask: compared with what, out of how many, over which period, and does the evidence show a cause or only that two things happened together? A percentage change is the difference divided by the starting value.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: chartQuestion, choices: chartChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices, withConfidence: true },
     {
       kind: "chartLab",
       id: "trend",
@@ -283,23 +276,23 @@ export const m07: Mission = {
       title: "Compare the branches fairly",
       intro: "Slide 5 compares the three branches' drop-ins in the last quarter, and recommends where the next AI helper should go.",
       chart: {
-        claim: "Riverside's drop-in reaches far more people than Bramley's or Eastfield's, so the next AI helper should go to Riverside.",
+        claim: "Riverside's drop-in reaches far more people than Bramley's or Hollins's, so the next AI helper should go to Riverside.",
         categoryLabel: "Branch",
         categories: [
           { id: "riverside", label: "Riverside" },
           { id: "bramley", label: "Bramley" },
-          { id: "eastfield", label: "Eastfield" },
+          { id: "hollins", label: "Hollins" },
         ],
         quantities: [
-          { id: "visits", label: "Visits (April–June)", values: { riverside: 300, bramley: 150, eastfield: 210 } },
-          { id: "residents", label: "Residents in the area", values: { riverside: 15000, bramley: 3000, eastfield: 7000 } },
+          { id: "visits", label: "Visits (April–June)", values: { riverside: 300, bramley: 150, hollins: 210 } },
+          { id: "residents", label: "Residents in the area", values: { riverside: 15000, bramley: 3000, hollins: 7000 } },
         ],
         measures: [
           { id: "count", label: "Visits", numerator: "visits", unit: "visits" },
           { id: "rate", label: "Visits per 1,000 residents", numerator: "visits", denominator: "residents", per: 1000, unit: "per 1,000" },
         ],
         baselines: [{ id: "zero", label: "At zero", min: 0 }],
-        ranges: [{ id: "all", label: "All branches", categoryIds: ["riverside", "bramley", "eastfield"] }],
+        ranges: [{ id: "all", label: "All branches", categoryIds: ["riverside", "bramley", "hollins"] }],
         start: { measure: "count", baseline: "zero", range: "all" },
         tasks: [
           {
@@ -335,8 +328,13 @@ export const m07: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having worked through the deck, answer the first question again. ${chartQuestion}`,
-      choices: chartChoices,
+      prompt:
+        "Another slide says: “Online bookings rose by just 10%, so the new booking page made little difference.” The register shows online bookings were 20% of all bookings last year, and 30% this year. Is the slide fair?",
+      choices: [
+        { id: "a", label: "Yes: going from 20% to 30% is a rise of 10%.", verdict: "weaker", explanation: "It is a rise of 10 percentage points. Measured from where it started, that is half as much again: a 50% rise. The slide undersells it." },
+        { id: "b", label: "No: 20% to 30% is half as much again, a 50% rise.", verdict: "correct", explanation: "Ten percentage points on a starting share of 20% is a 50% rise. Whether the page caused it is a separate question, which the register can't answer." },
+        { id: "c", label: "It can't be judged without the total number of bookings.", verdict: "weaker", explanation: "Totals would add context, but the slide's mistake shows in the two shares alone." },
+      ],
       withConfidence: true,
     },
     {
@@ -350,25 +348,25 @@ export const m07: Mission = {
       kind: "openResponse",
       id: "effect",
       prompt:
-        "The council will fund clubs that show “clear evidence that children became more active”. Explain how the parent survey claim, as the AI wrote it, could mislead that decision, and what the council can fairly conclude.",
+        "The council will fund clubs that show “evidence that training is getting safer”. Explain how the injury claim, as the AI wrote it, could mislead that decision, and what the council can fairly conclude.",
       rubric: {
         samples: [
           { id: "weak", text: "The claim is wrong, so the council shouldn't trust it.", met: [], note: "It doesn't say what is wrong with it, or what the council can conclude instead." },
           {
             id: "strong",
-            text: "It says nine in ten parents, but only 30 of 120 families replied, and keen parents are the likeliest to answer. So it looks like clear evidence when it is a small, self-selected sample. The council can say some parents noticed a change, not that children in general became more active.",
-            met: ["base", "bias", "decision"],
-            note: "It gives the real base, explains why the replies may not be typical, and states a fair conclusion.",
+            text: "“Fell by half” is 4 injuries down to 2. With numbers that small, one or two injuries either way changes the percentage completely, and the log says nothing about training changed. The council can say injuries stayed low, not that training got safer.",
+            met: ["base", "small", "decision"],
+            note: "It gives the real counts, explains why the change says little, and states a fair conclusion.",
           },
         ],
         criteria: [
-          { id: "base", text: "Says that only 30 of 120 families replied." },
-          { id: "bias", text: "Explains why those who replied may not be typical." },
+          { id: "base", text: "Gives the actual counts: 4 injuries, then 2." },
+          { id: "small", text: "Explains why a change between such small numbers says little, or that nothing links it to a cause." },
           { id: "decision", text: "Says what the council can and can't conclude from it." },
         ],
         examples: [
-          "“Nine in ten” sounds like most parents, but it is 27 of the 30 who answered out of 120. Parents who were pleased are more likely to reply. That is encouraging, but it isn't clear evidence, so the council shouldn't treat it as meeting the condition on its own.",
-          "Three-quarters of families didn't answer, so we don't know what they think. The 90% only describes the quarter who chose to reply. The council could ask for activity records or a better survey before deciding.",
+          "“Halved” sounds like a big improvement, but it means 4 injuries became 2. A single bad week could undo that, and the club says it changed nothing. The council can see that injuries are rare, not that the club made training safer.",
+          "The percentage hides how small the numbers are: two fewer injuries in a year. Nothing in the log explains the drop. If safety matters to the grant, the council should ask for several years of records, per player, before treating this as evidence.",
         ],
       },
     },
@@ -409,7 +407,7 @@ export const m07: Mission = {
           id: "calculate",
           label: "Checking a calculation against the source",
           kind: "action",
-          items: ["audit/rise/calc", "audit/satisfied/calc", "audit/cost/repair"],
+          items: ["audit/rise/calc", "audit/typical/calc", "audit/cost/repair"],
         },
         {
           id: "cause",
@@ -419,23 +417,23 @@ export const m07: Mission = {
           practice: {
             prompt: "Library visits rose after a new café opened next door. What can you conclude?",
             choices: [
-              { id: "a", label: "The café brought in new library visitors.", verdict: "weaker", explanation: "That is one possibility. The timing alone can't tell it apart from others, such as the season or a new course." },
-              { id: "b", label: "The rise came after the café; on its own that doesn't show the café caused it.", verdict: "correct", explanation: "Timing is a clue to investigate, such as by asking visitors, not proof of a cause." },
-              { id: "c", label: "The café had nothing to do with it, since the two are separate businesses.", verdict: "weaker", explanation: "It might have helped. You don't know either way without further evidence." },
+              { id: "a", label: "The café brought in new visitors to the library.", verdict: "weaker", explanation: "That is one possibility. The timing alone can't tell it apart from others, such as the season or a new course." },
+              { id: "b", label: "It came after the café, which alone doesn't show a cause.", verdict: "correct", explanation: "Timing is a clue to investigate, such as by asking visitors, not proof of a cause." },
+              { id: "c", label: "The café had nothing to do with the rise.", verdict: "weaker", explanation: "It might have helped. You don't know either way without further evidence." },
             ],
           },
         },
         {
-          id: "sample",
-          label: "Spotting a small or self-selected sample",
+          id: "spread",
+          label: "Spotting an average pulled up by a few unusual cases",
           kind: "action",
-          items: ["audit/satisfied/status", "audit/satisfied/repair"],
+          items: ["audit/typical/status", "audit/typical/repair"],
         },
         {
           id: "new-numbers",
           label: "Correcting numbers in a new case, without hints",
           kind: "transfer",
-          items: ["transfer/girls/calc", "transfer/girls/repair", "transfer/active/status", "transfer/growth/action"],
+          items: ["transfer/girls/calc", "transfer/girls/repair", "transfer/injuries/status", "transfer/growth/action"],
         },
         { id: "effect", label: "Explaining how an error affects a decision", kind: "reasoning", items: ["effect"] },
       ],

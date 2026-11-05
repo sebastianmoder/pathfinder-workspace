@@ -13,9 +13,8 @@ test("M12 is completable end to end", async ({ page }) => {
 
 test("failure points stay hidden until diagnosed, then show in the diagram; changes need a rerun", async ({ page }) => {
   await page.goto("/missions/m12-systems");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /In the workflow/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /First check where its answers come from/);
   await page.getByRole("button", { name: "Run the tests" }).click();
   await expect(page.getByRole("heading", { name: "Test results, run 1" })).toBeFocused();
   await expect(page.getByText("1 of 6 tests passed.")).toBeVisible();

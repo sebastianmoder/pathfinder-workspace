@@ -1,10 +1,11 @@
 import type { Choice, Mission } from "../../types";
 
-const fluencyQuestion = "An AI answer is fluent and confident. What does that tell you about whether it is correct?";
-const fluencyChoices: Choice[] = [
-  { id: "a", label: "It is probably correct.", verdict: "weaker", explanation: "Fluency comes from matching language patterns. Nothing in that process makes a system sound less sure when it is wrong, so wrong answers can be just as fluent." },
-  { id: "b", label: "It tells me little; I need evidence.", verdict: "correct", explanation: "Confidence of tone is not evidence. Check the claim against a source." },
-  { id: "c", label: "It is probably wrong, because a confident AI answer is usually made up.", verdict: "weaker", explanation: "Fluent answers are often right too. Blanket suspicion is not a method; checking is." },
+const firstMove =
+  "Your colleague pastes an AI answer into the team chat: “The Riverside library opens at 9:00 on Saturdays, as it has since 2019.” It reads well, and they want it in tomorrow's newsletter. What do you do?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "Use it. It is specific and clearly worded.", verdict: "weaker", explanation: "Specific, clear wording is what a language model produces whether or not it is right. Nothing in how it reads shows that anyone checked the library's hours." },
+  { id: "b", label: "Check the time against the library's own notice.", verdict: "correct", explanation: "A specific time is checkable, so check it at the source. How firmly it is worded tells you nothing about whether it is current." },
+  { id: "c", label: "Drop it. AI tools usually make details like this up.", verdict: "weaker", explanation: "Answers like this are often right. Throwing them out is as unthinking as accepting them: checking is what tells you which it is." },
 ];
 
 const stages = [
@@ -29,7 +30,7 @@ export const m01: Mission = {
   outcome:
     "Explain why a fluent AI answer can still be wrong, tell training from using a model, and name common AI functions.",
   scenario:
-    "You are a researcher at the Riverside Learning Commons, a fictional community learning centre. A colleague pastes an AI answer into the team chat and says, “It sounds right, so let's use it.”",
+    "You are a researcher at the Riverside Learning Commons, a community learning centre. A colleague pastes an AI answer into the team chat and says, “It sounds right, so let's use it.”",
   approxMinutes: 12,
   meta: {
     version: "1.2",
@@ -53,8 +54,9 @@ export const m01: Mission = {
     {
       kind: "initialJudgment",
       id: "initial",
-      prompt: fluencyQuestion,
-      choices: fluencyChoices,
+      prompt: firstMove,
+      choices: firstChoices,
+      withConfidence: true,
     },
     {
       kind: "sandbox",
@@ -230,8 +232,13 @@ export const m01: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having run the machine, answer the first question again. ${fluencyQuestion}`,
-      choices: fluencyChoices,
+      prompt:
+        "A different tool, known for being accurate, says the Commons' repair café “has run every Thursday since 2015”. It sounds just as sure as the first answer. What should decide how much you rely on it?",
+      choices: [
+        { id: "a", label: "Its reputation: a tool known for accuracy has earned trust.", verdict: "weaker", explanation: "A good record makes errors rarer, not impossible, and the wording sounds just as sure when it is wrong. The machine you ran was firm whatever it had learned." },
+        { id: "b", label: "Whether the café's own records say the same thing.", verdict: "correct", explanation: "A record is evidence. Tone and reputation are not, because a model's output reads the same whether its patterns fit the facts or not." },
+        { id: "c", label: "Whether it gives the same answer when you ask again.", verdict: "weaker", explanation: "Asking again uses the same patterns, so it can repeat the same error. Your machine gave the same answer every time until its data changed." },
+      ],
       withConfidence: true,
     },
     {
@@ -258,9 +265,9 @@ export const m01: Mission = {
       prompt:
         "You have no records handy, and the text is due to go out. What is the best next step with “opened in 1987 and has 40 branches”?",
       choices: [
-        { id: "a", label: "Publish it with a note that AI helped.", verdict: "weaker", explanation: "Disclosure is honest, but it leaves readers to check facts you could have checked. Smooth wording says nothing about the year or the number." },
-        { id: "b", label: "Hold both figures until you can compare them with the Commons' records.", verdict: "correct", explanation: "Specific facts are checkable. The model only continued a likely pattern." },
-        { id: "c", label: "Ask the model whether it is sure.", verdict: "weaker", explanation: "Its reassurance is more generated text, not independent evidence." },
+        { id: "a", label: "Publish it, with a note saying that AI helped write it.", verdict: "weaker", explanation: "Disclosure is honest, but it leaves readers to check facts you could have checked. Smooth wording says nothing about the year or the number." },
+        { id: "b", label: "Hold both figures until you can check the records.", verdict: "correct", explanation: "Specific facts are checkable. The model only continued a likely pattern." },
+        { id: "c", label: "Ask the model whether it is sure about both figures.", verdict: "weaker", explanation: "Its reassurance is more generated text, not independent evidence." },
       ],
       hints: [{ text: "Which parts of the sentence could be looked up?" }],
     },
@@ -298,9 +305,9 @@ export const m01: Mission = {
           practice: {
             prompt: "A model learned only from reviews written by a shop's staff. It calls the shop “excellent”. What is the most likely reason?",
             choices: [
-              { id: "a", label: "It compared the shop with others.", verdict: "weaker", explanation: "It did no comparing. It continued the pattern in what it was shown." },
-              { id: "b", label: "Its training examples came from people who praised the shop.", verdict: "correct", explanation: "Its answer reflects what its training data said, and that data came from people with a reason to praise the shop." },
-              { id: "c", label: "Most people would rate this shop highly.", verdict: "weaker", explanation: "It only saw staff reviews, so it has no information about what most people think." },
+              { id: "a", label: "It compared the shop with the others in town.", verdict: "weaker", explanation: "It did no comparing. It continued the pattern in what it was shown." },
+              { id: "b", label: "Its examples came from people who praised the shop.", verdict: "correct", explanation: "Its answer reflects what its training data said, and that data came from people with a reason to praise the shop." },
+              { id: "c", label: "Most people who visit would rate the shop highly.", verdict: "weaker", explanation: "It only saw staff reviews, so it has no information about what most people think." },
             ],
           },
         },
@@ -360,9 +367,9 @@ export const m01: Mission = {
           practice: {
             prompt: "A model writes that a local charity “helped 12,000 families last year”. You are about to quote it in a report. What is the best next step?",
             choices: [
-              { id: "a", label: "Quote it with “reportedly” to signal doubt.", verdict: "weaker", explanation: "“Reportedly” implies that someone reported it. Here, a model simply produced it." },
-              { id: "b", label: "Find the charity's own figures before quoting the number.", verdict: "correct", explanation: "The number is checkable, so check it at the source before relying on it." },
-              { id: "c", label: "Ask a second AI system to confirm it.", verdict: "weaker", explanation: "Two models can share the same patterns and the same error. Agreement between them isn't a source." },
+              { id: "a", label: "Quote it, adding “reportedly” to signal some doubt.", verdict: "weaker", explanation: "“Reportedly” implies that someone reported it. Here, a model simply produced it." },
+              { id: "b", label: "Find the charity's own figures before quoting it.", verdict: "correct", explanation: "The number is checkable, so check it at the source before relying on it." },
+              { id: "c", label: "Ask a second AI system to confirm the number.", verdict: "weaker", explanation: "Two models can share the same patterns and the same error. Agreement between them isn't a source." },
             ],
           },
         },

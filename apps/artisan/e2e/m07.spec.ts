@@ -15,9 +15,8 @@ test("M07 is completable end to end and recommends the stage bridge", async ({ p
 test("the chart lab keeps chart, summary and table in step, in dark mode, and a worked view is not credited", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/missions/m07-numbers");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /How the axis, the time range/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /How the chart is drawn/, "Fairly");
 
   await expect(page.getByText(/The axis starts at 85\. Highest: Jun \(101 visits\)/)).toBeVisible();
   await expect(page.getByRole("cell", { name: "92", exact: true })).toBeVisible();

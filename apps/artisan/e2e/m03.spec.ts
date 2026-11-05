@@ -15,9 +15,8 @@ test("M03 is completable end to end and recommends the next mission", async ({ p
 
 test("the studio isolates one change per run, compares versions, and lets the learner branch", async ({ page }) => {
   await page.goto("/missions/m03-briefing");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /The request left out/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Yes\. Some tools are much better/);
 
   await expect(page.getByText(/written in advance for each option/)).toBeVisible();
   await runIt(page);

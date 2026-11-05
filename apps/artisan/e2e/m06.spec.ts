@@ -4,9 +4,8 @@ import { check, choose, completeM06Gym, completeM06Teach, cont, recordJudgment }
 
 test("M06 gym: help is offered after an attempt, noted as help, and a revealed answer is not credited", async ({ page }) => {
   await page.goto("/missions/m06-gym");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /A hint, or feedback/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Give me a hint/);
 
   await expect(page.getByRole("heading", { name: "Choose help" })).toHaveCount(0);
   await page.getByLabel(/^€80, because/).check();
@@ -48,9 +47,8 @@ test("M06 teach-back completes, and the map marks the module done only when both
 
 test("telling Leo the answer is recorded as such, and the debrief says so", async ({ page }) => {
   await page.goto("/missions/m06-teach");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Telling them the correct answer/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Tell them it isn't always true/);
   await choose(page, /It's €30\. Write that down/);
   await expect(page.getByText(/ten off, ten on/i)).toBeVisible();
   await choose(page, /No, it's €99\. Moving on/);
@@ -59,15 +57,25 @@ test("telling Leo the answer is recorded as such, and the debrief says so", asyn
   await page.getByLabel(/check his working/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/Finding out what they think/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
+  await page.getByLabel(/Reading the app's explanation/).check();
+  await check(page);
+  await expect(page.getByText(/A correct explanation can still slide past/)).toBeVisible();
+  await page.getByLabel(/Asking him to do a new one/).check();
   await check(page);
   await cont(page);
   await page.getByLabel(/half a pizza/).check();
   await check(page);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
-  await page.getByRole("button", { name: "Skip writing and see the criteria" }).click();
+
+  // Pick and improve: a weaker draft explains itself and never traps the learner; the sound one becomes the start.
+  await page.getByLabel(/Percentage changes are multiplicative/).check();
+  await check(page);
+  await expect(page.getByText(/the wording would lose Leo/)).toBeVisible();
+  await expect(page.getByLabel(/^Improve it/)).toHaveCount(0);
+  await page.getByLabel(/second 50% is of a smaller amount/).check();
+  await check(page);
+  await expect(page.getByLabel(/^Improve it/)).toHaveValue(/second 50% is of a smaller amount/);
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
   const review = page.getByRole("heading", { name: "Worth another look" }).locator("..");
   await expect(review.getByText("Finding out what someone thinks before explaining")).toBeVisible();

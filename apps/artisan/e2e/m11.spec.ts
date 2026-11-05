@@ -13,9 +13,8 @@ test("M11 is completable end to end", async ({ page }) => {
 
 test("the studio records contributions, shows the client's change, and keeps the first poster in the tree", async ({ page }) => {
   await page.goto("/missions/m11-cocreation");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /You, and whoever approves it/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Me, and whoever approves it/);
   await runIt(page);
   const record = page.getByRole("table");
   await expect(record.getByRole("row", { name: /Image.*AI$/ })).toBeVisible();

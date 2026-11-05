@@ -1,24 +1,25 @@
 import type { Choice, Mission } from "../../types";
 
-const causeQuestion = "An AI tool gave you a vague, generic answer to a request. What is the most likely cause?";
-const causeChoices: Choice[] = [
+const firstMove =
+  "Priya typed “Write something about volunteering” and got three paragraphs on why volunteering is rewarding. She asks you: “Should I try a different AI tool?” What do you say?";
+const firstChoices: Choice[] = [
   {
     id: "a",
-    label: "The tool isn't capable enough, and a newer model would give a sharper answer.",
+    label: "Yes. Some tools are much better at practical emails.",
     verdict: "weaker",
-    explanation: "The same tool can give a sharp answer once it knows what the text is for, who will read it and what it must contain. A newer model can't guess facts you never gave it.",
+    explanation: "A different tool still wouldn't know who the email is for or what it must say. It would fill the same gaps with the same typical text.",
   },
   {
     id: "b",
-    label: "The request left out what it was for, who it was for, and what it needed.",
+    label: "No. Tell it who it's for, what it's for, and the details.",
     verdict: "correct",
-    explanation: "A model fills gaps with the most typical text. If the brief has no purpose, context or criteria, typical is what you get.",
+    explanation: "A model fills gaps with the most typical text. Purpose, readers and the facts they need are what only Priya can supply.",
   },
   {
     id: "c",
-    label: "The task needs creativity, which AI tools can't really help with.",
+    label: "No. Write it yourself: AI can't do this kind of email.",
     verdict: "weaker",
-    explanation: "Creative tasks often go well with a clear brief. Generic output usually means generic instructions.",
+    explanation: "It can do this well, given a clear brief. Generic output usually means generic instructions, not an impossible task.",
   },
 ];
 
@@ -31,7 +32,7 @@ export const m03: Mission = {
   title: "The Briefing Studio",
   outcome: "Give AI a clear objective, the context it needs, constraints and criteria, and judge the response against those criteria.",
   scenario:
-    "You help Priya, the Homework Club coordinator at the Riverside Learning Commons, a fictional community learning centre. Eight new volunteers start on Saturday, and Priya has asked you to get the AI tool to draft their welcome email. Her first attempt didn't go well.",
+    "You help Priya, the Homework Club coordinator at the Riverside Learning Commons, a community learning centre. Eight new volunteers start on Saturday, and Priya has asked you to get the AI tool to draft their welcome email. Her first attempt didn't go well.",
   approxMinutes: 12,
   meta: {
     version: "1.0",
@@ -55,8 +56,8 @@ export const m03: Mission = {
     {
       kind: "initialJudgment",
       id: "initial",
-      prompt: causeQuestion,
-      choices: causeChoices,
+      prompt: firstMove,
+      choices: firstChoices,
     },
     {
       kind: "compose",
@@ -161,9 +162,13 @@ export const m03: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having worked on the brief, answer the first question again. ${causeQuestion}`,
-      choices: causeChoices,
-      withConfidence: true,
+      prompt:
+        "The welcome email now meets all four of Priya's criteria, and it reads warmly. Priya's manager asks: “Is it ready to send?” What do you do before saying yes?",
+      choices: [
+        { id: "a", label: "Check every date, time and number against what Priya gave.", verdict: "correct", explanation: "The criteria say what to check, and facts in the email must match the ones in the brief. A good brief makes a good response likely, not certain." },
+        { id: "b", label: "Check it sounds friendly and professional enough to send.", verdict: "weaker", explanation: "Tone matters, but a warm email with the wrong room still sends eight volunteers to the wrong place." },
+        { id: "c", label: "Nothing more: a complete brief gives a correct response.", verdict: "weaker", explanation: "A model can still slip on a detail it was given. Judging the result against your criteria is the last step of briefing, not an optional one." },
+      ],
     },
     {
       kind: "transfer",

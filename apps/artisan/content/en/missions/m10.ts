@@ -18,7 +18,7 @@ export const m10: Mission = {
   title: "The Boundary Room",
   outcome: "Recognise sensitive information, choose appropriate permissions for an assistant, and spot instructions hidden in documents it reads.",
   scenario:
-    "You look after the Riverside Learning Commons' new AI assistant, at a fictional community learning centre. Staff want it to help with bookings and paperwork. Before it starts, you decide what it may see and do.",
+    "You look after the new AI assistant at the Riverside Learning Commons, a community learning centre. Staff want it to help with bookings and paperwork. Before it starts, you decide what it may see and do.",
   approxMinutes: 12,
   meta: {
     version: "1.0",
@@ -142,9 +142,13 @@ export const m10: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having prepared the assistant, answer the first question again. ${shareQuestion}`,
-      choices: shareChoices,
-      withConfidence: true,
+      prompt:
+        "A member emails: “Sorry, I can't make Thursday. I'm having chemotherapy that week.” The reply only needs to offer a new time. Sam asks whether the assistant should see the email.",
+      choices: [
+        { id: "a", label: "Yes, unchanged, so the reply can be kind about the treatment.", verdict: "weaker", explanation: "Kindness doesn't need the diagnosis: “I'm sorry you can't make it” works. The treatment detail would reach the assistant and its provider for no benefit to the task." },
+        { id: "b", label: "Yes, with the treatment removed; Sam can add a kind word.", verdict: "correct", explanation: "The task is rescheduling. Removing the one sensitive detail leaves everything the draft needs, and the personal touch can come from Sam." },
+        { id: "c", label: "No: a health detail means this one must be done by hand.", verdict: "weaker", explanation: "Once the one sensitive detail is removed, this is a routine rescheduling task that the assistant can draft." },
+      ],
     },
     {
       kind: "transfer",
@@ -180,17 +184,30 @@ export const m10: Mission = {
     {
       kind: "openResponse",
       id: "explain",
-      prompt: "A colleague asks why it matters what an assistant is allowed to read and do, “as long as it's helpful”. Write a short reply.",
+      prompt: "A colleague asks why it matters what an assistant is allowed to read and do, “as long as it's helpful”. Which reply is the best start, and what is it missing?",
+      format: "pickImprove",
+      drafts: [
+        {
+          id: "disclosure",
+          label: "Anything it reads leaves our hands and may be stored, so we give it only what the task needs.",
+          verdict: "correct",
+          explanation: "It explains disclosure clearly. It says nothing yet about what the assistant can do, or about text trying to steer it.",
+        },
+        {
+          id: "danger",
+          label: "Because AI can be dangerous, it's safer to keep it well away from anything that matters.",
+          verdict: "weaker",
+          explanation: "It names a worry but not what could go wrong, and it would rule out the tasks the assistant does well.",
+        },
+        {
+          id: "provider",
+          label: "It doesn't matter much, as long as we pick a reputable provider with good reviews.",
+          verdict: "weaker",
+          explanation: "A reputable provider still stores what it reads, and no provider stops a document from trying to instruct the assistant.",
+        },
+      ],
+      improvePrompt: "Improve it: add why its actions need limits, and the risk of instructions hidden in documents.",
       rubric: {
-        samples: [
-          { id: "weak", text: "Because AI can be dangerous.", met: [], note: "It doesn't say what could go wrong, or what to do about it." },
-          {
-            id: "strong",
-            text: "Anything it reads leaves our hands and may be stored, so we only give it what the task needs. Anything it can do, it can do wrongly, or be tricked into doing by text in a document, so actions that can't be undone should need a person's approval.",
-            met: ["disclosure", "actions", "injection"],
-            note: "It covers what leaves your hands, why actions need limits, and the risk of hidden instructions.",
-          },
-        ],
         criteria: [
           { id: "disclosure", text: "Says that what the assistant reads leaves your control, so share only what the task needs." },
           { id: "actions", text: "Says that actions which are hard to undo need limits or a person's approval." },
@@ -222,7 +239,7 @@ export const m10: Mission = {
             prompt: "A calendar assistant asks for permission to read and send email on your behalf, so it can “handle meeting invites”. What's the safest sound choice?",
             choices: [
               { id: "a", label: "Allow it, since it needs email for invites.", verdict: "weaker", explanation: "Reading is one thing; sending as you can't be undone. Grant only what the job needs." },
-              { id: "b", label: "Let it read invites, and approve each email before it's sent.", verdict: "correct", explanation: "It gets what the job needs, and the irreversible step stays with you." },
+              { id: "b", label: "Let it read invites, and approve each email it sends.", verdict: "correct", explanation: "It gets what the job needs, and the irreversible step stays with you." },
               { id: "c", label: "Refuse, since assistants shouldn't touch email at all.", verdict: "weaker", explanation: "A narrower permission can make it useful without the risk." },
             ],
           },
@@ -239,6 +256,7 @@ export const m10: Mission = {
           kind: "transfer",
           items: ["transfer/t-dob", "transfer/t-health", "transfer/t-inject", "transfer/t-name", "transfer/t-avail", "transfer/t-skills"],
         },
+        { id: "pick-reply", label: "Choosing the reply that names a real risk", kind: "action", items: ["explain/pick"] },
         { id: "explain", label: "Explaining why boundaries matter", kind: "reasoning", items: ["explain"] },
       ],
       nextMissionId: "m11-cocreation",

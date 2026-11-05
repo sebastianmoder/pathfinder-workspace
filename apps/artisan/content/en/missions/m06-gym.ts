@@ -6,23 +6,24 @@ import type { Choice, Mission } from "../../types";
  * €50 +20% = €60, −20% = €48; 30 km at 60 km/h + 30 km at 90 km/h = 60 km in 50 min = 72 km/h.
  */
 
-const helpQuestion = "You're learning something new and get stuck on a problem. Which kind of AI help is most likely to leave you able to solve the next one on your own?";
-const helpChoices: Choice[] = [
+const firstMove =
+  "You're brushing up on averages and get stuck on the first problem. The AI tutor offers three buttons. You'll need to do problems like this on your own next week. Which do you press?";
+const firstChoices: Choice[] = [
   {
     id: "a",
-    label: "The full answer with every step, so you can see exactly how it's done.",
+    label: "“Show me the answer”, then read each step until it makes sense.",
     verdict: "weaker",
     explanation: "Reading a finished solution feels like understanding, but you haven't produced any of it. It is the right help when you only need the answer, not when you need the skill.",
   },
   {
     id: "b",
-    label: "A hint, or feedback on your own working, so you do the thinking.",
+    label: "“Give me a hint”, then try the next step myself.",
     verdict: "correct",
     explanation: "Help that leaves the working to you builds the skill you'll need without it. A worked example on different numbers does too.",
   },
   {
     id: "c",
-    label: "No help at all, since any AI help stops you from really learning.",
+    label: "None of them: keep trying alone until I get there.",
     verdict: "weaker",
     explanation: "Being stuck for a long time teaches little. Help that keeps you thinking is useful; the question is what kind.",
   },
@@ -33,7 +34,7 @@ export const m06Gym: Mission = {
   title: "The Thinking Gym: learning with help",
   outcome: "Use AI help to learn a method, while keeping the ability to use it on your own.",
   scenario:
-    "You volunteer at Homework Club at the Riverside Learning Commons, a fictional community learning centre. Before helping learners with percentages and averages, you're brushing up yourself, with an AI tutor on hand.",
+    "You volunteer at Homework Club at the Riverside Learning Commons, a community learning centre. Before helping learners with percentages and averages, you're brushing up yourself, with an AI tutor on hand.",
   approxMinutes: 10,
   meta: {
     version: "1.0",
@@ -54,7 +55,7 @@ export const m06Gym: Mission = {
       title: "A quick refresher",
       body: "A percentage is always a percentage of something: 25% of €80 is €20. An average speed is the total distance divided by the total time. AI tutors can give hints, examples, feedback or answers; what you learn depends on which you ask for.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: helpQuestion, choices: helpChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "gym",
       id: "gym",
@@ -129,9 +130,13 @@ export const m06Gym: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having used the gym, answer the first question again. ${helpQuestion}`,
-      choices: helpChoices,
-      withConfidence: true,
+      prompt:
+        "A week on, you've solved three percentage problems, each with one hint. The tutor offers to switch hints off. You're not sure you're ready. What's the best way to find out?",
+      choices: [
+        { id: "a", label: "Try the next one with no hint, and ask only if stuck.", verdict: "correct", explanation: "You only find out what you can do by trying without the help. Asking when truly stuck is still fine: the aim is that the help fades, not that it disappears." },
+        { id: "b", label: "Keep the hints on; they haven't done any harm so far.", verdict: "weaker", explanation: "Help that is always there can carry the thinking without you noticing. Three right answers with hints don't show what you can do without them." },
+        { id: "c", label: "Ask the tutor whether you understand percentages now.", verdict: "weaker", explanation: "Its reply is generated text, not a test. Doing a problem unaided is the test." },
+      ],
     },
     {
       kind: "transfer",
@@ -175,8 +180,8 @@ export const m06Gym: Mission = {
             prompt: "You're preparing for a driving theory test next week and keep getting one type of question wrong. What help fits best?",
             choices: [
               { id: "a", label: "Ask the AI for the answers to those questions.", verdict: "weaker", explanation: "You'll face different questions in the test. Answers to these won't give you the method." },
-              { id: "b", label: "Ask it to explain why your answers are wrong, then try new ones of that type.", verdict: "correct", explanation: "Feedback on your own mistakes, then practice without help, builds the skill the test checks." },
-              { id: "c", label: "Re-read the chapter about that topic several times.", verdict: "weaker", explanation: "Re-reading feels productive but rarely shows you what you're getting wrong." },
+              { id: "b", label: "Ask why your answers are wrong, then try new ones.", verdict: "correct", explanation: "Feedback on your own mistakes, then practice without help, builds the skill the test checks." },
+              { id: "c", label: "Re-read the chapter on that topic several times.", verdict: "weaker", explanation: "Re-reading feels productive but rarely shows you what you're getting wrong." },
             ],
           },
         },

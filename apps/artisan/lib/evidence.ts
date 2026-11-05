@@ -78,8 +78,9 @@ export function evidenceItems(step: Step): string[] {
   switch (step.kind) {
     case "quiz":
     case "revision":
-    case "openResponse":
       return [step.id];
+    case "openResponse":
+      return step.format === "pickImprove" ? [step.id, itemKey(step.id, "pick")] : [step.id];
     case "transfer":
       if ("audit" in step) return auditItems(step.id, step.audit);
       if ("mark" in step) return segmentsOf(step.mark).filter((s) => !s.optional).map((s) => itemKey(step.id, s.id));

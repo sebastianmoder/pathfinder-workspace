@@ -298,6 +298,33 @@
     background: var(--surface);
     padding: 0.75rem 1rem;
   }
+  .howto-folded {
+    padding-block: 0.5rem;
+  }
+  .howto-folded:not([open]) {
+    border-left-width: 3px;
+  }
+  /* The mission's phases beside the ruler: the current one is set apart by weight and an underline, not colour alone. */
+  .phases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.6rem;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .phases li + li::before {
+    content: "·";
+    margin-right: 0.6rem;
+    color: var(--muted);
+  }
+  .phases [aria-current] {
+    color: var(--foreground);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: var(--highlighter);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 4px;
+  }
   .howto ol {
     counter-reset: howto;
     display: grid;

@@ -26,7 +26,8 @@ import { Casefile } from "./activities/casefile";
 import { ThresholdLab } from "./activities/threshold-lab";
 import { WorkflowRunner } from "./activities/workflow-runner";
 import { AllocationBoard } from "./activities/allocation-board";
-import { ActionBar, HowTo, StepIntro } from "./step-ui";
+import { ActionBar, FamiliarContext, HowTo, StepIntro } from "./step-ui";
+import { activityKey, ownScreen, phasesOf, PHASES } from "@/lib/phases";
 
 interface Props {
   mission: Mission;
@@ -43,7 +44,12 @@ export function MissionRunner({ mission, password, next }: Props) {
   const pauseTitleId = useId();
   const { stepIndex, answers } = session.progress(mission.id);
   const step = mission.steps[stepIndex];
-  const total = mission.steps.length;
+  // A refresher right after the brief shares the brief's screen, so it isn't counted as a step of its own.
+  const screens = ownScreen(mission.steps);
+  const total = screens.filter(Boolean).length;
+  const shownIndex = screens.slice(0, stepIndex + 1).filter(Boolean).length; // 1-based
+  const phases = phasesOf(mission.steps);
+  const present = PHASES.filter((p) => phases.includes(p));
 
   // Move focus to the new step when it changes, so keyboard and screen-reader users keep their place.
   const stepRef = useRef<HTMLElement>(null);
@@ -58,8 +64,11 @@ export function MissionRunner({ mission, password, next }: Props) {
   const advance = () => {
     if (step.kind === "debrief") return;
     if (stepIndex === 0) track('mission_start', mission.id);
-    session.goTo(mission.id, stepIndex + 1);
-    if (mission.steps[stepIndex + 1]?.kind === "debrief") { if (!session.isCompleted(mission.id)) track('mission_complete', mission.id); session.complete(mission.id); }
+    session.markSeen(activityKey(step));
+    let next = stepIndex + 1;
+    while (next < mission.steps.length - 1 && !screens[next]) next++;
+    session.goTo(mission.id, next);
+    if (mission.steps[next]?.kind === "debrief") { if (!session.isCompleted(mission.id)) track('mission_complete', mission.id); session.complete(mission.id); }
     window.scrollTo({ top: 0 });
   };
 
@@ -79,13 +88,18 @@ export function MissionRunner({ mission, password, next }: Props) {
     </div>
   );
   const progress = (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <p className="text-sm font-bold">{t.mission.step(stepIndex + 1, total)}</p>
-      <div className="ruler w-full max-w-[22rem] flex-1 basis-40" aria-hidden="true">
-        {mission.steps.map((s, i) => (
-          <span key={s.id} data-done={i <= stepIndex} />
-        ))}
+    <div className="space-y-1.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <p className="text-sm font-bold">{t.mission.step(shownIndex, total)}</p>
+        <div className="ruler w-full max-w-[22rem] flex-1 basis-40" aria-hidden="true">
+          {mission.steps.map((s, i) => (screens[i] ? <span key={s.id} data-done={i <= stepIndex} /> : null))}
+        </div>
       </div>
+      <ol className="phases" aria-label={t.mission.phaseLabel}>
+        {present.map((p) => (
+          <li key={p} aria-current={p === phases[stepIndex] ? "step" : undefined}>{t.mission.phases[p]}</li>
+        ))}
+      </ol>
     </div>
   );
 
@@ -129,19 +143,21 @@ export function MissionRunner({ mission, password, next }: Props) {
       )}
 
       <div className="mt-6">
-        <section key={step.id} ref={stepRef} tabIndex={-1} aria-label={t.mission.step(stepIndex + 1, total)} className="mt-4 outline-offset-8">
-          <StepView
-            step={step}
-            mission={mission}
-            answers={answers}
-            onAnswer={(choiceId, confidence) => {
-              session.recordAttempt(mission.id, step.id, choiceId);
-              if (confidence !== undefined) session.setAnswer(mission.id, step.id, { confidence });
-            }}
-            onContinue={advance}
-            next={next}
-            replayPassword={password}
-          />
+        <section key={step.id} ref={stepRef} tabIndex={-1} aria-label={t.mission.step(shownIndex, total)} className="mt-4 outline-offset-8">
+          <FamiliarContext value={session.hasSeen(activityKey(step))}>
+            <StepView
+              step={step}
+              mission={mission}
+              answers={answers}
+              onAnswer={(choiceId, confidence) => {
+                session.recordAttempt(mission.id, step.id, choiceId);
+                if (confidence !== undefined) session.setAnswer(mission.id, step.id, { confidence });
+              }}
+              onContinue={advance}
+              next={next}
+              replayPassword={password}
+            />
+          </FamiliarContext>
         </section>
       </div>
 
@@ -198,11 +214,20 @@ function StepView({
 
   switch (step.kind) {
     case "brief":
-    case "refresher":
+    case "refresher": {
+      const index = mission.steps.indexOf(step);
+      const folded = step.kind === "brief" ? mission.steps[index + 1] : undefined;
       return (
         <>
           <h2 className="text-2xl">{step.title}</h2>
           <p className="mt-2 max-w-3xl">{step.body}</p>
+          {folded?.kind === "refresher" && (
+            <details className="mt-4 max-w-3xl rounded-lg border border-border bg-surface p-3">
+              <summary className="cursor-pointer font-semibold">{t.mission.refresherToggle}</summary>
+              <h3 className="mt-2 font-bold">{folded.title}</h3>
+              <p className="mt-1">{folded.body}</p>
+            </details>
+          )}
           <ActionBar>
             <button type="button" onClick={onContinue} className="btn btn-primary">
               {t.mission.next}
@@ -210,17 +235,18 @@ function StepView({
           </ActionBar>
         </>
       );
+    }
 
     case "initialJudgment":
     case "quiz":
       return (
         <ChoiceQuestion
-          howTo={step.kind === "initialJudgment" ? t.howTo.initialJudgment : undefined}
+          howTo={step.kind === "initialJudgment" ? (step.withConfidence ? t.howTo.initialJudgment : t.howTo.initialJudgmentPlain) : undefined}
           name={step.id}
           prompt={step.prompt}
           choices={step.choices}
           hints={step.hints}
-          withConfidence={step.kind === "initialJudgment"}
+          withConfidence={step.kind === "initialJudgment" && !!step.withConfidence}
           recordOnly={step.kind === "initialJudgment"}
           onCommit={onAnswer}
           onEvidence={recordStep}
@@ -367,17 +393,19 @@ function StepView({
       const before = initialChoices.find((c) => c.id === first?.choiceId);
       const now = answers[step.id];
       const label = (n: number | undefined) => (n === undefined ? "—" : t.mission.confidence[n]);
+      // A position is re-asked as it was. A question comes back as a new case that tests the same idea.
+      const reAsk = initialStep?.kind === "initialJudgment" && step.prompt.includes(initialStep.prompt);
       return (
         <>
-          <h2 className="text-2xl">{step.prompt}</h2>
-          <HowTo steps={t.howTo.revision} />
+          <h2 className="text-2xl">{reAsk ? step.prompt : t.mission.revisitTitle}</h2>
+          <HowTo steps={reAsk ? t.howTo.revision : t.howTo.revisionVariant} />
           <p className="mt-3 rounded border border-border bg-surface p-3 text-sm">
-            <strong>{t.mission.before}:</strong> {before?.label ?? "—"}
+            <strong>{reAsk ? t.mission.before : t.mission.firstMove}:</strong> {before?.label ?? "—"}
             {first?.confidence !== undefined && <> ({label(first.confidence)})</>}
           </p>
           <ChoiceQuestion
             name={step.id}
-            prompt={t.mission.after}
+            prompt={reAsk ? t.mission.after : step.prompt}
             choices={step.choices}
             withConfidence={step.withConfidence}
             onCommit={onAnswer}
@@ -387,12 +415,24 @@ function StepView({
           {step.withConfidence && now?.confidence !== undefined && first?.confidence !== undefined && (
             <p className="mt-3 text-sm">{t.mission.confidenceChange(label(first.confidence), label(now.confidence))}</p>
           )}
+          {!reAsk && now?.choiceId && before && (
+            <div className="mt-4 rounded-lg border border-border bg-surface p-3" role="status">
+              <h3 className="font-bold">{t.mission.lookBack}</h3>
+              <p className="mt-1">
+                <strong>
+                  <span aria-hidden="true" className={before.verdict === "weaker" ? "mark-no" : "mark-yes"}>{before.verdict === "weaker" ? "✖ " : before.verdict === "correct" ? "✔ " : "◆ "}</span>
+                  {before.label} {t.mission.verdict[before.verdict]}.
+                </strong>{" "}
+                {before.explanation}
+              </p>
+            </div>
+          )}
         </>
       );
     }
 
     case "openResponse":
-      return <OpenResponse missionId={mission.id} step={step} onEvidence={recordStep} onContinue={onContinue} />;
+      return <OpenResponse missionId={mission.id} step={step} onEvidence={recordStep} onItemEvidence={record} onContinue={onContinue} />;
 
     case "sandbox":
       return <SandboxActivity missionId={mission.id} step={step} onEvidence={record} onContinue={onContinue} />;

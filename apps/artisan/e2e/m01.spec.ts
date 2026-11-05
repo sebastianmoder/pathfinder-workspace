@@ -4,10 +4,14 @@ import { cont, check, markAndCheck, nextTask, setBoard, trainAndAsk, traceFaults
 
 test("M01 is completable end to end, keyboard-reachable, and refresh restarts cleanly", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
-  await cont(page); // brief
-  await cont(page); // refresher
+  // The refresher is folded into the brief's screen, one select away, and isn't counted as a step.
+  await expect(page.getByText("Step 1 of 11")).toBeVisible();
+  await page.getByText("Need a refresher first?").click();
+  await expect(page.getByRole("region", { name: "Step 1 of 11" }).getByText(/A language model is built by showing it lots of example text/)).toBeVisible();
+  await cont(page);
 
-  await page.getByLabel("It tells me little; I need evidence.").check();
+  await expect(page.getByText("Say how confident you are.")).toBeVisible();
+  await page.getByLabel(/Check the time against the library's own notice/).check();
   await page.getByLabel("Fairly", { exact: true }).check();
   await page.getByRole("button", { name: "Record my judgment" }).click();
   await expect(page.getByText("Weaker fit")).toHaveCount(0); // no verdict before investigating
@@ -85,11 +89,16 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await check(page);
   await cont(page);
 
-  await expect(page.getByText("It tells me little; I need evidence.").first()).toBeVisible(); // before/after
-  await page.getByLabel("It tells me little; I need evidence.").check();
+  // The revision is a new case on the same idea, shown beside the first move, which only now gets its verdict.
+  await expect(page.getByRole("heading", { name: "A new case, the same idea" })).toBeVisible();
+  await expect(page.getByText(/Check the time against the library's own notice/).first()).toBeVisible();
+  await expect(page.getByText("Fits the case")).toHaveCount(0);
+  await page.getByLabel(/Whether the café's own records/).check();
   await page.getByLabel("Somewhat", { exact: true }).check();
   await check(page);
   await expect(page.getByText(/Fairly at the start, Somewhat now/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Looking back at your first move" })).toBeVisible();
+  await expect(page.getByText(/A specific time is checkable/)).toBeVisible();
   await cont(page);
 
   // Marking reports how many were found, not which, until the learner asks.
@@ -132,14 +141,13 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await expect(page.getByRole("heading", { name: "Your own assessment" }).locator("..").getByText("you pointed to a sentence for 1 of 3 criteria")).toBeVisible();
 
   await page.reload();
-  await expect(page.getByText("Step 1 of 12")).toBeVisible();
+  await expect(page.getByText("Step 1 of 11")).toBeVisible();
 });
 
 test("a learner who skips and guesses can finish, and is not credited with what they did not show", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
-  await cont(page);
-  await cont(page);
-  await page.getByLabel(/It is probably correct/).check();
+  await cont(page); // brief, with the refresher folded in
+  await page.getByLabel(/Use it\. It is specific/).check();
   await page.getByLabel("Very", { exact: true }).check();
   await page.getByRole("button", { name: "Record my judgment" }).click();
   await cont(page);
@@ -175,16 +183,16 @@ test("a learner who skips and guesses can finish, and is not credited with what 
   await check(page);
   await cont(page);
 
-  await page.getByLabel(/It is probably wrong/).check();
+  await page.getByLabel(/Its reputation/).check();
   await page.getByLabel("Very", { exact: true }).check();
   await check(page);
-  await page.getByLabel("It tells me little; I need evidence.").check();
+  await page.getByLabel(/Whether the café's own records/).check();
   await check(page);
   await cont(page);
 
   await markAndCheck(page, []);
 
-  await page.getByLabel(/Publish it with a note/).check();
+  await page.getByLabel(/Publish it, with a note/).check();
   await check(page);
   await page.getByLabel(/Hold both figures/).check();
   await check(page);
@@ -208,22 +216,17 @@ test("a learner who skips and guesses can finish, and is not credited with what 
 test("M01 can be driven by keyboard and focus follows each new step", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
   await page.getByRole("button", { name: "Continue" }).focus();
-  await page.keyboard.press("Enter"); // brief -> refresher
-  await expect(page.getByRole("region", { name: "Step 2 of 12" })).toBeFocused();
+  await page.keyboard.press("Enter"); // brief, with the refresher folded in -> initial judgment
+  await expect(page.getByRole("region", { name: "Step 2 of 11" })).toBeFocused();
   await page.keyboard.press("Tab"); // first control inside the step
-  await expect(page.getByRole("button", { name: "Continue" })).toBeFocused();
-  await page.keyboard.press("Enter"); // -> initial judgment
-  await expect(page.getByRole("region", { name: "Step 3 of 12" })).toBeFocused();
-  await page.keyboard.press("Tab");
   await page.keyboard.press("Space"); // first radio option
   await expect(page.getByRole("button", { name: "Record my judgment" })).toBeDisabled(); // confidence still required
 });
 
 test("the sandbox works by keyboard, and focus moves to each new task", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
-  await cont(page);
-  await cont(page);
-  await page.getByLabel("It tells me little; I need evidence.").check();
+  await cont(page); // brief, with the refresher folded in
+  await page.getByLabel(/Check the time against the library's own notice/).check();
   await page.getByLabel("Fairly", { exact: true }).check();
   await page.getByRole("button", { name: "Record my judgment" }).click();
   await cont(page);

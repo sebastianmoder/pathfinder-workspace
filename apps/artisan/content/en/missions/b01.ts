@@ -5,11 +5,12 @@ import type { Choice, Mission } from "../../types";
  * M03 (briefing) in one case, with support faded. All people and details are fictional.
  */
 
-const firstQuestion = "You're asked to use AI to produce a new FAQ page. What should you decide first?";
+const firstMove =
+  "Joanna forwards you the job: “Use the AI tool to get an FAQ page up by Friday.” Before you open the tool, what do you do first?";
 const firstChoices: Choice[] = [
-  { id: "a", label: "Which AI tool writes the most natural-sounding answers.", verdict: "weaker", explanation: "Natural-sounding text is easy to get and says nothing about whether the answers are right." },
-  { id: "b", label: "Which parts AI should do, which need a person, and how you'll check them.", verdict: "correct", explanation: "A project is several tasks with different stakes. Deciding roles and checks first shapes every brief you write." },
-  { id: "c", label: "How to write a single prompt that produces the whole page at once.", verdict: "weaker", explanation: "One prompt for the whole job hides decisions, like policy wording, that a person should make." },
+  { id: "a", label: "Ask it for the whole FAQ in one go, then tidy it up.", verdict: "weaker", explanation: "One request for everything hides decisions, like the refund policy, that a person has to make, and leaves every fact unchecked." },
+  { id: "b", label: "Split the job into what AI drafts and what a person decides.", verdict: "correct", explanation: "The project is several tasks with different stakes. Deciding roles and checks first shapes every brief you write." },
+  { id: "c", label: "Collect the Commons' facts, so the AI can't get any wrong.", verdict: "weaker", explanation: "Supplying facts helps a great deal, but it can't stop every error, and it doesn't settle who decides the policy wording." },
 ];
 
 export const b01: Mission = {
@@ -17,7 +18,7 @@ export const b01: Mission = {
   title: "The FAQ Project",
   outcome: "Bring together delegation, briefing and checking AI output in one small project.",
   scenario:
-    "The Riverside Learning Commons, a fictional community learning centre, gets the same questions at its front desk every day. You've been asked to produce a new FAQ page, with the AI tool's help.",
+    "The Riverside Learning Commons, a community learning centre, gets the same questions at its front desk every day. You've been asked to produce a new FAQ page, with the AI tool's help.",
   approxMinutes: 10,
   meta: {
     version: "1.0",
@@ -38,7 +39,7 @@ export const b01: Mission = {
       title: "A quick refresher",
       body: "AI output is fluent whether or not it is right (Inside the Machine). Choose a role for AI by what a mistake would cost and who would catch it (the Delegation Desk). Give it the objective, context, criteria and constraints, and the facts it needs (the Briefing Studio).",
     },
-    { kind: "initialJudgment", id: "initial", prompt: firstQuestion, choices: firstChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "transfer",
       id: "roles",
@@ -69,7 +70,7 @@ export const b01: Mission = {
             outcomes: {
               human: { verdict: "defensible", event: "Priya wrote all 20 over a week. They were accurate, and the page went up a week late.", explanation: "Sound, but drafting is where AI saves the most time, if the facts are checked." },
               assisted: { verdict: "correct", event: "The AI drafted all 20. Checking them against the handbook, Priya corrected three times and one fee.", explanation: "AI drafted; a person checked every fact against a source before publishing." },
-              automated: { verdict: "weaker", event: "The drafts went live unchecked. One said parking was free; there is no car park. Members complained.", explanation: "Published facts were never checked. Fluent wording hid the invented detail." },
+              automated: { verdict: "weaker", event: "The drafts went live unchecked. One sent visitors to “the café on the ground floor”; the Commons has no café. Members complained.", explanation: "Published facts were never checked. Fluent wording hid the invented detail." },
             },
           },
           {
@@ -103,7 +104,7 @@ export const b01: Mission = {
             { id: "specific", label: "Write the FAQ answer to “When is the Commons open?”", output: "When is the Commons open?" },
           ] },
           { id: "context", label: "Context", help: "", options: [
-            { id: "none", label: "(no context given)", output: "\nWe're open Monday to Saturday, 9:00 to 20:00. Parking is free for all visitors." },
+            { id: "none", label: "(no context given)", output: "\nWe're open Monday to Saturday, 9:00 to 20:00, and our ground-floor café serves drinks all day." },
             { id: "hours", label: "Here are the current hours: Mon–Fri 9:00–19:00, Sat 10:00–16:00, closed Sun and bank holidays.", output: "\nMonday to Friday, 9:00 to 19:00, and Saturday, 10:00 to 16:00. We're closed on Sundays and bank holidays." },
           ] },
           { id: "criteria", label: "What it must include", help: "", options: [
@@ -127,7 +128,7 @@ export const b01: Mission = {
               { id: "short", text: "It is short and plain.", requires: { constraints: ["short"] } },
             ],
             solution: { objective: "specific", context: "hours", criteria: "link", constraints: "short" },
-            success: "The hours came from you. Compare the first draft: without them, the AI supplied typical hours, and a car park that doesn't exist.",
+            success: "The hours came from you. Compare the first draft: without them, the AI supplied typical hours, and a café that doesn't exist.",
           },
         ],
       },
@@ -155,20 +156,24 @@ export const b01: Mission = {
     {
       kind: "quiz",
       id: "parking",
-      prompt: "Your first opening-hours draft said “Parking is free for all visitors”, though your brief never mentioned parking. What is the best next step?",
+      prompt: "Your first opening-hours draft mentioned “our ground-floor café”, though your brief never mentioned a café. What is the best next step?",
       choices: [
         { id: "a", label: "Keep it, since a detail that specific is probably true.", verdict: "weaker", explanation: "Specific details are exactly what a model fills gaps with. Specific isn't the same as checked." },
         { id: "b", label: "Remove it, or check it with the facilities manager.", verdict: "correct", explanation: "The model supplied a typical detail you didn't give it. Check it, or leave it out." },
-        { id: "c", label: "Ask the AI to confirm that the parking is free.", verdict: "weaker", explanation: "Its confirmation is more generated text, not a record." },
+        { id: "c", label: "Ask the AI to confirm that the café is there.", verdict: "weaker", explanation: "Its confirmation is more generated text, not a record." },
       ],
     },
     {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having done the project, answer the first question again. ${firstQuestion}`,
-      choices: firstChoices,
-      withConfidence: true,
+      prompt:
+        "With five answers left, Priya suggests: “The AI drafts have been so good. Let's skip checking the last five.” What do you say?",
+      choices: [
+        { id: "a", label: "Agree: the first fifteen were fine, so the risk is low.", verdict: "weaker", explanation: "Earlier drafts being right doesn't check these. Each answer states its own facts, and the invented café line looked just as good as the true ones." },
+        { id: "b", label: "Check the ones that state times, fees or rules.", verdict: "correct", explanation: "Point the check at what a reader would rely on. A friendly sentence needs no record; a fee does." },
+        { id: "c", label: "Check all five word by word, friendly lines included.", verdict: "defensible", explanation: "Thorough, but time spent on sentiment is time not spent on facts. Aim the check at what a reader would rely on." },
+      ],
     },
     {
       kind: "debrief",

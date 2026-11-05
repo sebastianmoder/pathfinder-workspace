@@ -14,9 +14,8 @@ test("M09 is completable end to end", async ({ page }) => {
 test("the threshold alone can't close the gap, the table says so, and it works by keyboard and buttons", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/missions/m09-fairness");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /systematically lower/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Only if the scores are fair/);
 
   await expect(page.getByText(/Selected: 17\. Interview places: 10 to 12\. Too many\./)).toBeVisible();
   await setThreshold(page, 63);

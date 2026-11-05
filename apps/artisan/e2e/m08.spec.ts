@@ -14,8 +14,7 @@ test("M08 is completable end to end", async ({ page }) => {
 
 test("time runs out, and 'still uncertain' is right when the settling lead wasn't followed", async ({ page }) => {
   await page.goto("/missions/m08-newsroom");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Find out where and when/, "Fairly");
 
   await followLead(page, "Examine the image closely");

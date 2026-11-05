@@ -17,9 +17,8 @@ test("M02 is completable end to end and recommends the next mission", async ({ p
 
 test("the desk reveals nothing before sending, then shows outcomes, responsibility and labelled alternatives", async ({ page }) => {
   await page.goto("/missions/m02-delegation");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /What a mistake would cost/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Yes, but a person reads and approves/);
 
   // Sending waits until every task has a role, and no verdict or outcome is visible beforehand.
   const send = page.getByRole("button", { name: "Send the assignments" });
@@ -59,10 +58,13 @@ test("the desk reveals nothing before sending, then shows outcomes, responsibili
   await check(page);
   await cont(page);
 
-  await page.getByLabel(/What a mistake would cost/).check();
-  await page.getByLabel("Fairly", { exact: true }).check();
+  await page.getByLabel(/a wrong refusal is costly/).check();
+  await expect(page.getByLabel("Fairly", { exact: true })).toHaveCount(0); // confidence is asked only where it is the point
   await check(page);
   await cont(page);
+
+  // Instructions for an activity already done this visit are folded, and still open on request.
+  await expect(page.getByText("(you've done one like this already)")).toBeVisible();
 
   // The transfer desk fades support: no trade-offs, no hints.
   await expect(page.getByText("No trade-offs or hints this time.", { exact: false })).toBeVisible();

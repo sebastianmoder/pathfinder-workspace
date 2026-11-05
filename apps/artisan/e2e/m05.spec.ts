@@ -7,8 +7,7 @@ const axe = async (page: import("@playwright/test").Page) =>
 
 test("the advocate opposes whichever position the learner took", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Do not adopt it/, "Fairly");
   await expect(page.getByText(/Saying no is also a decision/)).toBeVisible();
   await expect(page.getByText(/Scripted conversation/)).toBeVisible();
@@ -17,8 +16,7 @@ test("the advocate opposes whichever position the learner took", async ({ page }
 
 test("a learner cannot be trapped, and missed findings stay reachable", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Adopt the tutor as proposed/, "Very");
   // Shortest path: restating and conceding uncovers very little.
   await choose(page, /You have a point/);
@@ -36,8 +34,7 @@ test("a learner cannot be trapped, and missed findings stay reachable", async ({
 
 test("private notes are separate from the conversation", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it/, "Fairly");
   await page.getByLabel("Private notes").fill("My private thought");
   await choose(page, /What evidence do we have/);
@@ -47,8 +44,7 @@ test("private notes are separate from the conversation", async ({ page }) => {
 
 test("the argument map gives card-level feedback and allows moving cards", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it/, "Fairly");
   await choose(page, /You have a point/);
   await choose(page, /needs a condition/);
@@ -75,8 +71,7 @@ test("the argument map gives card-level feedback and allows moving cards", async
 
 test("the map is the learner's own: connections are checked, and knocking a card out shows what falls", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it for a limited time/, "Fairly");
   await choose(page, /What is this proposal assuming/);
   await choose(page, /Check the log/);
@@ -121,8 +116,7 @@ test("the map is the learner's own: connections are checked, and knocking a card
 
 test("questions run out, and strategy labels stay hidden until after a choice", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it for a limited time/, "Fairly");
   await expect(page.getByText("Questions left before the board meets: 4")).toBeVisible();
   await expect(page.getByRole("button", { name: /Restate your view|Ask for evidence|Concede a point/ })).toHaveCount(0);
@@ -143,8 +137,7 @@ test("questions run out, and strategy labels stay hidden until after a choice", 
 
 test("catching a misquote takes the right passage, and checking a true claim means accepting it", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it for a limited time/, "Fairly");
   await choose(page, /You have a point/);
   await choose(page, /needs a condition/);
@@ -171,8 +164,7 @@ test("the right passage gets credit in the debrief, and the free-text notes stay
 
 test("the dialogue and map work by keyboard, and focus follows the conversation", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it/, "Fairly");
 
   await page.getByRole("button", { name: /You have a point/ }).focus();

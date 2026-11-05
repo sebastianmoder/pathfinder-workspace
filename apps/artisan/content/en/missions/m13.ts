@@ -6,11 +6,12 @@ import type { Choice, Mission } from "../../types";
  * where a figure can't be compared (energy), the case says so rather than inventing precision (PRD M13).
  */
 
-const decideQuestion = "A council could save money with an AI service desk. What should mostly decide whether it goes ahead?";
-const decideChoices: Choice[] = [
-  { id: "a", label: "Whether the savings are larger than what the system costs.", verdict: "weaker", explanation: "Savings matter, but they don't show who loses access, who loses work, or who answers when it's wrong." },
-  { id: "b", label: "Who benefits, who bears the costs, and on what conditions it would be acceptable.", verdict: "correct", explanation: "A public service affects people unequally. Naming who gains and who pays shows what conditions would make it fair." },
-  { id: "c", label: "Whether most residents say in a survey that they would use it.", verdict: "weaker", explanation: "A majority can be fine while a minority is shut out. Those are often the people with the fewest alternatives." },
+const firstMove =
+  "At the panel's first meeting, a councillor says: “The AI desk saves €120,000 a year. Surely that settles it.” What do you say?";
+const firstChoices: Choice[] = [
+  { id: "a", label: "Agreed, as long as the saving is more than it costs to run.", verdict: "weaker", explanation: "Savings matter, but they don't show who loses access, who loses work, or who answers when it's wrong." },
+  { id: "b", label: "First ask who gains, who pays, and on what conditions.", verdict: "correct", explanation: "A public service affects people unequally. Naming who gains and who pays shows what conditions would make it fair." },
+  { id: "c", label: "Let's see what most residents say in a survey first.", verdict: "weaker", explanation: "A majority can be fine while a minority is shut out. Those are often the people with the fewest alternatives." },
 ];
 
 export const m13: Mission = {
@@ -18,7 +19,7 @@ export const m13: Mission = {
   title: "The Citizens' Assembly",
   outcome: "Weigh who benefits from an AI system and who bears its costs, and propose conditions for its use, supported by evidence.",
   scenario:
-    "Riverside's town council, in a fictional town, proposes to replace half of its walk-in service desk hours with an AI assistant. You are on a citizens' panel advising the council before it votes.",
+    "Riverside's town council proposes to replace half of its walk-in service desk hours with an AI assistant. You are on a citizens' panel advising the council before it votes.",
   approxMinutes: 15,
   meta: {
     version: "1.0",
@@ -39,7 +40,7 @@ export const m13: Mission = {
       title: "A quick refresher",
       body: "Check claims against sources, and say what is still uncertain (the Newsroom). Look at who errors fall on (the Fairness Council). Keep people able to reach a person when a system fails (the Systems Workshop). A figure is only as useful as its assumptions: if they aren't stated, it can't be compared.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: decideQuestion, choices: decideChoices },
+    { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
       kind: "casefile",
       id: "assembly",
@@ -58,11 +59,11 @@ export const m13: Mission = {
         leads: [
           {
             id: "pilot",
-            label: "Read the Eastfield pilot report",
+            label: "Read the Kelmere pilot report",
             kind: "record",
             description: "A neighbouring town ran the same service for six months.",
             finding: "70% of chat enquiries were resolved without staff, and residents rated it about the same as the desk. 12 of about 9,000 conversations gave wrong benefits information.",
-            timeline: { order: 10, when: "2025", text: "Eastfield's six-month pilot of the same service." },
+            timeline: { order: 10, when: "2025", text: "Kelmere's six-month pilot of the same service." },
           },
           {
             id: "survey",
@@ -77,7 +78,7 @@ export const m13: Mission = {
             label: "Talk to the disability advocate",
             kind: "interview",
             description: "From Riverside Disability Forum.",
-            finding: "“In Eastfield, the phone assistant often misheard people with speech impairments, and there was no quick way to reach a person.”",
+            finding: "“In Kelmere, the phone assistant often misheard people with speech impairments, and there was no quick way to reach a person.”",
           },
           {
             id: "staff",
@@ -105,15 +106,15 @@ export const m13: Mission = {
             label: "Talk to the residents' association",
             kind: "interview",
             description: "A volunteer group that takes up residents' complaints.",
-            finding: "“When Eastfield's assistant gave wrong benefits advice, nobody could tell the family who was responsible.”",
+            finding: "“When Kelmere's assistant gave wrong benefits advice, nobody could tell the family who was responsible.”",
           },
         ],
         statements: [
-          { id: "routine", text: "The assistant could handle most routine enquiries.", status: "known", leadIds: ["pilot"], explanation: "Eastfield resolved 70% of chat enquiries without staff." },
+          { id: "routine", text: "The assistant could handle most routine enquiries.", status: "known", leadIds: ["pilot"], explanation: "Kelmere resolved 70% of chat enquiries without staff." },
           { id: "shut-out", text: "Cutting walk-in hours would shut some residents out.", status: "known", leadIds: ["survey", "advocate"], explanation: "One in five over-75s has no internet, and some people couldn't use the phone assistant." },
           { id: "carbon", text: "The service would reduce the council's carbon emissions.", status: "uncertain", leadIds: [], explanation: "No comparable figures exist: the provider's statement has no stated assumptions." },
           { id: "savings", text: "The projected saving depends on halving walk-in hours.", status: "known", leadIds: ["finance"], explanation: "The finance projection assumes it." },
-          { id: "flawless", text: "The assistant gives accurate benefits information every time.", status: "contradicted", leadIds: ["pilot"], explanation: "12 of about 9,000 Eastfield conversations got it wrong. Rare, but not never, and costly for those families." },
+          { id: "flawless", text: "The assistant gives accurate benefits information every time.", status: "contradicted", leadIds: ["pilot"], explanation: "12 of about 9,000 Kelmere conversations got it wrong. Rare, but not never, and costly for those families." },
         ],
       },
     },
@@ -146,21 +147,26 @@ export const m13: Mission = {
     {
       kind: "quiz",
       id: "decide",
+      motifs: ["decisiveFits"],
       prompt: "The council asks for the panel's recommendation. Which is best supported by the evidence?",
       choices: [
-        { id: "a", label: "Adopt it now as proposed, halving walk-in hours from April.", verdict: "weaker", explanation: "Known harms, to residents without internet and to disabled residents, would go unaddressed." },
-        { id: "b", label: "Run it for six months with the panel's conditions, and review before any cuts become permanent.", verdict: "correct", explanation: "It takes the benefits seriously while protecting the people most at risk, and it sets a point to decide again with better evidence." },
-        { id: "c", label: "Wait: test it with disabled residents and get comparable energy figures first.", verdict: "defensible", explanation: "Cautious and reasonable. The cost is delay to a service most residents could use well." },
+        { id: "a", label: "Adopt it as proposed, halving walk-in hours from April.", verdict: "weaker", explanation: "Known harms, to residents without internet and to disabled residents, would go unaddressed." },
+        { id: "b", label: "Adopt it from April, with the panel's conditions in place.", verdict: "correct", explanation: "Kelmere has already run the same service for six months, so the main risks are known, and the conditions protect the people most at risk. Most residents gain now. Review it as you would any service." },
+        { id: "c", label: "Run a six-month trial of its own before deciding anything.", verdict: "defensible", explanation: "Cautious, but Kelmere's six months already answer most of what a trial would. It mostly delays a service most residents could use well." },
       ],
-      hints: [{ text: "Which option deals with what is known, and plans for what is still uncertain?" }],
+      hints: [{ text: "What does the panel already know from Kelmere, and do the conditions deal with it?" }],
     },
     {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having heard the evidence, answer the first question again. ${decideQuestion}`,
-      choices: decideChoices,
-      withConfidence: true,
+      prompt:
+        "A neighbouring council says: “Our AI parking-permit service went well: 90% of applicants used it happily.” Before copying it, what would you ask first?",
+      choices: [
+        { id: "a", label: "Whether the 90% figure came from an independent survey.", verdict: "weaker", explanation: "Worth knowing, but even an accurate 90% says nothing about the 10% who couldn't or didn't use it." },
+        { id: "b", label: "Who the other 10% were, and how they got a permit.", verdict: "correct", explanation: "The people a service doesn't suit are often those with the fewest alternatives. Whether they still got a permit decides whether it is fair." },
+        { id: "c", label: "How much money the service saved the council each year.", verdict: "weaker", explanation: "Savings matter, but they don't show who lost access, or who answers when it goes wrong." },
+      ],
     },
     {
       kind: "transfer",
@@ -187,13 +193,20 @@ export const m13: Mission = {
     {
       kind: "openResponse",
       id: "recommend",
-      prompt: "Write the panel's recommendation to the council in a short paragraph: what to do, the evidence for it, who is affected, and what new information would change your view.",
+      prompt: "Write the panel's recommendation to the council.",
+      format: "structured",
+      fields: [
+        { id: "do", label: "What the council should do" },
+        { id: "evidence", label: "The evidence for it" },
+        { id: "affected", label: "Who gains, and who bears the costs" },
+        { id: "change", label: "What new information would change your view" },
+      ],
       rubric: {
         samples: [
           { id: "weak", text: "We think the AI is a good idea because it saves money.", met: [], note: "It names one benefit and ignores who bears the costs and what is uncertain." },
           {
             id: "strong",
-            text: "Run the assistant for six months, keeping a staffed phone line and a “talk to a person” option, with a monthly review of benefits answers. Eastfield's pilot shows it can handle most routine questions, but one in five over-75s has no internet and some disabled residents couldn't use it. If the review finds more wrong benefits answers than Eastfield's, or the phone line is overwhelmed, the council should think again.",
+            text: "Run the assistant for six months, keeping a staffed phone line and a “talk to a person” option, with a monthly review of benefits answers. Kelmere's pilot shows it can handle most routine questions, but one in five over-75s has no internet and some disabled residents couldn't use it. If the review finds more wrong benefits answers than Kelmere's, or the phone line is overwhelmed, the council should think again.",
             met: ["evidence", "affected", "change"],
             note: "It recommends with evidence, names the affected groups, and says what would change the decision.",
           },
@@ -226,8 +239,8 @@ export const m13: Mission = {
             prompt: "A school wants AI marking for all homework next term. Teachers are split. What recommendation best fits uncertain evidence?",
             choices: [
               { id: "a", label: "Use it for all homework, since teachers will save time.", verdict: "weaker", explanation: "It acts as if the uncertainty weren't there, and the cost falls on pupils if marking is wrong." },
-              { id: "b", label: "Trial it in two classes, compare with teacher marking, and review at half term.", verdict: "correct", explanation: "A limited trial with a comparison and a review date turns uncertainty into evidence." },
-              { id: "c", label: "Ban it, since some teachers object.", verdict: "weaker", explanation: "Objections are worth hearing, but they aren't evidence about how it performs." },
+              { id: "b", label: "Trial it in two classes against teacher marking.", verdict: "correct", explanation: "A limited trial with a comparison and a review date turns uncertainty into evidence." },
+              { id: "c", label: "Ban it for now, since a number of teachers object.", verdict: "weaker", explanation: "Objections are worth hearing, but they aren't evidence about how it performs." },
             ],
           },
         },

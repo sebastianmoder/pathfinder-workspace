@@ -4,11 +4,45 @@ export const narrow = (page: Page) => (page.viewportSize()?.width ?? 1280) < 102
 export const cont = (page: Page) => page.getByRole("button", { name: "Continue", exact: true }).click();
 export const check = (page: Page) => page.getByRole("button", { name: "Check my answer" }).click();
 
-export async function recordJudgment(page: Page, answer: RegExp | string, confidence: string) {
+export async function recordJudgment(page: Page, answer: RegExp | string, confidence?: string) {
   await page.getByLabel(answer).check();
-  await page.getByLabel(confidence, { exact: true }).check();
+  if (confidence) await page.getByLabel(confidence, { exact: true }).check();
   await page.getByRole("button", { name: "Record my judgment" }).click();
   await expect(page.getByText("Weaker fit")).toHaveCount(0); // no verdict before investigating
+  await cont(page);
+}
+
+/** Practice at rating sample answers is offered until a learner has done or declined it once this visit. */
+export async function skipPractice(page: Page) {
+  const skip = page.getByRole("button", { name: "Skip the practice" });
+  if (await skip.count()) await skip.click();
+}
+
+/** Answers a revision (a new case on the opening idea), with confidence where the mission asks for it. */
+export async function revise(page: Page, answer: RegExp, confidence?: string) {
+  await page.getByLabel(answer).check();
+  if (confidence) await page.getByLabel(confidence, { exact: true }).check();
+  await check(page);
+  await expect(page.getByRole("heading", { name: "Looking back at your first move" }).or(page.getByText(/^Your confidence:/)).first()).toBeVisible();
+  await cont(page);
+}
+
+/** Chooses the strongest draft, improves it, and compares it with the criteria. */
+export async function pickAndImprove(page: Page, draft: RegExp, addition: string) {
+  await page.getByLabel(draft).check();
+  await check(page);
+  const box = page.getByLabel(/^Improve it/);
+  await expect(box).not.toHaveValue("");
+  await box.fill(`${await box.inputValue()} ${addition}`);
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
+  await cont(page);
+}
+
+/** Fills the labelled parts of a structured note, then compares it with the criteria. */
+export async function writeNote(page: Page, parts: [RegExp, string][]) {
+  await skipPractice(page);
+  for (const [label, text] of parts) await page.getByLabel(label).fill(text);
+  await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
 }
 
@@ -119,9 +153,8 @@ export async function traceFaults(page: Page) {
 }
 
 export async function completeM01(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /It is probably correct/, "Very");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Use it\. It is specific/, "Very");
   await runMachine(page);
   await page.getByLabel(/It follows the patterns in its data/).check();
   await check(page);
@@ -138,15 +171,12 @@ export async function completeM01(page: Page) {
   for (const [item, cat] of Object.entries(place)) await page.getByLabel(item).selectOption({ label: cat });
   await check(page);
   await cont(page);
-  await page.getByLabel("It tells me little; I need evidence.").check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /Whether the café's own records/, "Somewhat");
   await markAndCheck(page, [/opened in 1987/, /40 branches/]);
   await page.getByLabel(/Hold both figures/).check();
   await check(page);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M01-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -154,8 +184,7 @@ export async function completeM01(page: Page) {
 }
 
 export async function completeM04(page: Page) {
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await firstRead(page, "I would rely on it");
   await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", calc: "31", status: "Supported", action: "Retain" });
   await auditClaim(page, /Three-quarters/, { passage: "survey-result", status: "Misleading", action: "Qualify", repair: ["63", "210", "48"] });
@@ -170,7 +199,7 @@ export async function completeM04(page: Page) {
   await check(page);
   await cont(page);
   await completeNorthgate(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
@@ -232,8 +261,7 @@ export async function connectAndTest(page: Page) {
 }
 
 export async function completeM05(page: Page) {
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it for a limited time/, "Fairly");
   await choose(page, /What evidence do we have/);
   await choose(page, /How were the two groups formed/);
@@ -247,26 +275,21 @@ export async function completeM05(page: Page) {
   await placeCards(page);
   await page.getByRole("button", { name: "Check my map" }).click();
   await connectAndTest(page);
-  await page.getByLabel(/Try it for a limited time/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /Try it for a limited time/, "Somewhat");
   await page.getByLabel(/About a third of visits/).check();
   await check(page);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M05-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
   await markAndCheck(page, [/have a smartphone/, /will serve everyone/]);
-  await page.getByRole("button", { name: "Skip writing and see the criteria" }).click();
-  await cont(page);
+  await pickAndImprove(page, /answers at any hour and on every route/, "PRIVATE-M05-STEELMAN");
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeT01(page: Page) {
-  await cont(page);
-  await cont(page);
+  await cont(page); // brief, with the refresher folded in
   await expect(page.getByRole("button", { name: "Need a hint?" })).toHaveCount(0);
   await markAndCheck(page, [/enrolled 48 people/, /Almost everyone/, /shown to improve/, /One in four/, /completely free/, /next course starts/i], "Audit the claims");
   await firstRead(page, "Not sure");
@@ -282,7 +305,7 @@ export async function completeT01(page: Page) {
   await expect(page.getByText(/One in seven adults/).first()).toBeVisible();
   await cont(page);
   await markAndCheck(page, [/^People$/, /double its size/]);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-T01-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -313,21 +336,17 @@ export const M02_TRANSFER: [string, string][] = [
 ];
 
 export async function completeM02(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /How often the tool gets/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Yes, but a person reads and approves/);
   await assignRoles(page, M02_DESK);
   await cont(page);
   await page.getByLabel(/Sam, who runs bookings/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/What a mistake would cost/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /a wrong refusal is costly/);
   await assignRoles(page, M02_TRANSFER);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M02-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -351,9 +370,8 @@ export async function judgeChecklist(page: Page, criteria: RegExp[], next = "Con
 export const M03_CRITERIA = [/written to new Homework Club/, /right date, time and room/, /what to bring/, /short, plain and friendly/];
 
 export async function completeM03(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /The tool isn't capable/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Yes\. Some tools are much better/);
   await runIt(page);
   for (const [part, option] of [
     ["Objective", /welcome email/],
@@ -379,17 +397,14 @@ export async function completeM03(page: Page) {
   await page.getByLabel(/The audience and its must-haves/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/The request left out/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /Check every date, time and number/);
   await pickPart(page, "Objective", /announcing the repair café's new hours/);
   await pickPart(page, "Context", /first Saturday/);
   await pickPart(page, "What it must include", /small electricals/);
   await pickPart(page, "Length and style", /Under 60 words/);
   await runIt(page);
   await judgeChecklist(page, [/notice about the new hours/, /new day, time and place/, /what can be repaired/, /easy to read from a distance/]);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M03-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -404,34 +419,30 @@ export async function chartView(page: Page, options: string[], next: string) {
 }
 
 export async function completeM07(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Whether the chart's numbers match/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /That the bar labels match/, "Fairly");
   await chartView(page, ["At zero"], "Next task");
   await chartView(page, ["Every month on record"], "Continue");
   await chartView(page, ["Visits per 1,000 residents"], "Continue");
   await auditClaim(page, /Monthly visits rose/, { passage: "reg-visits", calc: "9.8", status: "Supported", action: "Retain" });
   await auditClaim(page, /AI helper caused/, { passage: "reg-helper", status: "Unsupported", action: "Qualify", repair: ["97", "101"] });
-  await auditClaim(page, /83% of visitors/, { passage: "cards-result", calc: "83", status: "Misleading", action: "Qualify", repair: ["12", "10"] });
+  await auditClaim(page, /typical visit now lasts/, { passage: "reg-length", calc: "59", status: "Misleading", action: "Qualify", repair: ["40", "20"] });
   await auditClaim(page, /costs just/, { passage: "costs-helper", status: "Incorrect", action: "Correct", repair: ["1,800", "2"] });
   await page.getByRole("button", { name: "See the final briefing" }).click();
   await cont(page);
   await page.getByLabel(/Treating the rise since March/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/How the axis, the time range/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
-  await markAndCheck(page, [/Membership grew/, /girls playing/, /Nine in ten/], "Audit the claims");
+  await revise(page, /No: 20% to 30% is half as much again/, "Somewhat");
+  await markAndCheck(page, [/Membership grew/, /girls playing/, /Injuries at training/], "Audit the claims");
   const save = { independent: true };
   await auditClaim(page, /Membership grew/, { ...save, passage: "mem-total", calc: "50", status: "Supported", action: "Retain", reason: "PRIVATE-M07-REASON" });
   await auditClaim(page, /girls playing/, { ...save, passage: "mem-girls", calc: "200", status: "Incorrect", action: "Correct", repair: ["6", "18", "200"] });
-  await auditClaim(page, /Nine in ten/, { ...save, passage: "survey-active", status: "Misleading", action: "Qualify", repair: ["30", "120", "27"] });
+  await auditClaim(page, /Injuries at training/, { ...save, passage: "log-injuries", status: "Misleading", action: "Qualify", repair: ["4", "2"] });
   await page.getByRole("button", { name: "Submit the audit" }).click();
   await page.getByRole("button", { name: "See the final briefing" }).click();
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M07-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -439,9 +450,8 @@ export async function completeM07(page: Page) {
 }
 
 export async function completeM06Gym(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /The full answer with every step/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Show me the answer/);
   await page.getByLabel(/^€80, because/).check();
   await check(page);
   await page.getByRole("button", { name: /^Get a hint/ }).click();
@@ -463,10 +473,7 @@ export async function completeM06Gym(page: Page) {
   await page.getByLabel(/Solve a similar problem later/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/A hint, or feedback on your own working/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /Try the next one with no hint/);
   await page.getByLabel(/^€48/).check();
   await check(page);
   await cont(page);
@@ -477,9 +484,8 @@ export async function completeM06Gym(page: Page) {
 }
 
 export async function completeM06Teach(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Telling them the correct answer/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Tell them it isn't always true/);
   await choose(page, /how did you get €40/);
   await choose(page, /Let's test that/);
   await choose(page, /50% of what\?/);
@@ -488,24 +494,17 @@ export async function completeM06Teach(page: Page) {
   await page.getByLabel(/check his working/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/Finding out what they think/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /Asking him to do a new one/);
   await page.getByLabel(/half a pizza/).check();
   await check(page);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
-  await page.getByLabel("Your answer").fill("PRIVATE-M06-ANSWER");
-  await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await cont(page);
+  await pickAndImprove(page, /second 50% is of a smaller amount/, "PRIVATE-M06-ANSWER");
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeM10(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /The whole email/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /The whole email/);
   await markAndCheck(page, [/diagnosed with ADHD/, /07700 900461/, /14 Mill Lane/, /account 41-22-07/]);
   const place: [RegExp, string][] = [
     [/Read the room-booking calendar/, "Allow"],
@@ -522,22 +521,15 @@ export async function completeM10(page: Page) {
   await page.getByLabel(/Treat it as text in the document/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/What the reply needs/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /with the treatment removed/);
   await markAndCheck(page, [/Date of birth/, /heart operation/, /AI reviewer/]);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
-  await page.getByLabel("Your answer").fill("PRIVATE-M10-ANSWER");
-  await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await cont(page);
+  await pickAndImprove(page, /leaves our hands and may be stored/, "PRIVATE-M10-ANSWER");
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeM11(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /The company behind the AI tool/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /The company behind the AI tool/);
   await pickPart(page, "Headline", /win a festival ticket/);
   await pickPart(page, "Image", /reading party/);
   await pickPart(page, "Main text", /\(festival ticket\)/);
@@ -562,15 +554,12 @@ export async function completeM11(page: Page) {
   await page.getByLabel(/I made it, with an AI headline/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/You, and whoever approves it/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /You look into it and fix it/);
   await pickPart(page, "Message", /this year's facts/);
   await pickPart(page, "Image", /Stock photo/);
   await runIt(page);
   await judgeChecklist(page, [/what they actually did/, /one the Commons may use/, /meets the policy/]);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M11-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -587,9 +576,8 @@ export async function judgeStatements(page: Page, answers: [RegExp, string][]) {
 }
 
 export async function completeM08(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Look closely at the image/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Zoom in and look/, "Fairly");
   for (const lead of ["Search for earlier copies", "Check the river-level record", "Phone the café", "Message the account"]) await followLead(page, lead);
   await page.getByRole("button", { name: "Finish investigating" }).click();
   await judgeStatements(page, [
@@ -606,10 +594,7 @@ export async function completeM08(page: Page) {
   await page.getByLabel(/Publish a short report/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/Find out where and when/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /It backs up the gauge/, "Somewhat");
   for (const lead of ["Read the transcript", "Search for where the wording", "Look at the account"]) await followLead(page, lead);
   await page.getByRole("button", { name: "Finish investigating" }).click();
   await judgeStatements(page, [
@@ -619,19 +604,19 @@ export async function completeM08(page: Page) {
     [/shared about 2,000/, "Established"],
   ]);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
-  await page.getByLabel("Your answer").fill("PRIVATE-M08-ANSWER");
-  await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await cont(page);
+  await writeNote(page, [
+    [/^What is established/, "PRIVATE-M08-ANSWER. The line isn't in the transcript."],
+    [/^What is still uncertain/, "Who made the screenshot."],
+    [/^What the paper should do/, "Publish a short correction."],
+  ]);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export const setThreshold = (page: Page, value: number) => page.getByLabel(/^Threshold: invite everyone/).fill(String(value));
 
 export async function completeM09(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /same rule to everyone is fair/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Agreed: one pass mark/);
   await setThreshold(page, 63);
   await page.getByRole("button", { name: "Check this setting" }).click();
   await page.getByRole("button", { name: "Next task" }).click();
@@ -652,17 +637,11 @@ export async function completeM09(page: Page) {
   await page.getByLabel(/Other groups weren't checked/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/its scores are systematically lower/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /Something it does see/);
   await page.getByLabel(/label reflects transport/).check();
   await check(page);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
-  await page.getByLabel("Your answer").fill("PRIVATE-M09-ANSWER");
-  await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await cont(page);
+  await pickAndImprove(page, /Stop double-booking on the prediction/, "PRIVATE-M09-ANSWER");
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
@@ -676,9 +655,8 @@ export async function diagnose(page: Page, answers: [RegExp, string][]) {
 }
 
 export async function completeM12(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /In the model/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Good idea: a more capable model/);
   await page.getByRole("button", { name: "Run the tests" }).click();
   await diagnose(page, [
     [/library open on Saturday/, "Where answers come from"],
@@ -694,13 +672,10 @@ export async function completeM12(page: Page) {
   await setStep(page, "When the booking system is down", /Tell the member/);
   await page.getByRole("button", { name: "Run the tests again" }).click();
   await cont(page);
-  await page.getByLabel(/Launch to a small group/).check();
+  await page.getByLabel(/Start with a small group/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/In the workflow/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /In the workflow: keep the copy/);
   await page.getByRole("button", { name: "Run the tests" }).click();
   await diagnose(page, [
     [/recycling collected/, "Where answers come from"],
@@ -712,7 +687,7 @@ export async function completeM12(page: Page) {
   await setStep(page, "Missed collections", /Log it/);
   await page.getByRole("button", { name: "Run the tests again" }).click();
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-M12-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
@@ -725,10 +700,9 @@ export async function choosePlan(page: Page, options: RegExp[]) {
 }
 
 export async function completeM13(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Whether the savings are larger/, "Fairly");
-  for (const lead of ["Read the Eastfield pilot", "Read the residents' digital", "Talk to the disability", "Read the finance", "Talk to the residents' association"]) await followLead(page, lead);
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Agreed, as long as the saving/);
+  for (const lead of ["Read the Kelmere pilot", "Read the residents' digital", "Talk to the disability", "Read the finance", "Talk to the residents' association"]) await followLead(page, lead);
   await page.getByRole("button", { name: "Finish investigating" }).click();
   await judgeStatements(page, [
     [/most routine enquiries/, "Established"],
@@ -740,33 +714,28 @@ export async function completeM13(page: Page) {
   await cont(page);
   await choosePlan(page, [/staffed phone line/, /talk to a person/, /monthly review/]);
   await cont(page);
-  await page.getByLabel(/Run it for six months/).check();
+  await page.getByLabel(/Adopt it from April, with the panel's/).check();
   await check(page);
   await cont(page);
-  await page.getByLabel(/Who benefits, who bears/).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, /Who the other 10% were/);
   await choosePlan(page, [/chest pain/, /callback/, /five most-spoken/]);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
-  await page.getByLabel("Your answer").fill("PRIVATE-M13-ANSWER");
-  await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await cont(page);
+  await writeNote(page, [
+    [/^What the council should do/, "PRIVATE-M13-ANSWER. Adopt it with the conditions."],
+    [/^The evidence for it/, "Kelmere resolved 70% of chat enquiries."],
+    [/^Who gains/, "Most residents gain; residents without internet bear the costs."],
+    [/^What new information/, "More wrong benefits answers than Kelmere's."],
+  ]);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 async function reviseAndFinish(page: Page, answer: RegExp) {
-  await page.getByLabel(answer).check();
-  await page.getByLabel("Somewhat", { exact: true }).check();
-  await check(page);
-  await cont(page);
+  await revise(page, answer);
 }
 
 export async function completeB01(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Which AI tool writes/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Ask it for the whole FAQ/);
   await assignRoles(page, [
     ["Find the most common questions", "AI-assisted"],
     ["Draft the answers", "AI-assisted"],
@@ -783,14 +752,13 @@ export async function completeB01(page: Page) {
   await page.getByLabel(/Remove it, or check it/).check();
   await check(page);
   await cont(page);
-  await reviseAndFinish(page, /Which parts AI should do/);
+  await reviseAndFinish(page, /Check the ones that state times/);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeB03(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Spelling and grammar/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /On spelling and layout/);
   await markAndCheck(page, [/^Haddad,$/, /asylum case/, /Canal Street/, /Note for the AI/]);
   await followLead(page, "Check the file's history");
   await followLead(page, "Look for consent forms");
@@ -807,14 +775,12 @@ export async function completeB03(page: Page) {
   await page.getByLabel(/A note saying it was written with AI/).check();
   await check(page);
   await cont(page);
-  await reviseAndFinish(page, /Things that read well/);
+  await reviseAndFinish(page, /How many were asked and answered/);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeC01Scope(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /fluent, helpful-sounding/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
   await assignRoles(page, [
     ["Answer questions about courses", "Supervised automation"],
     ["Tell residents if they qualify for council tax support", "Human-led"],
@@ -826,14 +792,11 @@ export async function completeC01Scope(page: Page) {
   await page.getByLabel(/A named service owner/).check();
   await check(page);
   await cont(page);
-  await reviseAndFinish(page, /What a wrong answer would cost/);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeC01Evidence(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /other councils have bought/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
   await markAndCheck(page, [/found it 95% accurate/, /equally accurate/, /every conversation mentioning/], "Audit the claims");
   const save = { independent: true };
   await auditClaim(page, /found it 95% accurate/, { ...save, passage: "trial-accuracy", calc: "90.5", status: "Incorrect", action: "Correct", repair: ["950", "1,050", "90"], reason: "PRIVATE-C01-REASON" });
@@ -846,14 +809,11 @@ export async function completeC01Evidence(page: Page) {
   await page.getByLabel(/Launch only in English/).check();
   await check(page);
   await cont(page);
-  await reviseAndFinish(page, /Accurate on what questions/);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeC01Workflow(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /most accurate model/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
   await page.getByRole("button", { name: "Run the tests" }).click();
   await diagnose(page, [
     [/Spanish beginners/, "Where answers come from"],
@@ -872,29 +832,27 @@ export async function completeC01Workflow(page: Page) {
   await page.getByLabel(/Launch in stages/).check();
   await check(page);
   await cont(page);
-  await reviseAndFinish(page, /mistakes are caught/);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeC01Review(page: Page) {
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /Answering the challenge with confidence/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /Sound certain anyway/);
   await choosePlan(page, [/Interpreter calls/, /staffed phone line/, /weekly independent check/]);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await page.getByLabel("Your answer").fill("PRIVATE-C01-MEMO: launch in English with interpreter calls.");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
   await page.getByLabel(/The independent trial found/).check();
   await check(page);
   await cont(page);
-  await page.getByRole("button", { name: "Skip the practice" }).click();
+  await skipPractice(page);
   await expect(page.getByText(/PRIVATE-C01-MEMO: launch in English/)).toBeVisible();
   await page.getByRole("button", { name: "Start from your first version" }).click();
   await expect(page.getByLabel("Your answer")).toHaveValue(/PRIVATE-C01-MEMO/);
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
-  await reviseAndFinish(page, /Evidence for each point/);
+  await reviseAndFinish(page, /Check the new figures/);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }

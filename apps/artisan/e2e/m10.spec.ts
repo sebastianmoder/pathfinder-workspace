@@ -13,9 +13,8 @@ test("M10 is completable end to end", async ({ page }) => {
 
 test("redacting shows what each party receives, and over-redacting is pointed out", async ({ page }) => {
   await page.goto("/missions/m10-boundaries");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /What the reply needs/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /What the reply needs/);
 
   const condition = page.getByRole("button", { name: /diagnosed with ADHD/ });
   await condition.click();
@@ -37,9 +36,8 @@ test("redacting shows what each party receives, and over-redacting is pointed ou
 test("redacted text stays legible in dark mode", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/missions/m10-boundaries");
-  await cont(page);
-  await cont(page);
-  await recordJudgment(page, /What the reply needs/, "Fairly");
+  await cont(page); // brief, with the refresher folded in
+  await recordJudgment(page, /What the reply needs/);
   await page.getByRole("button", { name: /diagnosed with ADHD/ }).click();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

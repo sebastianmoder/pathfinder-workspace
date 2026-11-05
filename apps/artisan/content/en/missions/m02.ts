@@ -1,27 +1,28 @@
 import type { Choice, Mission } from "../../types";
 
-const roleQuestion = "Your team could hand a task to an AI tool that does it faster. What should mostly decide whether you do?";
-const roleChoices: Choice[] = [
+const firstMove =
+  "Joanna asks: “Could the AI tool send the weekly room-availability email? It lists free rooms from the booking system, goes to staff only, and anyone can reply with a correction.” What do you tell her?";
+const firstChoices: Choice[] = [
   {
     id: "a",
-    label: "How often the tool gets this kind of task right.",
-    verdict: "weaker",
+    label: "Yes: let it send them, and check a few each month.",
+    verdict: "correct",
     explanation:
-      "Accuracy matters, but it isn't enough. A tool that is right 19 times in 20 can be fine for reminders and unacceptable for bursaries. What matters is what the twentieth case costs, and whether anyone would notice.",
+      "Staff-only, built from complete data, and easy to correct: a mistake here costs little and is quickly caught. A light check is enough supervision, and the time saved is real.",
   },
   {
     id: "b",
-    label: "What a mistake would cost, and whether it would be caught and put right.",
-    verdict: "correct",
+    label: "Yes, but a person reads and approves every one first.",
+    verdict: "weaker",
     explanation:
-      "Stakes, the chance of catching an error, and whether it can be undone decide how much a person needs to check. Speed is only worth having once those are settled.",
+      "It would work, but approving a routine list every week adds little. Checking effort belongs where a mistake would cost something.",
   },
   {
     id: "c",
-    label: "Whether the task is about people, since those should always stay with a person.",
+    label: "No: anything sent in the Commons' name needs a person.",
     verdict: "weaker",
     explanation:
-      "Reminder texts are about people too, and automating them can work well. A blanket rule ignores what a mistake would cost and whether it could be undone.",
+      "A blanket rule ignores what a mistake would cost. This email goes to staff, and a wrong room is fixed with one reply.",
   },
 ];
 
@@ -35,7 +36,7 @@ export const m02: Mission = {
   title: "The Delegation Desk",
   outcome: "Choose an appropriate role for AI in a task, and say who stays responsible for the result.",
   scenario:
-    "You are the operations adviser at the Riverside Learning Commons, a fictional community learning centre. The team has a new AI tool, and before the new term starts the director has asked you to decide how each waiting request should be handled.",
+    "You are the operations adviser at the Riverside Learning Commons, a community learning centre. The team has a new AI tool, and before the new term starts the director has asked you to decide how each waiting request should be handled.",
   approxMinutes: 13,
   meta: {
     version: "1.0",
@@ -62,8 +63,9 @@ export const m02: Mission = {
     {
       kind: "initialJudgment",
       id: "initial",
-      prompt: roleQuestion,
-      choices: roleChoices,
+      prompt: firstMove,
+      choices: firstChoices,
+      motifs: ["decisiveFits"],
     },
     {
       kind: "delegation",
@@ -294,9 +296,28 @@ export const m02: Mission = {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `Having seen how the term went, answer the first question again. ${roleQuestion}`,
-      choices: roleChoices,
-      withConfidence: true,
+      prompt:
+        "The room emails went well. Now Joanna asks whether the same tool could choose who gets the last three places on the free English course. Twelve people applied, each with a note about their situation. What should decide the role AI plays?",
+      choices: [
+        {
+          id: "a",
+          label: "That it did well on the room emails, so it has earned more.",
+          verdict: "weaker",
+          explanation: "A good record on low-stakes work says little about a decision like this. What matters is what a mistake would cost here, and who would catch it.",
+        },
+        {
+          id: "b",
+          label: "That a wrong refusal is costly, hard to undo and easy to miss.",
+          verdict: "correct",
+          explanation: "Twelve personal notes, a decision that is hard to reverse, and an applicant who may never complain: a person should decide, and be able to explain why.",
+        },
+        {
+          id: "c",
+          label: "That twelve is few enough to check every ranking it makes.",
+          verdict: "weaker",
+          explanation: "Checking a ranking still lets the tool frame the decision, and the notes hold personal details. With only twelve, a person can simply read them.",
+        },
+      ],
     },
     {
       kind: "transfer",
@@ -441,9 +462,9 @@ export const m02: Mission = {
           practice: {
             prompt: "A sports club wants to send its 600 members an automatic text when a match is moved. All match details are in the club's fixture system. What role suits AI here?",
             choices: [
-              { id: "a", label: "Supervised automation, with someone checking a few texts after each change.", verdict: "correct", explanation: "The data is complete, a wrong text is easy to correct, and the stakes are low. Checking a few is enough supervision." },
-              { id: "b", label: "Human-led, so that no member ever gets a wrong text.", verdict: "weaker", explanation: "Typing 600 texts by hand creates its own mistakes and delays. Keeping AI out isn't automatically the safe option." },
-              { id: "c", label: "AI-assisted, with each text approved before it goes.", verdict: "weaker", explanation: "Approving 600 identical texts wears attention down until the check means little. A sample check does the same job." },
+              { id: "a", label: "Supervised automation, spot-checking a few texts.", verdict: "correct", explanation: "The data is complete, a wrong text is easy to correct, and the stakes are low. Checking a few is enough supervision." },
+              { id: "b", label: "Human-led, so no member ever gets a wrong text.", verdict: "weaker", explanation: "Typing 600 texts by hand creates its own mistakes and delays. Keeping AI out isn't automatically the safe option." },
+              { id: "c", label: "AI-assisted, approving each text before it goes.", verdict: "weaker", explanation: "Approving 600 identical texts wears attention down until the check means little. A sample check does the same job." },
             ],
           },
         },

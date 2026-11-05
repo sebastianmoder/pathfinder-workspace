@@ -479,7 +479,20 @@ export interface AllocationSpec {
   concerns: { id: string; stakeholder: string; text: string; essential?: boolean; /** Why it is or isn't essential. */ why: string }[];
 }
 
-export type Step =
+/**
+ * Case devices that would feel repetitive if every mission leaned on them. Content tests cap how often
+ * each appears across the core modules; "decisiveFits" marks a question where the bold or simple answer is
+ * the sound one, so that caution isn't always the safe bet (PRD §16, "learners become suspicious").
+ */
+export type Motif = "selfSelectedSample" | "inventedDetail" | "stagedTrial" | "decisiveFits";
+
+/** A labelled part of a structured note (open response). */
+export interface ResponseField {
+  id: string;
+  label: string;
+}
+
+type StepUnion =
   | { kind: "brief"; id: string; title: string; body: string }
   | { kind: "refresher"; id: string; title: string; body: string }
   | {
@@ -488,6 +501,8 @@ export type Step =
       prompt: string;
       choices: Choice[];
       hints?: Hint[];
+      /** Ask how confident the learner is. Kept for missions where confidence itself is the subject (PRD §9). */
+      withConfidence?: boolean;
     }
   | { kind: "quiz"; id: string; prompt: string; choices: Choice[]; hints?: Hint[] }
   | {
@@ -499,6 +514,15 @@ export type Step =
       priorReason?: { stepId: string; claimId: string };
       /** Shows what the learner wrote in an earlier open response, to revise after a challenge (PRD C01). */
       priorResponse?: string;
+      /**
+       * "structured": short labelled fields instead of one box. "pickImprove": choose the strongest of
+       * authored drafts, then improve it. Defaults to "free".
+       */
+      format?: "free" | "structured" | "pickImprove";
+      fields?: ResponseField[];
+      drafts?: Choice[];
+      /** What to add to the chosen draft ("pickImprove"). */
+      improvePrompt?: string;
     }
   | {
       kind: "sandbox";
@@ -539,6 +563,11 @@ export type Step =
       kind: "revision";
       id: string;
       initialStepId: string;
+      /**
+       * A new case that tests the same idea as the initial judgment, so the comparison shows what transferred.
+       * Where the initial judgment was a position rather than a question (every option defensible), this
+       * re-asks it instead.
+       */
       prompt: string;
       choices: Choice[];
       /** Ask for confidence again and show it beside the first value. */
@@ -610,6 +639,8 @@ export type Step =
       skills: DebriefSkill[];
       nextMissionId: MissionId | null;
     };
+
+export type Step = StepUnion & { motifs?: Motif[] };
 
 export type StepKind = Step["kind"];
 

@@ -8,7 +8,7 @@ import { citeChoiceId, walk } from "@/lib/dialogue";
 import { evidenceItems } from "@/lib/evidence";
 import { segmentsOf } from "@/lib/mark";
 import { askMachine, goalMet } from "@/lib/sandbox";
-import { DELEGATION_ROLES, PROPOSAL, type AuditSpec, type Choice, type DelegationSpec, type Step } from "./types";
+import { DELEGATION_ROLES, PROPOSAL, type AuditSpec, type Choice, type DelegationSpec, type Motif, type Step } from "./types";
 import { bestRole } from "@/lib/delegation";
 import { allMet } from "@/lib/compose";
 import { barsFor, goalMet as chartGoalMet } from "@/lib/chart";
@@ -23,13 +23,39 @@ const choicesOf = (s: Step): Choice[] =>
 
 const auditOf = (s: Step): AuditSpec | null => ("audit" in s ? s.audit : null);
 
+/** Every multiple-choice question a mission asks, including practice questions and audit decisions. */
+function choiceSets(mission: (typeof missions)[number]): [string, Choice[]][] {
+  const sets: [string, Choice[]][] = [];
+  for (const s of mission.steps) {
+    const cs = choicesOf(s);
+    if (cs.length) sets.push([s.id, cs]);
+    if (s.kind === "debrief") for (const k of s.skills) if (k.practice) sets.push([`${s.id}/${k.id}`, k.practice.choices]);
+    if (s.kind === "gym") for (const p of s.problems) sets.push([`${s.id}/${p.id}`, p.choices]);
+    if (s.kind === "openResponse" && s.drafts) sets.push([`${s.id}/drafts`, s.drafts]);
+    const decision = auditOf(s)?.decision;
+    if (decision) sets.push([`${s.id}/decision`, decision.choices]);
+  }
+  return sets;
+}
+
+/** How much longer the one correct option is than the mean of the others, or null without exactly one. */
+function correctLengthRatio(cs: Choice[]): number | null {
+  const correct = cs.filter((c) => c.verdict === "correct");
+  if (correct.length !== 1 || cs.length < 2) return null;
+  const others = cs.filter((c) => c !== correct[0]);
+  return correct[0].label.length / (others.reduce((n, c) => n + c.label.length, 0) / others.length);
+}
+
 describe.each(missions)("mission $id", (mission) => {
   it("contains every required step kind (PRD §6)", () => {
     const kinds = mission.steps.map((s) => s.kind);
     for (const k of REQUIRED_KINDS) expect(kinds).toContain(k);
-    // The initial judgment and its revision can be a position re-asked, or trust compared with the evidence.
+    // The initial judgment and its revision can be a position re-asked, a new case on the same idea, or trust
+    // compared with the evidence. C01 is one module in four chapters (PRD §7 C01): its first three chapters build
+    // the case, and the judgment and revision come once, in the review meeting, so they don't repeat four times.
     const trustFirst = mission.steps.some((s) => auditOf(s)?.trustFirst);
-    expect(trustFirst || (kinds.includes("initialJudgment") && kinds.includes("revision")), "judgment and revision").toBe(true);
+    const capstoneChapter = /^c01-(scope|evidence|workflow)$/.test(mission.id);
+    expect(trustFirst || capstoneChapter || (kinds.includes("initialJudgment") && kinds.includes("revision")), "judgment and revision").toBe(true);
     expect(kinds.some((k) => k === "quiz" || k === "openResponse")).toBe(true);
   });
 
@@ -147,14 +173,47 @@ describe.each(missions)("mission $id", (mission) => {
       if (s.kind === "transfer" && "audit" in s) for (const c of s.audit.claims) expect(c.hint, c.id).toBeUndefined();
   });
 
-  it("revision re-asks the initial question, so the comparison means something", () => {
+  it("revision tests the initial idea on a new case, or re-asks a position as it was", () => {
     for (const s of mission.steps)
       if (s.kind === "revision") {
         const initial = mission.steps.find((x) => x.id === s.initialStepId);
         expect(initial?.kind).toBe("initialJudgment");
-        expect(s.choices.map((c) => c.id)).toEqual(choicesOf(initial!).map((c) => c.id));
-        expect(s.prompt).toContain(initial && "prompt" in initial ? initial.prompt : "");
+        if (initial?.kind !== "initialJudgment") continue;
+        // A position (every option defensible) is re-asked, so a changed mind shows. A question comes back as a
+        // new case, because re-asking it only tests whether the learner remembers the explanation.
+        const position = initial.choices.every((c) => c.verdict !== "weaker");
+        if (position) {
+          expect(s.choices.map((c) => c.id)).toEqual(initial.choices.map((c) => c.id));
+          expect(s.prompt).toContain(initial.prompt);
+        } else {
+          expect(s.prompt, s.id).not.toContain(initial.prompt);
+          expect(s.choices.filter((c) => c.verdict === "correct"), s.id).toHaveLength(1);
+        }
+        expect(!!s.withConfidence, "confidence is asked at both ends or neither").toBe(!!initial.withConfidence);
       }
+  });
+
+  it("doesn't give away the sound answer by its length", () => {
+    for (const [id, cs] of choiceSets(mission)) {
+      const ratio = correctLengthRatio(cs);
+      if (ratio !== null) expect(ratio, `${id} (correct option ${ratio.toFixed(2)}× the others)`).toBeLessThanOrEqual(1.4);
+    }
+  });
+
+  it("open-response formats have what they need", () => {
+    for (const s of mission.steps) {
+      if (s.kind !== "openResponse") continue;
+      if (s.format === "structured") expect(s.fields?.length ?? 0, s.id).toBeGreaterThanOrEqual(2);
+      if (s.format === "pickImprove") {
+        const drafts = s.drafts ?? [];
+        expect(drafts.filter((d) => d.verdict === "correct"), s.id).toHaveLength(1);
+        expect(drafts.some((d) => d.verdict === "weaker"), s.id).toBe(true);
+        for (const d of drafts) expect(d.explanation.trim(), `${s.id}/${d.id}`).not.toBe("");
+        expect(s.improvePrompt?.trim(), s.id).toBeTruthy();
+        // The chosen draft is the starting point, so it should still leave something to improve.
+        expect(s.rubric.samples, "the drafts are the practice").toBeUndefined();
+      }
+    }
   });
 
   it("scripted conversations can always be finished, and everything in them can be reached", () => {
@@ -806,5 +865,42 @@ describe("registry consistency", () => {
     const ids = new Set(missions.map((m) => m.id));
     for (const m of modules.filter((m) => m.status === "available"))
       for (const id of m.missionIds) expect(ids.has(id), id).toBe(true);
+  });
+});
+
+describe("variety across the journey", () => {
+  /** Bridges and the capstone revisit earlier cases on purpose, so only the core modules are counted. */
+  const core = missions.filter((m) => /^m\d/.test(m.id));
+  const tagged = (motif: Motif, among = missions) => among.flatMap((m) => m.steps.filter((s) => s.motifs?.includes(motif)).map((s) => `${m.id}/${s.id}`));
+
+  it("doesn't make the sound answer the longest one most of the time", () => {
+    const sets = missions.flatMap((m) => choiceSets(m)).map(([, cs]) => cs).filter((cs) => correctLengthRatio(cs) !== null);
+    const longest = sets.filter((cs) => {
+      const correct = cs.find((c) => c.verdict === "correct")!;
+      return cs.every((c) => c === correct || c.label.length < correct.label.length);
+    });
+    // With three options, chance alone makes the correct one longest about a third of the time.
+    expect(longest.length / sets.length).toBeLessThanOrEqual(0.4);
+  });
+
+  it("keeps recurring case devices to two core modules each", () => {
+    for (const motif of ["selfSelectedSample", "inventedDetail", "stagedTrial"] as const) {
+      const where = new Set(tagged(motif, core).map((x) => x.split("/")[0]));
+      expect(where.size, `${motif}: ${[...where].join(", ")}`).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it("has questions where the bold or simple answer is the sound one, so caution isn't always safe", () => {
+    expect(tagged("decisiveFits").length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("asks for confidence only where it is the point, not as a habit", () => {
+    const asking = missions.filter((m) => m.steps.some((s) => s.kind === "initialJudgment" && s.withConfidence));
+    expect(asking.length).toBeLessThanOrEqual(5);
+  });
+
+  it("uses more than one format for written answers", () => {
+    const formats = new Set(missions.flatMap((m) => m.steps.flatMap((s) => (s.kind === "openResponse" ? [s.format ?? "free"] : []))));
+    expect(formats).toEqual(new Set(["free", "structured", "pickImprove"]));
   });
 });

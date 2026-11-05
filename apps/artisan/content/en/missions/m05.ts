@@ -101,7 +101,7 @@ export const m05: Mission = {
   title: "The Argument Forge",
   outcome: "Identify assumptions, test objections, consider alternatives, and revise a position for evidence-based reasons.",
   scenario:
-    "You are advising the Riverside Learning Commons, a fictional community learning centre, on a proposal to replace a volunteer homework drop-in with an AI tutor. You will take a position, test it in a conversation, and then decide whether it still stands.",
+    "You are advising the Riverside Learning Commons, a community learning centre, on a proposal to replace a volunteer homework drop-in with an AI tutor. You will take a position, test it in a conversation, and then decide whether it still stands.",
   approxMinutes: 18,
   meta: {
     version: "1.2",
@@ -122,7 +122,7 @@ export const m05: Mission = {
       title: "A quick refresher",
       body: "A claim is a statement that could be checked. Evidence is a specific passage that bears on it, and a citation is only a place to look. An assumption is something an argument needs to be true but does not say. The source pack in this mission is complete, so you do not need anything from an earlier mission.",
     },
-    { kind: "initialJudgment", id: "initial", prompt: positionQuestion, choices: positionChoices },
+    { kind: "initialJudgment", id: "initial", prompt: positionQuestion, choices: positionChoices, withConfidence: true },
     {
       kind: "dialogue",
       id: "forge",
@@ -434,7 +434,29 @@ export const m05: Mission = {
     {
       kind: "openResponse",
       id: "strengthen",
-      prompt: "Back to the transport office. First, give the strongest version of the case for the chatbot. Then name what evidence would change your own view of it.",
+      prompt: "Back to the transport office. Find the strongest version of the case for the chatbot, then say what evidence would change your own view of it.",
+      format: "pickImprove",
+      drafts: [
+        {
+          id: "hours",
+          label: "A chatbot answers at any hour and on every route, and frees desk staff for riders with harder problems.",
+          verdict: "correct",
+          explanation: "It gives the case its best reasons, availability and staff time, without the leap you just marked. It doesn't yet say what would change your mind.",
+        },
+        {
+          id: "phones",
+          label: "Most riders have a smartphone now, so a chatbot is simply the modern way to give bus information.",
+          verdict: "weaker",
+          explanation: "This rests on the very leap you marked, from owning a phone to being served by a chatbot, so it is the easiest version to knock down.",
+        },
+        {
+          id: "cost",
+          label: "Chatbots cost less than staff, and the technology is getting better every year, so it will only improve.",
+          verdict: "weaker",
+          explanation: "Cost and progress are reasons of a kind, but nothing here is about this service or these riders, so it is weaker than it sounds.",
+        },
+      ],
+      improvePrompt: "Improve it: add the evidence that would change your own view, and in which direction.",
       rubric: {
         criteria: [
           { id: "steelman", text: "Gives the chatbot case a fair reason, such as longer hours or staff time, instead of a weak version that is easy to dismiss." },
@@ -486,9 +508,9 @@ export const m05: Mission = {
           practice: {
             prompt: "Someone argues: “The new timetable will cut queues, because the pilot branch's queues fell by a third.” Which of these is an unstated assumption of that argument?",
             choices: [
-              { id: "a", label: "That the pilot's queues fell by a third.", verdict: "weaker", explanation: "The argument states this openly. It is the evidence, so it isn't unstated." },
-              { id: "b", label: "That other branches would respond as the pilot branch did.", verdict: "correct", explanation: "The argument needs this to get from one branch to all of them, and it never says so." },
-              { id: "c", label: "That the new timetable will cut queues.", verdict: "weaker", explanation: "This is the conclusion. The assumption is what connects the evidence to it." },
+              { id: "a", label: "That the pilot branch's queues fell by a third.", verdict: "weaker", explanation: "The argument states this openly. It is the evidence, so it isn't unstated." },
+              { id: "b", label: "That other branches would respond as the pilot did.", verdict: "correct", explanation: "The argument needs this to get from one branch to all of them, and it never says so." },
+              { id: "c", label: "That the new timetable will cut queues everywhere.", verdict: "weaker", explanation: "This is the conclusion. The assumption is what connects the evidence to it." },
             ],
           },
         },
@@ -511,6 +533,12 @@ export const m05: Mission = {
               { id: "c", label: "That licences are affordable.", verdict: "weaker", explanation: "Cost is a fair question to ask about the plan, but it isn't the gap in the reasoning." },
             ],
           },
+        },
+        {
+          id: "steelman",
+          label: "Recognising the strongest version of the other side",
+          kind: "action",
+          items: ["strengthen/pick"],
         },
         {
           id: "change-your-mind",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
 import { t } from "@/lib/i18n/en";
 
 /**
@@ -16,19 +16,36 @@ export function ActionBar({ children, note }: { children: ReactNode; note?: Reac
   );
 }
 
-/** "How to do this": the moves the learner makes in this step, in order. */
+/** True when the learner has already finished an activity of this kind this visit, so its instructions fold away. */
+export const FamiliarContext = createContext(false);
+
+/** "How to do this": the moves the learner makes in this step, in order. Folded once the activity is familiar (PRD §4). */
 export function HowTo({ steps }: { steps: readonly string[] | undefined }) {
+  const familiar = useContext(FamiliarContext);
   if (!steps || steps.length === 0) return null;
+  const list = (
+    <ol>
+      {steps.map((s) => (
+        <li key={s}>
+          <span>{s}</span>
+        </li>
+      ))}
+    </ol>
+  );
+  if (familiar) {
+    return (
+      <details className="howto howto-folded mt-3">
+        <summary className="cursor-pointer text-sm font-bold">
+          {t.howTo.label} <span className="font-normal text-muted">{t.howTo.familiar}</span>
+        </summary>
+        {list}
+      </details>
+    );
+  }
   return (
     <section className="howto mt-3" aria-label={t.howTo.label}>
       <p className="text-sm font-bold">{t.howTo.label}</p>
-      <ol>
-        {steps.map((s) => (
-          <li key={s}>
-            <span>{s}</span>
-          </li>
-        ))}
-      </ol>
+      {list}
     </section>
   );
 }
