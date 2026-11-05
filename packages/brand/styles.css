@@ -35,7 +35,7 @@ body { font-family:var(--font-atkinson),system-ui,sans-serif; }
 .pf-header,.pf-footer { background:var(--pf-paper); color:var(--pf-ink); }
 /* Include the header's 1px bottom border in the 60px shell height. */
 .pf-bar { box-sizing:border-box; min-height:59px; padding:.5rem 1.5rem; gap:.5rem 2rem; }
-.pf-wordmark { display:inline-flex; align-items:center; gap:.6rem; font-family:var(--font-zilla),Georgia,serif; font-size:1.6rem; color:var(--pf-ink); }
+.pf-wordmark { display:inline-flex; align-items:center; gap:.6rem; font-family:var(--font-zilla),Georgia,serif; font-size:1.6rem; color:var(--pf-ink); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
 .pf-wordmark img { width:40px; height:40px; }
 .pf-wordmark span { background:none; padding:0; }
 .pf-products { gap:.35rem; }
