@@ -1,4 +1,31 @@
 import { test, expect } from '@playwright/test';
+
+for (const [app, port, contentPath] of [
+ ['guard', 3202, '/lab/activity-planning'],
+ ['artisan', 3203, '/missions/m01-foundations'],
+] as const) {
+ test(`${app} production build serves its sitemap and advertises it to crawlers`, async ({ request }) => {
+  const origin = `http://localhost:${port}`;
+  const canonical = `https://${app}.ai-pathfinder.eu`;
+  const response = await request.get(`${origin}/sitemap.xml`);
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toContain('application/xml');
+  const xml = await response.text();
+  expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+  const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+  expect(locations).toContain(canonical);
+  expect(locations).toContain(`${canonical}${contentPath}`);
+  expect(new Set(locations).size).toBe(locations.length);
+  for (const location of locations) {
+   const url = new URL(location);
+   expect(url.origin).toBe(canonical);
+   expect((await request.get(`${origin}${url.pathname}`)).status()).toBe(200);
+  }
+  const robots = await request.get(`${origin}/robots.txt`);
+  expect(robots.status()).toBe(200);
+  expect(await robots.text()).toContain(`Sitemap: ${canonical}/sitemap.xml`);
+ });
+}
 for (const [i,app] of ['pathfinder','sage','guard','artisan'].entries()) {
  test(`${app} keeps navigation and funding footer without analytics preferences or preview collection`, async ({ page, context }) => {
   const tracking: string[] = [];

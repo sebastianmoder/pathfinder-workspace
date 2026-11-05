@@ -23,6 +23,8 @@ Netlify supplies CONTEXT. Set NEXT_PUBLIC_GA_MEASUREMENT_ID only in production b
 
 GUARD functions directory is root-relative `apps/guard/netlify/functions`. Verify chat-worker and hourly cleanup-chat-jobs appear in the deployed function inventory; complete a real hosted chat, upload, resume history and check expiry cleanup. Check that all secrets retain their scopes. Local streaming alone does not validate hosted background jobs.
 
+GUARD and ARTISAN generate `/sitemap.xml` and `/robots.txt` during `next build` using App Router metadata routes. Netlify's Next.js adapter publishes these from the existing `.next` output; no postbuild copy step is needed. URLs come from `packages/brand/products.ts`, including in deploy previews. GUARD lists its home and lab pages; ARTISAN lists its home, start, map, continue and mission pages. Personal history, settings and session summaries are omitted. After deployment, verify `https://guard.ai-pathfinder.eu/sitemap.xml` and `https://artisan.ai-pathfinder.eu/sitemap.xml` return XML and each site's `/robots.txt` advertises its sitemap.
+
 ## GA4
 
 Inventory the four measurement IDs and property/stream ownership in GA Admin. Select the existing main-project property if appropriate, otherwise create a dedicated Pathfinder property. Use one web stream, keep the historical properties read-only, and record the cutover date in the analytics administration notes.
