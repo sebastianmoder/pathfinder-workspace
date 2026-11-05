@@ -44,4 +44,7 @@ export function thresholdGoalMet(spec: ThresholdLabSpec, goal: { maxMissedGap?: 
   return withinCapacity(spec, o) && (goal.maxMissedGap === undefined || missedGap(o) <= goal.maxMissedGap);
 }
 
-export const thresholdItems = (stepId: string, spec: ThresholdLabSpec) => spec.tasks.map((t) => itemKey(stepId, t.id));
+export const thresholdItems = (stepId: string, spec: ThresholdLabSpec) => [
+  ...spec.tasks.map((t) => itemKey(stepId, t.id)),
+  ...(spec.check ? [itemKey(stepId, "check")] : []),
+];

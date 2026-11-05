@@ -441,6 +441,8 @@ export type CaseStatus = "known" | "uncertain" | "contradicted";
 export interface CaseLead {
   id: string;
   label: string;
+  /** How long following it takes, against the casefile's clock. */
+  minutes?: number;
   kind: "record" | "interview" | "check";
   /** Who or what this is, so the learner can judge it before following it. */
   description: string;
@@ -449,6 +451,8 @@ export interface CaseLead {
   timeline?: { order: number; when: string; text: string };
   /** What following the lead turns up, shown beside the case's own artefact to compare. */
   artefact?: Artefact;
+  /** Who this lead shows gaining or paying, added to the stakeholder map once it is followed (PRD M13). */
+  voice?: { who: string; side: "gains" | "pays" | "unclear"; text: string };
   /** A message from someone in the case, such as an editor pressing for a decision. */
   pressure?: string;
 }
@@ -472,6 +476,11 @@ export interface CasefileSpec {
   /** The artifact shown as what it is. The text version above is then left out. */
   artefact?: Artefact;
   budget?: { leads: number; note: string };
+  /**
+   * Time instead of a lead count: each lead costs its minutes between the start and the deadline, and
+   * messages arrive as time passes (PRD M08, pressure from an editor).
+   */
+  clock?: { start: string; deadline: string; note: string; pressures?: { after: number; text: string }[] };
   leads: CaseLead[];
   timeline?: { order: number; when: string; text: string }[];
   statements: CaseStatement[];
@@ -500,6 +509,11 @@ export interface ThresholdLabSpec {
   range: { min: number; max: number };
   start: ThresholdView;
   stakeholders: { id: string; name: string; role: string; says: string }[];
+  /**
+   * A test the learner runs on the score itself: pairs who did equally well in the trial, one from each group.
+   * The version it names stays locked until the test has been run, so the fix is found, not handed over.
+   */
+  check?: { label: string; intro: string; pairs: [string, string][]; finding: string; unlocks: string };
   tasks: {
     id: string;
     title: string;
@@ -515,7 +529,11 @@ export interface WorkflowSlot {
   id: string;
   label: string;
   help: string;
-  options: { id: string; label: string }[];
+  /**
+   * What an option costs to run: staff hours a week, and how long a member may wait for a reply, in hours.
+   * Shown as running totals, so a safeguard's cost is visible beside its benefit.
+   */
+  options: { id: string; label: string; cost?: { staffHours?: number; waitHours?: number } }[];
 }
 
 export interface WorkflowTest {
@@ -717,6 +735,15 @@ type StepUnion =
       }[];
     }
   | {
+      kind: "epilogue";
+      id: string;
+      title: string;
+      /** When it is, in the fictional case, such as "The first week". */
+      when: string;
+      intro?: string;
+      lines: EpilogueLine[];
+    }
+  | {
       kind: "debrief";
       id: string;
       takeaway: string;
@@ -727,6 +754,30 @@ type StepUnion =
 export type Step = StepUnion & { motifs?: Motif[] };
 
 export type StepKind = Step["kind"];
+
+/** When a beat of an epilogue applies. Every condition present must hold. */
+export interface EpilogueCondition {
+  /** The answer the learner settled on in a question step. */
+  choice?: { step: string; ids: string[] };
+  /** What an activity recorded, such as the conditions in a plan: holds `all`, at least one of `any`, none of `none`. */
+  fact?: { key: string; all?: string[]; any?: string[]; none?: string[] };
+  /** How a ledger item went: right in the end, or right at the first try. */
+  evidence?: { item: string; right?: boolean; firstTry?: boolean };
+}
+
+export interface EpilogueBeat {
+  text: string;
+  /** Someone in the case it happened to, or who says it. */
+  who?: string;
+  tone?: "gain" | "cost" | "harm";
+  when?: EpilogueCondition;
+}
+
+/** One line of what happened next: the first beat whose conditions hold. The last beat has none, as a default. */
+export interface EpilogueLine {
+  id: string;
+  beats: EpilogueBeat[];
+}
 
 export interface Mission {
   id: MissionId;

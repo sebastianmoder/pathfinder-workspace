@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { WorkflowSpec } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
-import { runAll, type Arrangement, type TestResult } from "@/lib/workflow";
+import { runAll, type Arrangement, type TestResult, costOf } from "@/lib/workflow";
 import { t } from "@/lib/i18n/en";
 import { ActionBar, useReveal } from "../step-ui";
 
@@ -16,11 +16,14 @@ export function WorkflowRunner({
   spec,
   onEvidence,
   onContinue,
+  onFact,
 }: {
   stepId: string;
   spec: WorkflowSpec;
   onEvidence: (item: string, result: EvidenceResult) => void;
   onContinue: () => void;
+  /** Reports what the learner settled on, for epilogues and debrief replays. */
+  onFact?: (name: string, values: string[]) => void;
 }) {
   const uid = useId();
   const guided = spec.support !== "independent";
@@ -66,9 +69,12 @@ export function WorkflowRunner({
     setSelected(null);
     if (r.every((x) => x.passed) && !recordedFix) {
       onEvidence(itemKey(stepId, "fixed"), { right: !usedSolution, assisted: usedSolution });
+      onFact?.("arrangement", Object.entries(arrangement).map(([slot, option]) => `${slot}:${option}`));
       setRecordedFix(true);
     }
   };
+
+  const cost = costOf(spec, arrangement);
 
   return (
     <div>
@@ -84,6 +90,18 @@ export function WorkflowRunner({
         </ol>
         {shownFailure && focusResult && !focusResult.passed && (
           <p className="mt-2 text-sm">{t.workflow.failedAt(focusResult.test.input, label(focusResult.slot!))}</p>
+        )}
+        {cost.shown && (
+          <dl className="meters mt-3" aria-live="polite">
+            <div>
+              <dt>{t.workflow.staffTime}</dt>
+              <dd>{t.workflow.hoursAWeek(cost.staffHours)}</dd>
+            </div>
+            <div>
+              <dt>{t.workflow.longestWait}</dt>
+              <dd>{t.workflow.wait(cost.waitHours)}</dd>
+            </div>
+          </dl>
         )}
       </section>
 
@@ -101,7 +119,12 @@ export function WorkflowRunner({
                     checked={arrangement[s.id] === o.id}
                     onChange={() => setArrangement((a) => ({ ...a, [s.id]: o.id }))}
                   />
-                  <span>{o.label}</span>
+                  <span>
+                    {o.label}
+                    {o.cost && (o.cost.staffHours || o.cost.waitHours) ? (
+                      <span className="block text-sm text-muted">{t.workflow.optionCost(o.cost.staffHours ?? 0, o.cost.waitHours ?? 0)}</span>
+                    ) : null}
+                  </span>
                 </label>
               ))}
             </div>

@@ -18,14 +18,15 @@ import { OpenResponse } from "./activities/open-response";
 import { DialogueActivity, DialogueReplay } from "./activities/dialogue";
 import { ArgumentMap } from "./activities/argument-map";
 import { MarkText } from "./activities/mark-text";
-import { DelegationDesk } from "./activities/delegation-desk";
+import { DelegationDesk, DelegationReplay } from "./activities/delegation-desk";
 import { ComposeStudio } from "./activities/compose-studio";
 import { ChartLab } from "./activities/chart-lab";
 import { HelpGym } from "./activities/help-gym";
-import { Casefile } from "./activities/casefile";
+import { Casefile, CasefileReplay } from "./activities/casefile";
 import { ThresholdLab } from "./activities/threshold-lab";
 import { WorkflowRunner } from "./activities/workflow-runner";
 import { AllocationBoard } from "./activities/allocation-board";
+import { Epilogue } from "./activities/epilogue";
 import { ActionBar, FamiliarContext, HowTo, StepIntro } from "./step-ui";
 import { ArtefactFrame } from "./artefacts/frames";
 import { activityKey, ownScreen, phasesOf, PHASES } from "@/lib/phases";
@@ -212,6 +213,8 @@ function StepView({
   const session = useSession();
   const record = (item: string, result: EvidenceResult) => session.recordEvidence(mission.id, item, result);
   const recordStep = (result: EvidenceResult) => record(step.id, result);
+  /** What an activity settled on, for epilogues and debrief replays. */
+  const fact = (name: string, values: string[]) => session.setFact(mission.id, itemKey(step.id, name), values);
 
   switch (step.kind) {
     case "brief":
@@ -283,13 +286,13 @@ function StepView({
           {"audit" in step ? (
             <ClaimAudit missionId={mission.id} stepId={step.id} audit={step.audit} showFinal={step.audit.claims.length > 1} onEvidence={record} onContinue={onContinue} />
           ) : "delegation" in step ? (
-            <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onContinue={onContinue} />
+            <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onFact={fact} onContinue={onContinue} />
           ) : "allocation" in step ? (
-            <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onContinue={onContinue} />
+            <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onFact={fact} onContinue={onContinue} />
           ) : "workflow" in step ? (
-            <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onContinue={onContinue} />
+            <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onFact={fact} onContinue={onContinue} />
           ) : "casefile" in step ? (
-            <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
+            <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onFact={fact} onContinue={onContinue} />
           ) : "compose" in step ? (
             <ComposeStudio stepId={step.id} spec={step.compose} onEvidence={record} onContinue={onContinue} />
           ) : "problems" in step ? (
@@ -320,7 +323,7 @@ function StepView({
       return (
         <>
           <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.delegation} />
-          <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onContinue={onContinue} />
+          <DelegationDesk stepId={step.id} spec={step.delegation} onEvidence={record} onFact={fact} onContinue={onContinue} />
         </>
       );
 
@@ -367,7 +370,7 @@ function StepView({
       return (
         <>
           <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.casefile} />
-          <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
+          <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onFact={fact} onContinue={onContinue} />
         </>
       );
 
@@ -383,7 +386,7 @@ function StepView({
       return (
         <>
           <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.workflow} />
-          <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onContinue={onContinue} />
+          <WorkflowRunner stepId={step.id} spec={step.workflow} onEvidence={record} onFact={fact} onContinue={onContinue} />
         </>
       );
 
@@ -391,7 +394,7 @@ function StepView({
       return (
         <>
           <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.allocation} />
-          <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onContinue={onContinue} />
+          <AllocationBoard stepId={step.id} spec={step.allocation} onEvidence={record} onFact={fact} onContinue={onContinue} />
         </>
       );
 
@@ -467,6 +470,9 @@ function StepView({
     case "sort":
       return <SortActivity step={step} onEvidence={record} onContinue={onContinue} />;
 
+    case "epilogue":
+      return <Epilogue missionId={mission.id} step={step} onContinue={onContinue} />;
+
     case "debrief":
       return (
         <>
@@ -479,6 +485,13 @@ function StepView({
           {mission.steps.map((s) =>
             s.kind === "dialogue" ? (
               <DialogueReplay key={s.id} missionId={mission.id} step={s} initialChoiceId={answers[s.initialStepId]?.choiceId} />
+            ) : null,
+          )}
+          {mission.steps.map((s) =>
+            "delegation" in s ? (
+              <DelegationReplay key={s.id} title={s.title} spec={s.delegation} roles={session.progress(mission.id).facts[itemKey(s.id, "roles")]} />
+            ) : "casefile" in s ? (
+              <CasefileReplay key={s.id} title={s.title} spec={s.casefile} followed={session.progress(mission.id).facts[itemKey(s.id, "leads")]} />
             ) : null,
           )}
           <div className="mt-6 space-y-4">

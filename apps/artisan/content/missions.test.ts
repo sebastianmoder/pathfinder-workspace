@@ -6,6 +6,7 @@ import { hasCycle, reachableNodes } from "@/lib/dialogue";
 import { fillRepair } from "@/lib/audit";
 import { citeChoiceId, walk } from "@/lib/dialogue";
 import { evidenceItems } from "@/lib/evidence";
+import { clockState } from "@/lib/casefile";
 import { segmentsOf } from "@/lib/mark";
 import { askMachine, goalMet } from "@/lib/sandbox";
 import { DELEGATION_ROLES, PROPOSAL, type Artefact, type AuditSpec, type Choice, type DelegationSpec, type Motif, type Step } from "./types";
@@ -221,6 +222,42 @@ describe.each(missions)("mission $id", (mission) => {
       if (a.kind === "photo") expect(a.alt.trim()).toBeTruthy();
       if (a.kind === "chat") expect(a.messages.length).toBeGreaterThan(0);
     }
+  });
+
+  it("epilogues always show something, and only refer to what an earlier step records", () => {
+    const factValues = (s: Step, name: string): string[] | null => {
+      if (name === "plan" && "allocation" in s) return s.allocation.options.map((o) => o.id);
+      if (name === "leads" && "casefile" in s) return s.casefile.leads.map((l) => l.id);
+      if (name === "roles" && "delegation" in s) return s.delegation.tasks.flatMap((x) => DELEGATION_ROLES.map((r) => `${x.id}:${r}`));
+      if (name === "arrangement" && "workflow" in s) return s.workflow.slots.flatMap((x) => x.options.map((o) => `${x.id}:${o.id}`));
+      return null;
+    };
+    mission.steps.forEach((s, index) => {
+      if (s.kind !== "epilogue") return;
+      const earlier = mission.steps.slice(0, index);
+      const items = new Set(earlier.flatMap(evidenceItems));
+      for (const line of s.lines) {
+        expect(line.beats.length, line.id).toBeGreaterThan(0);
+        expect(line.beats.at(-1)!.when, `${line.id}: the last beat is the default`).toBeUndefined();
+        for (const beat of line.beats) {
+          const c = beat.when;
+          if (!c) continue;
+          if (c.choice) {
+            const step = earlier.find((x) => x.id === c.choice!.step);
+            const ids = step ? choicesOf(step).map((x) => x.id) : [];
+            for (const id of c.choice.ids) expect(ids, `${line.id}: ${c.choice.step}/${id}`).toContain(id);
+          }
+          if (c.fact) {
+            const [stepId, name] = c.fact.key.split("/");
+            const step = earlier.find((x) => x.id === stepId);
+            const values = step ? factValues(step, name) : null;
+            expect(values, `${line.id}: ${c.fact.key} is recorded by an earlier step`).not.toBeNull();
+            for (const v of [...(c.fact.all ?? []), ...(c.fact.any ?? []), ...(c.fact.none ?? [])]) expect(values, `${line.id}: ${v}`).toContain(v);
+          }
+          if (c.evidence) expect(items.has(c.evidence.item), `${line.id}: ${c.evidence.item}`).toBe(true);
+        }
+      }
+    });
   });
 
   it("open-response formats have what they need", () => {
@@ -458,6 +495,14 @@ describe.each(missions)("mission $id", (mission) => {
       if (spec.budget) {
         expect(spec.budget.leads, s.id).toBeLessThan(spec.leads.length);
         expect(spec.budget.leads, `${s.id}: key leads must fit the budget`).toBeGreaterThanOrEqual((spec.keyLeads ?? []).length);
+      }
+      if (spec.clock) {
+        const clock = clockState(spec, [])!;
+        const minutes = (ids: string[]) => spec.leads.filter((l) => ids.includes(l.id)).reduce((n, l) => n + (l.minutes ?? 0), 0);
+        for (const l of spec.leads) expect(l.minutes, `${l.id} takes some time`).toBeGreaterThan(0);
+        expect(minutes(leads), `${s.id}: not everything fits before the deadline`).toBeGreaterThan(clock.total);
+        expect(minutes(spec.keyLeads ?? []), `${s.id}: the key leads fit`).toBeLessThanOrEqual(clock.total);
+        for (const p of spec.clock.pressures ?? []) expect(p.after, p.text).toBeLessThan(clock.total);
       }
       const orders = [...(spec.timeline ?? []), ...spec.leads.flatMap((l) => (l.timeline ? [l.timeline] : []))].map((e) => e.order);
       expect(new Set(orders).size, s.id).toBe(orders.length);

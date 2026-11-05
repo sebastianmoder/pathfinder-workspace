@@ -37,6 +37,10 @@ test("the threshold alone can't close the gap, the table says so, and it works b
   await page.getByRole("button", { name: "Check this setting" }).click();
   await expect(page.getByText(/Not yet/)).toBeVisible();
 
+  // The revised score opens only once the learner has tested the score on matched pairs.
+  await expect(page.getByRole("radio", { name: /Revised score/ })).toBeDisabled();
+  await page.getByRole("button", { name: "Run the test" }).click();
+  await expect(page.getByText(/scores about 15 points lower/)).toBeVisible();
   await page.getByRole("radio", { name: "Revised score" }).check();
   await expect(page.getByText(/gaps in a CV no longer counted/)).toBeVisible();
   await setThreshold(page, 71);

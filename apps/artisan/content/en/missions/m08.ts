@@ -60,7 +60,7 @@ export const m08: Mission = {
       kind: "casefile",
       id: "desk",
       title: "Check the photo",
-      intro: "You have time to follow four of these six leads before Rosa's deadline. Choose carefully: each lead tells you something different.",
+      intro: "Rosa wants a decision by 10:00. Every lead takes time, and there isn't time for all of them, so choose carefully: each tells you something different.",
       casefile: {
         artifact: {
           label: "Viral post",
@@ -77,13 +77,22 @@ export const m08: Mission = {
           alt: FLOOD,
           reach: "Shared about 4,000 times",
         },
-        budget: { leads: 4, note: "Rosa wants a decision by 10:00." },
+        clock: {
+          start: "09:10",
+          deadline: "10:00",
+          note: "Rosa wants a decision by 10:00.",
+          pressures: [
+            { after: 20, text: "Rosa: “The Courier has it up already. Where are we?”" },
+            { after: 35, text: "Rosa: “Fifteen minutes. I need a yes or no.”" },
+          ],
+        },
         timeline: [{ order: 50, when: "Today, 08:12", text: "@river_watcher_22 posts the photo, captioned as happening now." }],
         keyLeads: ["reverse", "gauge"],
         leads: [
           {
             id: "zoom",
             label: "Examine the image closely",
+            minutes: 10,
             kind: "check",
             description: "Look for signs of editing: odd shadows, repeated patterns, blurred edges.",
             finding: "Nothing looks edited. That doesn't say when or where it was taken.",
@@ -92,6 +101,7 @@ export const m08: Mission = {
           {
             id: "reverse",
             label: "Search for earlier copies of the photo",
+            minutes: 15,
             kind: "check",
             description: "Find where this image appeared before this morning, if anywhere.",
             finding: "The same photo, car and all, appears in this paper's own article on the spring floods of March 2024.",
@@ -109,14 +119,16 @@ export const m08: Mission = {
           {
             id: "uploader",
             label: "Message the account that posted it",
+            minutes: 20,
             kind: "interview",
-            description: "@river_watcher_22, who posted it this morning.",
+            description: "@river_watcher_22, who posted it this morning. Replies can take a while.",
             finding: "“A friend sent it to me this morning. I thought it was from today.” They can't say where the friend got it.",
             pressure: "Rosa: “We're being beaten on this. Can I have a yes or no?”",
           },
           {
             id: "gauge",
             label: "Check the river-level record",
+            minutes: 10,
             kind: "record",
             description: "The regional river-level gauge at Riverside Bridge, updated every 15 minutes.",
             finding: "The river has been within its normal range all night and all morning.",
@@ -125,13 +137,15 @@ export const m08: Mission = {
           {
             id: "council",
             label: "Call the council press office",
+            minutes: 25,
             kind: "interview",
-            description: "The council is responsible for flood warnings.",
+            description: "The council is responsible for flood warnings. The press line usually puts you on hold.",
             finding: "“We've had no reports of flooding today. We'll check.” They can't yet say more.",
           },
           {
             id: "cafe",
             label: "Phone the café beside the bridge",
+            minutes: 10,
             kind: "interview",
             description: "Bridge Street Café, which looks out over the road.",
             finding: "“The road's dry and open. There was heavy rain overnight, but nothing like that.”",
@@ -169,6 +183,43 @@ export const m08: Mission = {
         { id: "c", label: "Run nothing until the council has finished its checks.", verdict: "defensible", explanation: "Cautious, but you already have enough to correct the post, and it keeps spreading in the meantime." },
       ],
       hints: [{ text: "What can you already say with evidence behind it?" }],
+    },
+    {
+      kind: "epilogue",
+      id: "after",
+      title: "What happened next",
+      when: "Later that morning",
+      lines: [
+        {
+          id: "story",
+          beats: [
+            { tone: "gain", when: { choice: { step: "decide", ids: ["b"] } }, text: "At 10:05 the Gazette published “No, Riverside Bridge isn't flooded today”, with the 2024 photo beside the river gauge reading. By lunchtime the correction had been shared 1,800 times." },
+            { tone: "cost", text: "The Gazette ran nothing. By noon the post had reached 9,000 shares, and the council's switchboard had taken 60 calls from worried residents." },
+          ],
+        },
+        { id: "rival", beats: [{ text: "The Courier ran the photo at 09:40 as breaking news. At 11:00 it replaced the story with an apology." }] },
+        {
+          id: "council",
+          beats: [
+            { when: { fact: { key: "desk/leads", any: ["council"] } }, text: "The council's press office rang back at 10:20 to confirm there was no flooding. The time you spent on hold bought confirmation of what the gauge already showed." },
+            { text: "The council confirmed at 10:20 that there was no flooding. The river gauge had already told you so." },
+          ],
+        },
+        {
+          id: "uploader",
+          beats: [
+            { who: "@river_watcher_22", when: { fact: { key: "desk/leads", any: ["uploader"] } }, text: "“I've deleted it. I really thought it was from today.” Your message had given them a reason to check." },
+            { who: "@river_watcher_22", text: "Deleted the post at 11:30, after a friend linked to the Gazette's 2024 article." },
+          ],
+        },
+        {
+          id: "rosa",
+          beats: [
+            { who: "Rosa, editor", tone: "gain", when: { choice: { step: "decide", ids: ["b"] } }, text: "“Good call. Next time, put the river gauge link in the first paragraph.”" },
+            { who: "Rosa, editor", tone: "cost", text: "“We were right not to run it, but we left readers with nothing for two hours. Next time, publish what we can stand behind.”" },
+          ],
+        },
+      ],
     },
     {
       kind: "revision",

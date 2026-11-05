@@ -84,8 +84,15 @@ export const m09: Mission = {
         stakeholders: [
           { id: "joy", name: "Joy", role: "applicant, who took two years out to care for a parent", says: "I've tutored maths for years. The tool never asked about that. It only saw the gap." },
           { id: "martin", name: "Martin", role: "programme manager", says: "We need twelve good tutors by September, and we can't interview everyone." },
-          { id: "kwame", name: "Kwame", role: "independent auditor", says: "The score learned from past hires, who nearly all had unbroken CVs, and it marks down any gap. A revised version without that penalty is ready to test." },
+          { id: "kwame", name: "Kwame", role: "independent auditor", says: "The score learned from past hires, who nearly all had unbroken CVs. If you think it treats people unfairly, don't argue about it: test it." },
         ],
+        check: {
+          label: "Test the score",
+          intro: "Compare applicants who did equally well in the trial session, one with a career break and one without.",
+          pairs: [["a5", "b4"], ["a6", "b5"], ["a8", "b7"]],
+          finding: "In each pair, both met the standard in the trial session, yet the applicant with a career break scores about 15 points lower. The only difference the score can see is the gap in the CV. Kwame has a revised score without that penalty, ready to try.",
+          unlocks: "revised",
+        },
         tasks: [
           {
             id: "fill",
@@ -98,7 +105,7 @@ export const m09: Mission = {
           {
             id: "gap",
             title: "Narrow the gap",
-            instruction: "Still inviting 10 to 12, find a setting where the two groups differ by no more than one in qualified applicants rejected. If the threshold can't do it, read what people say.",
+            instruction: "Still inviting 10 to 12, find a setting where the two groups differ by no more than one in qualified applicants rejected. If the threshold can't do it, test the score itself.",
             goal: { maxMissedGap: 1 },
             solution: { version: "revised", threshold: 72 },
             success: "Moving the threshold could only trade one error for another. The problem was in what the score had learned from past hires, so the fix was in the score.",
@@ -133,6 +140,24 @@ export const m09: Mission = {
         { id: "c", label: "It makes the tool less accurate for everyone, so it's worse.", verdict: "weaker", explanation: "Check the table: the revised score selects no more applicants who missed the standard than the original did." },
       ],
       hints: [{ text: "What did the panel actually check, and what didn't it?" }],
+    },
+    {
+      kind: "epilogue",
+      id: "after",
+      title: "What happened next",
+      when: "Six months on",
+      lines: [
+        { id: "joy", beats: [{ who: "Joy, applicant", tone: "gain", text: "Invited once the panel switched to the revised score. She started in September and now runs the Tuesday maths group." }] },
+        { id: "martin", beats: [{ who: "Martin, programme manager", tone: "gain", text: "“Twelve tutors by September, and three of them came back from career breaks. The old score would have screened all three out.”" }] },
+        { id: "cost", beats: [{ tone: "cost", text: "Checking outcomes by group now takes the panel about two hours a month. The revised score selects no more applicants who miss the standard than the old one did." }] },
+        {
+          id: "monitoring",
+          beats: [
+            { who: "Kwame, independent auditor", tone: "gain", when: { evidence: { item: "limits", firstTry: true } }, text: "“The monthly check you asked for found a new gap in March: older applicants were marked down for qualifications gained long ago. We caught it within a month.”" },
+            { who: "Kwame, independent auditor", tone: "cost", text: "“You first took the fix as the end of it. In March, the monthly check found a new gap: older applicants marked down for qualifications gained long ago. One fix is never proof of fairness.”" },
+          ],
+        },
+      ],
     },
     {
       kind: "revision",
@@ -202,6 +227,7 @@ export const m09: Mission = {
       takeaway: "The same rule for everyone isn't fair if the scores behind it aren't. Look at who each error falls on, and fix the source, not just the threshold.",
       skills: [
         { id: "see-gap", label: "Finding an uneven outcome in an error table", kind: "action", items: ["council/fill"] },
+        { id: "test-score", label: "Testing whether a score treats similar people differently", kind: "action", items: ["council/check"] },
         { id: "fix-source", label: "Tracing unfairness to the score, not the threshold", kind: "action", items: ["council/gap"] },
         {
           id: "fact-choice",

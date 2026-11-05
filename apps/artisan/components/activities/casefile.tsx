@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import type { Artefact, CaseLead, CasefileSpec, CaseStatus } from "@/content/types";
-import { expectedStatus, timelineFor } from "@/lib/casefile";
+import { canFollow, clockState, expectedStatus, latestMessage, timelineFor } from "@/lib/casefile";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { ActionBar, useReveal } from "../step-ui";
@@ -19,11 +19,14 @@ export function Casefile({
   spec,
   onEvidence,
   onContinue,
+  onFact,
 }: {
   stepId: string;
   spec: CasefileSpec;
   onEvidence: (item: string, result: EvidenceResult) => void;
   onContinue: () => void;
+  /** Reports what the learner settled on, for epilogues and debrief replays. */
+  onFact?: (name: string, values: string[]) => void;
 }) {
   const uid = useId();
   const [followed, setFollowed] = useState<string[]>([]);
@@ -37,8 +40,9 @@ export function Casefile({
   }, [phase]);
 
   const left = spec.budget ? spec.budget.leads - followed.length : null;
+  const clock = clockState(spec, followed);
   const timeline = timelineFor(spec, followed);
-  const lastPressure = [...followed].reverse().map((id) => spec.leads.find((l) => l.id === id)?.pressure).find(Boolean);
+  const lastPressure = latestMessage(spec, followed);
   const leadLabel = (id: string) => spec.leads.find((l) => l.id === id)?.label ?? id;
   const notFollowed = spec.leads.filter((l) => !followed.includes(l.id));
   const resultsRef = useReveal<HTMLUListElement>(checked);
@@ -87,6 +91,36 @@ export function Casefile({
     </section>
   );
 
+  // The map fills in as leads are followed, so who gains and who pays is something the learner uncovers.
+  const voices = spec.leads.filter((l) => l.voice && followed.includes(l.id)).map((l) => l.voice!);
+  const StakeholderMap = spec.leads.some((l) => l.voice) && (
+    <section aria-labelledby={`${uid}-map`} className="rounded-lg border border-border bg-surface p-4">
+      <h4 id={`${uid}-map`} className="font-bold">{t.casefile.mapTitle}</h4>
+      {voices.length === 0 ? (
+        <p className="mt-1 text-sm text-muted">{t.casefile.mapEmpty}</p>
+      ) : (
+        <div className="mt-2 space-y-3">
+          {(["gains", "pays", "unclear"] as const).map((side) => {
+            const here = voices.filter((v) => v.side === side);
+            if (!here.length) return null;
+            return (
+              <div key={side}>
+                <p className={`text-sm font-bold side-${side}`}>{t.casefile.side[side]}</p>
+                <ul className="mt-1 space-y-2">
+                  {here.map((v) => (
+                    <li key={v.who} className={`map-entry side-border-${side} text-sm`}>
+                      <strong>{v.who}</strong>: {v.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+
   if (phase === "investigate") {
     return (
       <div>
@@ -97,6 +131,12 @@ export function Casefile({
             {spec.budget && (
               <p role="status" className="mt-1 font-bold">{t.casefile.left(left!, spec.budget.leads)} <span className="font-normal">{spec.budget.note}</span></p>
             )}
+            {clock && (
+              <p role="status" className="clock mt-1">
+                <span className="clock-face" aria-hidden="true">{clock.now}</span>
+                <span><strong>{t.casefile.clockNow(clock.now, clock.left)}</strong> {spec.clock!.note}</span>
+              </p>
+            )}
             <ul className="mt-3 space-y-3">
               {spec.leads.map((lead) => {
                 const done = followed.includes(lead.id);
@@ -105,12 +145,13 @@ export function Casefile({
                     <p className="text-sm text-muted">{t.casefile.kind[lead.kind]}</p>
                     <p className="font-bold">{lead.label}</p>
                     <p className="text-sm">{lead.description}</p>
+                    {lead.minutes && !done && <p className="text-sm text-muted">{t.casefile.takes(lead.minutes)}</p>}
                     {done ? (
                       <p className="mt-2 border-l-4 border-[var(--highlighter)] pl-3"><span className="font-bold">{t.casefile.found}:</span> {lead.finding}</p>
                     ) : (
                       <button
                         type="button"
-                        disabled={left !== null && left <= 0}
+                        disabled={!canFollow(spec, followed, lead.id)}
                         onClick={() => setFollowed((f) => [...f, lead.id])}
                         className="mt-2 btn btn-secondary btn-small"
                       >
@@ -127,11 +168,16 @@ export function Casefile({
               <p aria-live="polite" className="rounded-lg border-l-4 border-[var(--mark-no)] bg-surface p-3"><strong>{t.casefile.message}</strong> {lastPressure}</p>
             )}
             {Timeline}
+            {StakeholderMap}
           </div>
         </div>
         <ActionBar note={t.casefile.finishNote}>
-          <button type="button" onClick={() => setPhase("judge")} className="btn btn-primary">{t.casefile.finish}</button>
+          <button type="button" onClick={() => {
+              onFact?.("leads", followed);
+              setPhase("judge");
+            }} className="btn btn-primary">{t.casefile.finish}</button>
           {spec.budget && <span className="text-sm font-bold">{t.casefile.leftShort(left!)}</span>}
+          {clock && <span className="text-sm font-bold">{t.casefile.minutesLeft(clock.left)}</span>}
         </ActionBar>
       </div>
     );
@@ -218,5 +264,27 @@ export function Casefile({
         {checked && <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>}
       </ActionBar>
     </div>
+  );
+}
+
+/** Shown in the debrief: what the leads the learner didn't follow would have turned up. */
+export function CasefileReplay({ title, spec, followed }: { title: string; spec: CasefileSpec; followed: string[] | undefined }) {
+  if (!followed) return null;
+  const skipped = spec.leads.filter((l) => !followed.includes(l.id));
+  if (!skipped.length) return null;
+  return (
+    <details className="no-print mt-6 rounded-lg border border-border p-4">
+      <summary className="cursor-pointer font-bold">{t.casefile.replayHeading(title)}</summary>
+      <p className="mt-1 text-sm">{t.casefile.replayIntro}</p>
+      <ul className="mt-3 space-y-3">
+        {skipped.map((lead) => (
+          <li key={lead.id} className="rounded-lg border-2 border-dashed border-border p-3">
+            <p className="font-bold">{lead.label}</p>
+            <p className="mt-1"><span className="font-bold">{t.casefile.wouldHaveFound}:</span> {lead.finding}</p>
+            {lead.artefact && <ArtefactFrame artefact={lead.artefact} className="mt-3" />}
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

@@ -23,11 +23,14 @@ export function DelegationDesk({
   spec,
   onEvidence,
   onContinue,
+  onFact,
 }: {
   stepId: string;
   spec: DelegationSpec;
   onEvidence: (item: string, result: EvidenceResult) => void;
   onContinue: () => void;
+  /** Reports what the learner settled on, for epilogues and debrief replays. */
+  onFact?: (name: string, values: string[]) => void;
 }) {
   const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const guided = spec.support !== "independent";
@@ -178,7 +181,9 @@ export function DelegationDesk({
           disabled={count < tasks.length}
           onClick={() => {
             for (const [item, result] of delegationResults(stepId, spec, assigned, hinted, wave.taskIds)) onEvidence(item, result);
-            setSent((s) => ({ ...s, ...Object.fromEntries(tasks.map((task) => [task.id, assigned[task.id]])) }));
+            const nowSent = { ...sent, ...Object.fromEntries(tasks.map((task) => [task.id, assigned[task.id]])) };
+            setSent(nowSent);
+            onFact?.("roles", Object.entries(nowSent).map(([task, role]) => `${task}:${role}`));
             setShowing(true);
           }}
           className="btn btn-primary"
@@ -241,5 +246,26 @@ function Outcome({ task, chosen }: { task: DelegationTask; chosen: DelegationRol
         ))}
       </div>
     </li>
+  );
+}
+
+/**
+ * Shown in the debrief: the roles as the learner chose them, with every other role one select away, labelled
+ * as not their choice (PRD §9, Replay). It never changes what was recorded.
+ */
+export function DelegationReplay({ title, spec, roles }: { title: string; spec: DelegationSpec; roles: string[] | undefined }) {
+  if (!roles?.length) return null;
+  const chosen = Object.fromEntries(roles.map((r) => r.split(":") as [string, DelegationRole]));
+  const tasks = spec.tasks.filter((task) => chosen[task.id]);
+  return (
+    <details className="no-print mt-6 rounded-lg border border-border p-4">
+      <summary className="cursor-pointer font-bold">{t.delegation.replayHeading(title)}</summary>
+      <p className="mt-1 text-sm">{t.delegation.replayIntro}</p>
+      <ul className="mt-3 space-y-4">
+        {tasks.map((task) => (
+          <Outcome key={task.id} task={task} chosen={chosen[task.id]} />
+        ))}
+      </ul>
+    </details>
   );
 }

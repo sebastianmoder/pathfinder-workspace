@@ -17,13 +17,16 @@ test("time runs out, and 'still uncertain' is right when the settling lead wasn'
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Find out where and when/, "Fairly");
 
+  // Each lead costs time on the clock, and the editor's messages escalate as the deadline nears.
+  await expect(page.getByText("It's 09:10: 50 minutes left.")).toBeVisible();
   await followLead(page, "Examine the image closely");
   await expect(page.getByText(/Rosa: “Looks real to me/)).toBeVisible();
   await expect(page.getByText(/Nothing looks edited/)).toBeVisible();
   await followLead(page, "Message the account");
-  await followLead(page, "Call the council");
+  await expect(page.getByText(/Rosa: “The Courier has it up already/)).toBeVisible();
   await followLead(page, "Check the river-level record");
-  await expect(page.getByText("Leads you can still follow: 0 of 4.")).toBeVisible();
+  await expect(page.getByText("It's 09:50: 10 minutes left.")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Follow this lead ?: Call the council/ })).toBeDisabled(); // 25 minutes
   await expect(page.getByRole("button", { name: /^Follow this lead ?: Search for earlier copies/ })).toBeDisabled();
   await expect(page.getByText(/River gauge at Riverside Bridge within its normal range/)).toBeVisible(); // timeline
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

@@ -29,6 +29,13 @@ export async function sortInto(page: Page, placements: [RegExp | string, string]
   }
 }
 
+/** Reads what happened next, checks one line that should follow from the choices made, and moves on. */
+export async function finishEpilogue(page: Page, expected: RegExp) {
+  await expect(page.getByRole("heading", { name: "What happened next" })).toBeVisible();
+  await expect(page.getByText(expected)).toBeVisible();
+  await cont(page);
+}
+
 /** Practice at rating sample answers is offered until a learner has done or declined it once this visit. */
 export async function skipPractice(page: Page) {
   const skip = page.getByRole("button", { name: "Skip the practice" });
@@ -624,7 +631,7 @@ export async function judgeStatements(page: Page, answers: [RegExp, string][]) {
 export async function completeM08(page: Page) {
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Zoom in and look/, "Fairly");
-  for (const lead of ["Search for earlier copies", "Check the river-level record", "Phone the café", "Message the account"]) await followLead(page, lead);
+  for (const lead of ["Search for earlier copies", "Check the river-level record", "Phone the café", "Examine the image"]) await followLead(page, lead);
   await page.getByRole("button", { name: "Finish investigating" }).click();
   await judgeStatements(page, [
     [/taken before today/, "Established"],
@@ -640,6 +647,7 @@ export async function completeM08(page: Page) {
   await page.getByLabel(/Publish a short report/).check();
   await check(page);
   await cont(page);
+  await finishEpilogue(page, /published “No, Riverside Bridge isn't flooded today”/);
   await revise(page, /It backs up the gauge/, "Somewhat");
   for (const lead of ["Read the transcript", "Search for where the wording", "Look at the account"]) await followLead(page, lead);
   await page.getByRole("button", { name: "Finish investigating" }).click();
@@ -666,6 +674,7 @@ export async function completeM09(page: Page) {
   await setThreshold(page, 63);
   await page.getByRole("button", { name: "Check this setting" }).click();
   await page.getByRole("button", { name: "Next task" }).click();
+  await page.getByRole("button", { name: "Run the test" }).click();
   await page.getByRole("radio", { name: "Revised score" }).check();
   await setThreshold(page, 72);
   await page.getByRole("button", { name: "Check this setting" }).click();
@@ -683,6 +692,7 @@ export async function completeM09(page: Page) {
   await page.getByLabel(/Other groups weren't checked/).check();
   await check(page);
   await cont(page);
+  await finishEpilogue(page, /now runs the Tuesday maths group/);
   await revise(page, /Something it does see/);
   await page.getByLabel(/label reflects transport/).check();
   await check(page);
@@ -721,6 +731,7 @@ export async function completeM12(page: Page) {
   await page.getByLabel(/Start with a small group/).check();
   await check(page);
   await cont(page);
+  await finishEpilogue(page, /answered 340 emails/);
   await revise(page, /In the workflow: keep the copy/);
   await page.getByRole("button", { name: "Run the tests" }).click();
   await diagnose(page, [
@@ -763,6 +774,7 @@ export async function completeM13(page: Page) {
   await page.getByLabel(/Adopt it from April, with the panel's/).check();
   await check(page);
   await cont(page);
+  await finishEpilogue(page, /voted 9 to 4/);
   await revise(page, /Who the other 10% were/);
   await choosePlan(page, [/chest pain/, /callback/, /five most-spoken/]);
   await cont(page);

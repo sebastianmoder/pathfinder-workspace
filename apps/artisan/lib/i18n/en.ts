@@ -148,7 +148,7 @@ export const en = {
     ],
     gymUnaided: ["Work out each answer on your own, and type it in.", "Check it. If it isn't right yet, go over your working and try again."],
     casefile: [
-      "Read the post, then follow the leads you think matter most. Time is limited.",
+      "Read what you're checking, then follow the leads you think matter most. Time is limited.",
       "Each lead adds what you found, and the timeline fills in.",
       "Press “Finish investigating”, then say what is established, contradicted or still uncertain.",
     ],
@@ -543,6 +543,8 @@ export const en = {
     retryNote: "You can change your answers and check again, or carry on.",
   },
   delegation: {
+    replayHeading: (title: string) => `Try another path: ${title}`,
+    replayIntro: "Your roles as you chose them. Open “What if” on any request to see how another role would have gone.",
     rolesHeading: "The three roles AI can have",
     roles: {
       human: { label: "Human-led", help: "A person does the work and makes the decision. AI is not used." },
@@ -644,6 +646,15 @@ export const en = {
     nextProblem: "Next problem",
   },
   casefile: {
+    mapTitle: "Who gains, who pays",
+    mapEmpty: "Follow a lead to hear from someone affected.",
+    side: { gains: "Gains", pays: "Bears a cost", unclear: "Not yet clear" },
+    clockNow: (now: string, left: number) => `It's ${now}: ${left} ${left === 1 ? "minute" : "minutes"} left.`,
+    takes: (n: number) => `Takes about ${n} minutes.`,
+    minutesLeft: (n: number) => `${n} min left`,
+    replayHeading: (title: string) => `Try another path: ${title}`,
+    replayIntro: "The leads you didn't follow, and what each would have turned up. Not part of what you found.",
+    wouldHaveFound: "It would have turned up",
     underInvestigation: "What you're checking",
     foundBy: (lead: string) => `What you found: ${lead}`,
     leftShort: (n: number) => `${n} ${n === 1 ? "lead" : "leads"} left`,
@@ -685,6 +696,10 @@ export const en = {
     wrongPicks: "Selected, but didn't meet it",
     gap: (n: number) => `Difference between the groups in qualified applicants rejected: ${n}.`,
     voices: "What people say",
+    locked: "run the test below first",
+    runCheck: "Run the test",
+    trial: "Trial session",
+    metIt: "Met the standard",
     check: "Check this setting",
     showMe: "Show me a way",
     notYet: "Not yet. Compare the numbers with what the task asks, and try again.",
@@ -692,6 +707,12 @@ export const en = {
     nextTask: "Next task",
   },
   workflow: {
+    staffTime: "Staff time",
+    longestWait: "Longest a member waits for a reply",
+    hoursAWeek: (n: number) => (n === 0 ? "None" : `${n.toLocaleString("en-GB")} ${n === 1 ? "hour" : "hours"} a week`),
+    wait: (h: number) => (h === 0 ? "No wait" : h < 24 ? `About ${h} ${h === 1 ? "hour" : "hours"}` : `About ${Math.round(h / 24)} days`),
+    optionCost: (staff: number, wait: number) =>
+      [staff ? `about ${staff} staff ${staff === 1 ? "hour" : "hours"} a week` : "", wait ? `replies can wait ${wait < 24 ? `${wait} ${wait === 1 ? "hour" : "hours"}` : `${Math.round(wait / 24)} days`}` : ""].filter(Boolean).join("; ").replace(/^./, (c) => c.toUpperCase()) + ".",
     diagram: "The assistant, step by step",
     input: "Input",
     output: "Reply",
@@ -743,6 +764,11 @@ export const en = {
     backToTray: "Back to the tray",
     placed: (item: string, category: string) => `Placed “${item}” in “${category}”.`,
     returned: (item: string) => `“${item}” is back in the tray.`,
+  },
+
+  epilogue: {
+    note: "A fictional outcome, written in advance. What you see follows from the choices you made.",
+    tone: { gain: "Went well", cost: "A cost", harm: "Went badly" },
   },
 
   artefact: {

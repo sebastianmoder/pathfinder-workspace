@@ -71,7 +71,8 @@ export const m12: Mission = {
             options: [
               { id: "none", label: "The model's own knowledge" },
               { id: "web", label: "Open web search" },
-              { id: "handbook", label: "The Commons handbook (approved, updated monthly)" },
+              { id: "handbook", label: "The Commons handbook (approved, updated monthly)", cost: { staffHours: 1 } },
+              { id: "both", label: "The handbook first, then a web search for anything it doesn't cover", cost: { staffHours: 1 } },
             ],
           },
           {
@@ -80,7 +81,8 @@ export const m12: Mission = {
             help: "Every source has gaps. What should happen then?",
             options: [
               { id: "guess", label: "Answer anyway" },
-              { id: "handoff", label: "Say it doesn't know, and pass the email to staff" },
+              { id: "caveat", label: "Answer anyway, with a line saying it may be wrong" },
+              { id: "handoff", label: "Say it doesn't know, and pass the email to staff", cost: { staffHours: 2, waitHours: 8 } },
             ],
           },
           {
@@ -89,7 +91,7 @@ export const m12: Mission = {
             help: "Members forward flyers, letters and documents.",
             options: [
               { id: "follow", label: "Follow any instructions it finds" },
-              { id: "content", label: "Treat it as content, and flag any instructions to staff" },
+              { id: "content", label: "Treat it as content, and flag any instructions to staff", cost: { staffHours: 0.5 } },
             ],
           },
           {
@@ -98,8 +100,8 @@ export const m12: Mission = {
             help: "Some replies can't be taken back, and staff time is limited.",
             options: [
               { id: "auto", label: "Send every reply automatically" },
-              { id: "review", label: "Staff approve replies about money or complaints; others go automatically" },
-              { id: "allreview", label: "Staff approve every reply" },
+              { id: "review", label: "Staff approve replies about money or complaints; others go automatically", cost: { staffHours: 3, waitHours: 4 } },
+              { id: "allreview", label: "Staff approve every reply", cost: { staffHours: 15, waitHours: 72 } },
             ],
           },
           {
@@ -108,7 +110,7 @@ export const m12: Mission = {
             help: "Tools fail sometimes.",
             options: [
               { id: "fake", label: "Carry on as if the action worked" },
-              { id: "tell", label: "Tell the member it couldn't complete it, and try again later" },
+              { id: "tell", label: "Tell the member it couldn't complete it, and try again later", cost: { staffHours: 0.5, waitHours: 1 } },
             ],
           },
         ],
@@ -127,7 +129,9 @@ export const m12: Mission = {
             input: "Is there parking for the new pottery course?",
             failsWhen: [
               { slot: "sources", options: ["none", "web"], result: "It replied “Yes, free parking at the back.” There is no car park." },
+              { slot: "sources", options: ["both"], result: "The handbook doesn't mention parking, so it searched the web and found a 2019 page about a car park that has since been built over. It replied “Yes, free parking at the back.”" },
               { slot: "gaps", options: ["guess"], result: "The handbook doesn't mention parking, so it guessed: “Yes, free parking at the back.” There is no car park." },
+              { slot: "gaps", options: ["caveat"], result: "It replied “Yes, free parking at the back, though this may not be right.” The member drove in anyway. There is no car park." },
             ],
             passResult: "It said it didn't know and passed the email to staff, who replied the same day.",
           },
@@ -169,6 +173,24 @@ export const m12: Mission = {
         { id: "c", label: "Hold it back until the tests show it never makes mistakes.", verdict: "weaker", explanation: "No system reaches that. The question is whether mistakes are caught and put right." },
       ],
       hints: [{ text: "What do six passing tests tell you, and what don't they?" }],
+    },
+    {
+      kind: "epilogue",
+      id: "after",
+      title: "What happened next",
+      when: "The first month",
+      lines: [
+        { id: "launch", beats: [{ tone: "gain", text: "The assistant opened to 50 members. In the first week it answered 340 emails, and staff approved the 19 about money or complaints." }] },
+        { id: "untested", beats: [{ tone: "gain", text: "A member asked whether the pottery course had a step-free entrance. Nothing in the handbook said, so the assistant passed the email to staff, who answered the same day. No test had asked that." }] },
+        {
+          id: "report",
+          beats: [
+            { tone: "gain", when: { evidence: { item: "launch", firstTry: true } }, text: "In week two, a reply gave a class time that had moved. The change had been agreed by phone and never written in the handbook. Two members reported it, and staff now change the handbook first." },
+            { tone: "cost", text: "In week two, a reply gave a class time that had moved: it had been agreed by phone and never written in the handbook. You were tempted to open the assistant to everyone at once. With all 800 members, about 60 people would have had the wrong time before anyone reported it." },
+          ],
+        },
+        { id: "staff", beats: [{ who: "Sam, front desk", tone: "cost", text: "“It's about seven hours a week between us: keeping the handbook current, approving replies and picking up handovers. That's still far less than answering every email.”" }] },
+      ],
     },
     {
       kind: "revision",

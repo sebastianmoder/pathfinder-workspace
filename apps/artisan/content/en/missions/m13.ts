@@ -72,6 +72,7 @@ export const m13: Mission = {
             description: "A neighbouring town ran the same service for six months.",
             finding: "70% of chat enquiries were resolved without staff, and residents rated it about the same as the desk. 12 of about 9,000 conversations gave wrong benefits information.",
             timeline: { order: 10, when: "2025", text: "Kelmere's six-month pilot of the same service." },
+            voice: { who: "Most residents", side: "gains", text: "Routine questions answered at any hour, rated about as well as the desk." },
           },
           {
             id: "survey",
@@ -80,6 +81,7 @@ export const m13: Mission = {
             description: "The council's own survey of 1,200 residents.",
             finding: "One in five residents over 75 has no internet at home.",
             timeline: { order: 20, when: "2026", text: "Council survey on residents' digital access." },
+            voice: { who: "Residents over 75", side: "pays", text: "One in five has no internet at home, and would lose half the desk's hours." },
           },
           {
             id: "advocate",
@@ -87,6 +89,7 @@ export const m13: Mission = {
             kind: "interview",
             description: "From Riverside Disability Forum.",
             finding: "“In Kelmere, the phone assistant often misheard people with speech impairments, and there was no quick way to reach a person.”",
+            voice: { who: "Disabled residents", side: "pays", text: "Misheard by the phone assistant, with no quick way to reach a person." },
           },
           {
             id: "staff",
@@ -94,6 +97,7 @@ export const m13: Mission = {
             kind: "interview",
             description: "Represents the eight people who staff the walk-in desk.",
             finding: "“Halving the hours means four posts go. We'd rather move to handling the complicated cases the assistant can't.”",
+            voice: { who: "Desk staff", side: "pays", text: "Four posts go if walk-in hours are halved." },
           },
           {
             id: "finance",
@@ -101,6 +105,7 @@ export const m13: Mission = {
             kind: "record",
             description: "From the council's finance team.",
             finding: "A saving of €120,000 a year, assuming walk-in hours are halved and four posts are cut.",
+            voice: { who: "The council's budget", side: "gains", text: "€120,000 a year, if the hours are halved." },
           },
           {
             id: "energy",
@@ -108,6 +113,7 @@ export const m13: Mission = {
             kind: "record",
             description: "The company that would run the assistant.",
             finding: "It gives one figure for annual electricity use, but not what it includes or how it was estimated, so it can't be compared with running the desk.",
+            voice: { who: "The environment", side: "unclear", text: "No comparable energy figures yet." },
           },
           {
             id: "residents",
@@ -115,6 +121,7 @@ export const m13: Mission = {
             kind: "interview",
             description: "A volunteer group that takes up residents' complaints.",
             finding: "“When Kelmere's assistant gave wrong benefits advice, nobody could tell the family who was responsible.”",
+            voice: { who: "Families given wrong advice", side: "pays", text: "Nobody could tell them who was responsible." },
           },
         ],
         statements: [
@@ -163,6 +170,56 @@ export const m13: Mission = {
         { id: "c", label: "Run a six-month trial of its own before deciding anything.", verdict: "defensible", explanation: "Cautious, but Kelmere's six months already answer most of what a trial would. It mostly delays a service most residents could use well." },
       ],
       hints: [{ text: "What does the panel already know from Kelmere, and do the conditions deal with it?" }],
+    },
+    {
+      kind: "epilogue",
+      id: "after",
+      title: "What happened next",
+      when: "The council vote, and the first six months",
+      lines: [
+        {
+          id: "vote",
+          beats: [
+            { tone: "gain", when: { choice: { step: "decide", ids: ["b"] } }, text: "On 15 December the council voted 9 to 4 to adopt the assistant from April, with the panel's conditions written into the decision." },
+            { tone: "cost", text: "The council voted for a further six-month trial. Most residents went on queueing at the walk-in desk until the autumn." },
+          ],
+        },
+        {
+          id: "offline",
+          beats: [
+            { who: "Older residents' group", tone: "gain", when: { fact: { key: "conditions/plan", any: ["walkin", "phone"] } }, text: "“A person still answers when our members call or come in. That's what we asked for.”" },
+            { who: "Older residents' group", tone: "harm", text: "“One in five of our members has no internet. On the desk's closed days, nobody answers them at all.”" },
+          ],
+        },
+        {
+          id: "access",
+          beats: [
+            { who: "Riverside Disability Forum", tone: "gain", when: { fact: { key: "conditions/plan", any: ["person", "testing", "walkin"] } }, text: "“Being able to reach a person, or come in, made the difference for people the phone assistant mishears.”" },
+            { who: "Riverside Disability Forum", tone: "harm", text: "“Our members are misheard and can't get past the assistant. It's Kelmere all over again.”" },
+          ],
+        },
+        {
+          id: "errors",
+          beats: [
+            { who: "Welfare rights adviser", tone: "gain", when: { fact: { key: "conditions/plan", any: ["review"] } }, text: "“The monthly review caught two wrong benefits answers in May. Both families were contacted the same week.”" },
+            { who: "Welfare rights adviser", tone: "harm", text: "“In May a family was told they didn't qualify for housing support. Nobody was checking answers, and they found out three months later.”" },
+          ],
+        },
+        {
+          id: "staff",
+          beats: [
+            { who: "Desk staff representative", tone: "gain", when: { fact: { key: "conditions/plan", any: ["walkin", "retrain"] } }, text: "“Nobody lost their job. We take the complicated cases now, and there are plenty of them.”" },
+            { who: "Desk staff representative", tone: "cost", text: "“Four posts went. The people left are stretched across the cases the assistant passes on.”" },
+          ],
+        },
+        {
+          id: "energy",
+          beats: [
+            { tone: "gain", when: { fact: { key: "conditions/plan", any: ["energy"] } }, text: "The provider published its energy use with its assumptions. It can now be compared with running the desk, and the environmental group is doing just that." },
+            { tone: "cost", text: "Nobody can yet say whether the service uses more or less energy than the desk did." },
+          ],
+        },
+      ],
     },
     {
       kind: "revision",

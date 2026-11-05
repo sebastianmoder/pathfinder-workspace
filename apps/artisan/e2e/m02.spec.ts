@@ -9,6 +9,12 @@ test("M02 is completable end to end and recommends the next mission", async ({ p
   await expect(page.getByText("ROWAN-LEDGER-63").first()).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Recognising when not to use AI")).toBeVisible();
+
+  // The debrief offers another path through the desk, labelled so it is never mistaken for the learner's own.
+  await page.getByText("Try another path: Triage the inbox").click();
+  const replay = page.locator("details", { hasText: "Try another path: Triage the inbox" });
+  await expect(replay.getByText(/Your roles as you chose them/)).toBeVisible();
+  await expect(replay.getByText("You chose: Human-led").first()).toBeVisible();
   await expect(shown.getByText("Relying on AI where a mistake is cheap to fix")).toBeVisible();
   await expect(shown.getByText("Choosing roles for AI in a new setting, without hints")).toBeVisible();
   await expect(page.getByText(/PRIVATE-/)).toHaveCount(0);

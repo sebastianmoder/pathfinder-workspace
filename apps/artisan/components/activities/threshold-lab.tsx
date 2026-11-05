@@ -6,6 +6,7 @@ import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { missedGap, outcomes, thresholdGoalMet, totalSelected, withinCapacity } from "@/lib/threshold";
 import { t } from "@/lib/i18n/en";
 import { ActionBar, useReveal } from "../step-ui";
+import { CastBadge } from "../artefacts/cast-badge";
 
 /**
  * Screening threshold with outcomes by group (PRD M09). The error table carries every number; the plot
@@ -27,6 +28,8 @@ export function ThresholdLab({
   const [taskIndex, setTaskIndex] = useState(0);
   const [result, setResult] = useState<"met" | "notYet" | null>(null);
   const [usedSolution, setUsedSolution] = useState<string[]>([]);
+  const [checkRun, setCheckRun] = useState(false);
+  const locked = (versionId: string) => !!spec.check && spec.check.unlocks === versionId && !checkRun;
   const taskRef = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
 
@@ -64,8 +67,8 @@ export function ThresholdLab({
                 <div className="mt-1 flex flex-wrap gap-2">
                   {spec.versions.map((v) => (
                     <label key={v.id} className="option-compact">
-                      <input type="radio" name={`${uid}-version`} checked={view.version === v.id} onChange={() => set({ version: v.id })} />
-                      {v.label}
+                      <input type="radio" name={`${uid}-version`} checked={view.version === v.id} disabled={locked(v.id)} onChange={() => set({ version: v.id })} />
+                      {v.label}{locked(v.id) && <span className="text-sm font-normal text-muted"> ({t.threshold.locked})</span>}
                     </label>
                   ))}
                 </div>
@@ -134,12 +137,61 @@ export function ThresholdLab({
           <h4 id={`${uid}-voices`} className="font-bold">{t.threshold.voices}</h4>
           <ul className="mt-2 space-y-3">
             {spec.stakeholders.map((s) => (
-              <li key={s.id} className="rounded-lg border border-border bg-surface p-3">
-                <p className="font-bold">{s.name}<span className="font-normal text-muted">, {s.role}</span></p>
-                <p className="mt-1 text-sm">“{s.says}”</p>
+              <li key={s.id} className="flex gap-3 rounded-lg border border-border bg-surface p-3">
+                <CastBadge name={s.name} />
+                <div>
+                  <p className="font-bold">{s.name}<span className="font-normal text-muted">, {s.role}</span></p>
+                  <p className="mt-1 text-sm">“{s.says}”</p>
+                </div>
               </li>
             ))}
           </ul>
+          {spec.check && (
+            <section aria-labelledby={`${uid}-check`} className="mt-4 rounded-lg border-2 border-[var(--highlighter)] bg-surface p-3">
+              <h4 id={`${uid}-check`} className="font-bold">{spec.check.label}</h4>
+              <p className="mt-1 text-sm">{spec.check.intro}</p>
+              {!checkRun ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCheckRun(true);
+                    onEvidence(itemKey(stepId, "check"), { right: true });
+                  }}
+                  className="mt-2 btn btn-secondary btn-small"
+                >
+                  {t.threshold.runCheck}
+                </button>
+              ) : (
+                <div role="status">
+                  <table className="mt-2 w-full border-collapse text-left text-sm">
+                    <caption className="sr-only">{spec.check.label}</caption>
+                    <thead>
+                      <tr className="border-b border-border align-bottom">
+                        <th scope="col" className="py-1 pr-2">{t.threshold.group}</th>
+                        <th scope="col" className="py-1 pr-2">{t.threshold.trial}</th>
+                        <th scope="col" className="py-1 text-right">{spec.scoreLabel}</th>
+                      </tr>
+                    </thead>
+                    {spec.check.pairs.map(([a, b], i) => (
+                      <tbody key={i} className="border-b-2 border-border">
+                        {[a, b].map((id) => {
+                          const applicant = spec.applicants.find((x) => x.id === id)!;
+                          return (
+                            <tr key={id}>
+                              <th scope="row" className="py-1 pr-2 font-normal">{spec.groups.find((g) => g.id === applicant.group)?.label}</th>
+                              <td className="py-1 pr-2">{applicant.qualified ? t.threshold.metIt : t.threshold.notQualified}</td>
+                              <td className="py-1 text-right font-bold tabular-nums">{applicant.scores[spec.start.version]}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    ))}
+                  </table>
+                  <p className="mt-2 text-sm">{spec.check.finding}</p>
+                </div>
+              )}
+            </section>
+          )}
         </aside>
       </div>
 
@@ -172,6 +224,7 @@ export function ThresholdLab({
           <button
             type="button"
             onClick={() => {
+              if (spec.check && task.solution.version === spec.check.unlocks) setCheckRun(true);
               set(task.solution);
               setUsedSolution((u) => [...u, task.id]);
             }}

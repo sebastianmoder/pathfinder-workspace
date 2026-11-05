@@ -16,11 +16,14 @@ export function AllocationBoard({
   spec,
   onEvidence,
   onContinue,
+  onFact,
 }: {
   stepId: string;
   spec: AllocationSpec;
   onEvidence: (item: string, result: EvidenceResult) => void;
   onContinue: () => void;
+  /** Reports what the learner settled on, for epilogues and debrief replays. */
+  onFact?: (name: string, values: string[]) => void;
 }) {
   const uid = useId();
   const [chosen, setChosen] = useState<string[]>([]);
@@ -99,6 +102,7 @@ export function AllocationBoard({
           onClick={() => {
             const r = planResult(spec, chosen);
             onEvidence(itemKey(stepId, "plan"), { right: r.right });
+            onFact?.("plan", chosen);
             setChecked(chosen);
             setChecks((n) => n + 1);
           }}

@@ -25,6 +25,16 @@ export const runAll = (spec: WorkflowSpec, arrangement: Arrangement) => spec.tes
 /** Tests that fail as the workflow starts: the learner diagnoses these after the first run. */
 export const startFailures = (spec: WorkflowSpec) => runAll(spec, spec.start).filter((r) => !r.passed);
 
+/** Running totals for an arrangement: staff hours a week, and the longest wait a member may face. */
+export function costOf(spec: WorkflowSpec, arrangement: Record<string, string>) {
+  const chosen = spec.slots.map((s) => s.options.find((o) => o.id === arrangement[s.id])?.cost ?? {});
+  return {
+    staffHours: chosen.reduce((n, c) => n + (c.staffHours ?? 0), 0),
+    waitHours: Math.max(0, ...chosen.map((c) => c.waitHours ?? 0)),
+    shown: spec.slots.some((s) => s.options.some((o) => o.cost)),
+  };
+}
+
 export function workflowItems(stepId: string, spec: WorkflowSpec): string[] {
   return [...startFailures(spec).map((r) => itemKey(stepId, "diagnose", r.test.id)), itemKey(stepId, "fixed")];
 }

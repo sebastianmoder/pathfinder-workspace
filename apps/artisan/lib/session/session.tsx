@@ -17,6 +17,11 @@ interface MissionProgress {
   stepState: Record<string, unknown>;
   /** What the learner did, for the debrief. A restart clears it along with everything else. */
   evidence: EvidenceLedger;
+  /**
+   * What an activity settled on, such as the conditions in a plan or the leads followed, keyed by step and
+   * name. Epilogues and debrief replays read it; nothing grades it.
+   */
+  facts: Record<string, string[]>;
 }
 
 interface SessionState {
@@ -36,6 +41,7 @@ interface SessionApi {
   goTo(missionId: string, stepIndex: number): void;
   setStepState(missionId: string, stepId: string, value: unknown): void;
   recordEvidence(missionId: string, item: string, result: EvidenceResult): void;
+  setFact(missionId: string, key: string, values: string[]): void;
   /** Fixes the order of answer options for this visit. Never rendered itself. */
   orderSeed: number;
   complete(missionId: string): void;
@@ -46,7 +52,7 @@ interface SessionApi {
   markSeen(key: string): void;
 }
 
-const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {}, evidence: {} };
+const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {}, evidence: {}, facts: {} };
 const SessionContext = createContext<SessionApi | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -92,6 +98,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         update(id, (p) => ({ ...p, stepState: { ...p.stepState, [stepId]: value } })),
       recordEvidence: (id, item, result) =>
         update(id, (p) => ({ ...p, evidence: { ...p.evidence, [item]: mergeEvidence(p.evidence[item], result) } })),
+      setFact: (id, key, values) => update(id, (p) => ({ ...p, facts: { ...p.facts, [key]: values } })),
       orderSeed,
       complete: (id) =>
         setState((s) => (s.completed.includes(id) ? s : { ...s, completed: [...s.completed, id] })),
