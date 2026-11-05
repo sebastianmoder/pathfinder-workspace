@@ -38,4 +38,18 @@ test("the chart lab keeps chart, summary and table in step, in dark mode, and a 
   await page.getByRole("radio", { name: "Visits per 1,000 residents" }).check();
   await expect(page.getByText(/Highest: Bramley \(50 per 1,000\)/)).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByRole("button", { name: "Check this view" }).click();
+  await page.getByRole("button", { name: "Next task" }).click();
+
+  // Does the conclusion survive? A tie doesn't count, and the table follows the slider.
+  const residents = page.getByLabel("Residents in Bramley");
+  await residents.fill("5000");
+  await expect(page.getByRole("row", { name: /Bramley/ }).getByRole("cell", { name: "5,000", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Check this view" }).click();
+  await expect(page.getByText(/Not yet/)).toBeVisible();
+  await residents.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.getByRole("button", { name: "Check this view" }).click();
+  await expect(page.getByText(/Above 5,000 residents, Hollins overtakes Bramley/)).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

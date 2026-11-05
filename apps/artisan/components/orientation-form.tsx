@@ -31,7 +31,7 @@ export function OrientationForm({ questions, firstMissionHref }: { questions: Or
         </fieldset>
       ))}
       <div className="flex flex-wrap items-center gap-4">
-        <Link href={firstMissionHref} className="btn btn-primary">
+        <Link href={firstMissionHref} prefetch={true} className="btn btn-primary">
           {Object.keys(orientation).length ? t.orientation.start : t.orientation.skip}
         </Link>
         <Link href="/map" className="underline">{t.orientation.map}</Link>

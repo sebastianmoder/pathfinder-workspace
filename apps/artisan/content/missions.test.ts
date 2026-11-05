@@ -30,7 +30,7 @@ function choiceSets(mission: (typeof missions)[number]): [string, Choice[]][] {
     const cs = choicesOf(s);
     if (cs.length) sets.push([s.id, cs]);
     if (s.kind === "debrief") for (const k of s.skills) if (k.practice) sets.push([`${s.id}/${k.id}`, k.practice.choices]);
-    if (s.kind === "gym") for (const p of s.problems) sets.push([`${s.id}/${p.id}`, p.choices]);
+    if ("problems" in s) for (const p of s.problems) if (p.choices) sets.push([`${s.id}/${p.id}`, p.choices]);
     if (s.kind === "openResponse" && s.drafts) sets.push([`${s.id}/drafts`, s.drafts]);
     const decision = auditOf(s)?.decision;
     if (decision) sets.push([`${s.id}/decision`, decision.choices]);
@@ -287,6 +287,22 @@ describe.each(missions)("mission $id", (mission) => {
       }
   });
 
+  it("delegation waves send every task exactly once, and carry only what earlier waves set up", () => {
+    for (const s of mission.steps) {
+      if (!("delegation" in s) || !s.delegation.waves) continue;
+      const ids = s.delegation.tasks.map((x) => x.id);
+      const waved = s.delegation.waves.flatMap((w) => w.taskIds);
+      expect([...waved].sort(), s.id).toEqual([...ids].sort());
+      s.delegation.waves.forEach((w, i) => {
+        const earlier = s.delegation.waves!.slice(0, i).flatMap((x) => x.taskIds);
+        for (const c of w.carry ?? []) {
+          expect(earlier, `${s.id}: ${c.taskId} is sent before it is carried`).toContain(c.taskId);
+          for (const r of c.roles) expect(DELEGATION_ROLES).toContain(r);
+        }
+      });
+    }
+  });
+
   it("delegation tasks have one best role, every outcome explained, and support that matches the desk", () => {
     for (const s of mission.steps) {
       const spec: DelegationSpec | null = "delegation" in s ? s.delegation : null;
@@ -361,18 +377,39 @@ describe.each(missions)("mission $id", (mission) => {
         for (const bar of barsFor(c, v)) expect(Number.isFinite(bar.value), bar.id).toBe(true);
       }
       for (const task of c.tasks) {
-        expect(chartGoalMet(task.goal, task.solution), task.id).toBe(true);
-        expect(chartGoalMet(task.goal, c.start), task.id).toBe(false);
+        expect(chartGoalMet(task.goal, task.solution, c), task.id).toBe(true);
+        expect(chartGoalMet(task.goal, c.start, c), task.id).toBe(false);
+      }
+      // A figure the learner can move stays inside its stated range, starting and solved.
+      if (c.adjustable) {
+        const a = c.adjustable;
+        expect(c.quantities.map((q) => q.id)).toContain(a.quantity);
+        expect(cats).toContain(a.category);
+        for (const v of views) if (v.adjust !== undefined) expect(v.adjust >= a.min && v.adjust <= a.max, `adjust ${v.adjust}`).toBe(true);
+        expect(c.tasks.some((x) => x.adjust), "some task shows the adjustable figure").toBe(true);
       }
     }
   });
 
   it("gym problems have one right answer, explain every option, and offer help that leaves the thinking to the learner", () => {
     for (const s of mission.steps) {
-      if (s.kind !== "gym") continue;
+      if (!("problems" in s)) continue;
       for (const p of s.problems) {
-        expect(p.choices.filter((c) => c.verdict === "correct"), p.id).toHaveLength(1);
-        for (const c of p.choices) expect(c.explanation.trim(), `${p.id}/${c.id}`).not.toBe("");
+        // Either options or a number to work out, never both.
+        expect(!!p.choices !== !!p.numeric, `${p.id}: choices or numeric`).toBe(true);
+        if (p.choices) {
+          expect(p.choices.filter((c) => c.verdict === "correct"), p.id).toHaveLength(1);
+          for (const c of p.choices) expect(c.explanation.trim(), `${p.id}/${c.id}`).not.toBe("");
+        }
+        if (p.numeric) {
+          expect(p.numeric.min, p.id).toBeLessThanOrEqual(p.numeric.max);
+          expect(p.numeric.explanation.trim(), p.id).not.toBe("");
+        }
+        // A transfer offers no help at all, because support fades; a gym offers it.
+        if (s.kind === "transfer") {
+          expect(p.helps, `${p.id}: a transfer is unaided`).toEqual([]);
+          continue;
+        }
         expect(new Set(p.helps.map((h) => h.id)).size, p.id).toBe(p.helps.length);
         for (const h of p.helps) expect(h.provides.trim(), `${p.id}/${h.id}`).not.toBe("");
         expect(p.helps.some((h) => !h.givesAnswer), p.id).toBe(true);

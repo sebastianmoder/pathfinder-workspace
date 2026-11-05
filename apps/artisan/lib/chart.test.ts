@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChartLabSpec } from "@/content/types";
-import { barsFor, chartItems, goalMet, niceMax, percentChange } from "./chart";
+import { barsFor, chartItems, goalMet, niceMax, percentChange, valuesOf } from "./chart";
 
 const spec: ChartLabSpec = {
   claim: "",
@@ -38,5 +38,28 @@ describe("chart lab", () => {
     expect(goalMet({ measure: "rate" }, { measure: "rate", baseline: "x", range: "y" })).toBe(true);
     expect(goalMet({ measure: "rate" }, spec.start)).toBe(false);
     expect(chartItems("s", spec)).toEqual(["s/t"]);
+  });
+});
+
+describe("an adjustable figure", () => {
+  const adjustable: ChartLabSpec = {
+    ...spec,
+    adjustable: { quantity: "people", category: "b", label: "B residents", note: "", min: 3000, max: 9000, step: 1000 },
+  };
+
+  it("replaces the authored value only where the learner has moved it", () => {
+    expect(valuesOf(adjustable, adjustable.start, "people").b).toBe(3000);
+    expect(valuesOf(adjustable, { ...adjustable.start, adjust: 8000 }, "people").b).toBe(8000);
+    expect(valuesOf(adjustable, { ...adjustable.start, adjust: 8000 }, "visits").b).toBe(120);
+    expect(barsFor(adjustable, { ...adjustable.start, measure: "rate", adjust: 8000 }).map((b) => b.value)).toEqual([20, 15]);
+  });
+
+  it("meets a “no longer on top” goal only when another bar is strictly higher", () => {
+    const goal = { measure: "rate", topIsNot: "b" };
+    const rate = { ...adjustable.start, measure: "rate" };
+    expect(goalMet(goal, rate, adjustable)).toBe(false); // B: 40, A: 20
+    expect(goalMet(goal, { ...rate, adjust: 6000 }, adjustable)).toBe(false); // a tie is not overtaking
+    expect(goalMet(goal, { ...rate, adjust: 7000 }, adjustable)).toBe(true);
+    expect(goalMet(goal, { ...rate, adjust: 7000 })).toBe(false); // without the spec, it can't be judged
   });
 });

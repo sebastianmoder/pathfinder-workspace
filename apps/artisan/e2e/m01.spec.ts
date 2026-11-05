@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { cont, check, markAndCheck, nextTask, setBoard, trainAndAsk, traceFaults } from "./helpers";
+import { cont, check, markAndCheck, nextTask, setBoard, sortInto, trainAndAsk, traceFaults } from "./helpers";
 
 test("M01 is completable end to end, keyboard-reachable, and refresh restarts cleanly", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
@@ -81,11 +81,17 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
     "A delivery app estimates when your parcel will arrive": "Recommend", // wrong on purpose
     "An image tool makes a poster from a description": "Generate (text, images)",
   };
-  for (const [item, cat] of Object.entries(place)) await page.getByLabel(item).selectOption({ label: cat });
+  // Select-and-place: the first item starts selected, and placing one selects the next.
+  await expect(page.getByRole("button", { name: "A phone unlocks when it sees your face" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Place in Recognise (images, speech)", exact: true }).click();
+  await expect(page.getByRole("button", { name: "A chatbot drafts an email for you" })).toHaveAttribute("aria-pressed", "true");
+  await sortInto(page, Object.entries(place).slice(1));
+  await expect(page.getByText("Everything is placed.", { exact: false })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await check(page);
   await expect(page.getByText("Look again.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Continue" })).toBeVisible(); // retry is offered, not required
-  await page.getByLabel("A delivery app estimates when your parcel will arrive").selectOption({ label: "Predict / forecast" });
+  await sortInto(page, [["A delivery app estimates when your parcel will arrive", "Predict / forecast"]]);
   await check(page);
   await cont(page);
 
@@ -179,7 +185,7 @@ test("a learner who skips and guesses can finish, and is not credited with what 
   await check(page);
   await cont(page);
 
-  for (const select of await page.getByRole("combobox").all()) await select.selectOption({ label: "Recommend" });
+  for (let i = 0; i < 6; i++) await page.getByRole("button", { name: "Place in Recommend", exact: true }).click();
   await check(page);
   await cont(page);
 

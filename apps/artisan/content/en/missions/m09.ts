@@ -102,7 +102,6 @@ export const m09: Mission = {
       kind: "sort",
       id: "fact-or-choice",
       prompt: "Some questions about the tool can be settled with evidence; others are choices that need a justification. Sort them.",
-      chooseLabel: "Choose a kind",
       hints: [{ text: "Could a count, a test or a record answer it, or does it depend on what you value?" }],
       categories: [
         { id: "fact", label: "Evidence can settle it" },

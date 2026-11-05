@@ -57,6 +57,7 @@ export function activityKey(step: Step): string {
     if ("workflow" in step) return "workflow";
     if ("casefile" in step) return "casefile";
     if ("mark" in step) return step.mode === "redact" ? "markRedact" : "markFind";
+    if ("problems" in step) return "gymUnaided";
     return "choice";
   }
   if (step.kind === "claimAudit") return "audit";

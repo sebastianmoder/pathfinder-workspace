@@ -35,9 +35,11 @@ test("the desk reveals nothing before sending, then shows outcomes, responsibili
 
   // Keeping AI out of the reminders is reviewed as weaker: caution is not automatically right.
   const roles = M02_DESK.map(([title, role]): [string, string] => [title, title === "Send booking reminders" ? "Human-led" : role]);
-  await assignRoles(page, roles);
+  // The first batch only: its outcomes come back before the next requests arrive.
+  await expect(page.getByRole("group", { name: /Role for: Reply to a parent's complaint/ })).toHaveCount(0);
+  await assignRoles(page, roles.slice(0, 3));
   await expect(page.getByRole("heading", { name: "Three weeks into term" })).toBeFocused();
-  await expect(page.getByText(/5 of 6 roles you chose held up/)).toBeVisible();
+  await expect(page.getByText(/2 of 3 roles you chose held up/)).toBeVisible();
   await expect(page.getByText(/Sam typed every reminder/)).toBeVisible();
   await expect(page.getByText(/Keeping AI out is not automatically the safe choice/)).toBeVisible();
   await expect(page.getByText(/Sam, who runs the bookings, answers for the reminders/)).toBeVisible();
@@ -49,6 +51,15 @@ test("the desk reveals nothing before sending, then shows outcomes, responsibili
   await expect(page.getByText(/360 reminders went out/)).toBeVisible();
   const reminders = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "Send booking reminders" }) });
   await expect(reminders.getByText("You chose: Human-led")).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  // The next batch opens with what the first one led to.
+  await page.getByRole("button", { name: "Open the next requests" }).click();
+  await expect(page.getByRole("heading", { name: "New requests" })).toBeFocused();
+  await expect(page.getByText(/Sam is still typing every booking reminder by hand/)).toBeVisible();
+  await expect(page.getByText(/Refused bursary applicants/)).toHaveCount(0); // the bursaries went to a person
+  await assignRoles(page, roles.slice(3));
+  await expect(page.getByRole("heading", { name: "By the end of term" })).toBeFocused();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await cont(page);
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import type { ChartLabSpec, ChartView } from "@/content/types";
-import { barsFor, baselineOf, goalMet, measureOf, niceMax, percentChange, type Bar } from "@/lib/chart";
+import { barsFor, baselineOf, goalMet, measureOf, niceMax, percentChange, valuesOf, type Bar } from "@/lib/chart";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { ActionBar, useReveal } from "../step-ui";
@@ -11,7 +11,9 @@ const fmt = (n: number) => n.toLocaleString("en-GB", { maximumFractionDigits: 1 
 
 /**
  * Adjustable chart (PRD M07): change the measure, the axis baseline or the range of data, and see the
- * chart, the table and a plain-text summary change together. Nothing depends on seeing the chart.
+ * chart, the table and a plain-text summary change together. Nothing depends on seeing the chart. Where an
+ * authored figure is uncertain, a slider moves it across its plausible range, to test whether a conclusion
+ * survives a change in the data.
  */
 export function ChartLab({
   stepId,
@@ -51,7 +53,13 @@ export function ChartLab({
     setResult(null);
   };
 
-  const controls: { key: keyof ChartView; label: string; options: { id: string; label: string }[] }[] = [
+  const adjustable = spec.adjustable;
+  const firstAdjust = spec.tasks.findIndex((x) => x.adjust);
+  const showAdjust = !!adjustable && firstAdjust >= 0 && taskIndex >= firstAdjust;
+  const original = adjustable ? spec.quantities.find((q) => q.id === adjustable.quantity)!.values[adjustable.category] : 0;
+  const adjustValue = view.adjust ?? original;
+
+  const controls: { key: "measure" | "baseline" | "range"; label: string; options: { id: string; label: string }[] }[] = [
     { key: "measure", label: t.chart.measure, options: spec.measures },
     { key: "baseline", label: t.chart.baseline, options: spec.baselines },
     { key: "range", label: t.chart.range, options: spec.ranges },
@@ -85,6 +93,28 @@ export function ChartLab({
                 </div>
               </fieldset>
             ))}
+          {showAdjust && adjustable && (
+            <div className="rounded-lg border-2 border-[var(--highlighter)] bg-surface p-3">
+              <label htmlFor={`${uid}-adjust`} className="block font-bold">{adjustable.label}</label>
+              <p className="text-sm text-muted">{adjustable.note}</p>
+              <input
+                id={`${uid}-adjust`}
+                type="range"
+                min={adjustable.min}
+                max={adjustable.max}
+                step={adjustable.step}
+                value={adjustValue}
+                aria-valuetext={fmt(adjustValue)}
+                onChange={(e) => set({ adjust: Number(e.target.value) })}
+                className="mt-2 w-full accent-[var(--foreground)]"
+              />
+              <p className="mt-1 flex justify-between text-sm tabular-nums">
+                <span>{fmt(adjustable.min)}</span>
+                <output htmlFor={`${uid}-adjust`} className="font-bold">{fmt(adjustValue)}</output>
+                <span>{fmt(adjustable.max)}</span>
+              </p>
+            </div>
+          )}
         </div>
 
         <figure>
@@ -104,7 +134,7 @@ export function ChartLab({
               {bars.map((b) => (
                 <tr key={b.id} className="border-b border-border">
                   <th scope="row" className="py-1 pr-2 font-normal">{b.label}</th>
-                  {spec.quantities.map((q) => <td key={q.id} className="py-1 pr-2 text-right tabular-nums">{fmt(q.values[b.id])}</td>)}
+                  {spec.quantities.map((q) => <td key={q.id} className="py-1 pr-2 text-right tabular-nums">{fmt(valuesOf(spec, view, q.id)[b.id])}</td>)}
                   {measure.denominator && <td className="py-1 text-right font-bold tabular-nums">{fmt(b.value)}</td>}
                 </tr>
               ))}
@@ -127,7 +157,7 @@ export function ChartLab({
           <button
             type="button"
             onClick={() => {
-            const met = goalMet(task.goal, view);
+            const met = goalMet(task.goal, view, spec);
             if (task.evidence !== false) {
               const assisted = usedSolution.includes(task.id);
               onEvidence(itemKey(stepId, task.id), { right: met && !assisted, assisted });

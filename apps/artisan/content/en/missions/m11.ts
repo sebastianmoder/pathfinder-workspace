@@ -131,7 +131,6 @@ export const m11: Mission = {
       kind: "sort",
       id: "policy",
       prompt: "Apply the publishing policy (under Help) to other things the Commons might publish.",
-      chooseLabel: "Choose what it needs",
       hints: [{ text: "Check each case against the policy's four rules in turn." }],
       categories: [
         { id: "fine", label: "Fine as it is" },

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { completeM03, cont, judgeChecklist, M03_CRITERIA, pickPart, recordJudgment, runIt } from "./helpers";
+import { completeM03, cont, judgeChecklist, M03_CRITERIA, pickPart, recordJudgment, runIt, traceBrief } from "./helpers";
 
 test("M03 is completable end to end and recommends the next mission", async ({ page }) => {
   await page.goto("/missions/m03-briefing");
@@ -17,6 +17,8 @@ test("the studio isolates one change per run, compares versions, and lets the le
   await page.goto("/missions/m03-briefing");
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Yes\. Some tools are much better/);
+  await expect(page.getByText(/Priya's brief: “Write something about volunteering\.”/)).toBeVisible();
+  await traceBrief(page);
 
   await expect(page.getByText(/written in advance for each option/)).toBeVisible();
   await runIt(page);

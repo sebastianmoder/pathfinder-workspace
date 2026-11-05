@@ -31,6 +31,12 @@ export function FaultTrace({
   return (
     <div>
       <StepIntro title={step.title} intro={step.prompt} howTo={t.howTo.faultTrace} />
+      {step.artifact && (
+        <figure className="mat mb-4 p-3 sm:p-5">
+          <figcaption className="text-sm font-bold">{step.artifact.label}</figcaption>
+          <p className="sheet mt-2 whitespace-pre-line p-4 sm:p-5">{step.artifact.text}</p>
+        </figure>
+      )}
       <dl className=" grid gap-2 rounded-lg border border-border bg-surface p-3 text-sm sm:grid-cols-2">
         {step.stages.map((s) => (
           <div key={s.id}>

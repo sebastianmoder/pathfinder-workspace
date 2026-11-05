@@ -12,6 +12,23 @@ export async function recordJudgment(page: Page, answer: RegExp | string, confid
   await cont(page);
 }
 
+/**
+ * Places items with select-and-place: select the item (the next one is often already selected), then the
+ * category in the action bar. For a permission screen, chooses the setting in each item's row instead.
+ */
+export async function sortInto(page: Page, placements: [RegExp | string, string][]) {
+  for (const [item, category] of placements) {
+    const row = page.getByRole("group", { name: item });
+    if (await row.count()) {
+      await row.getByRole("radio", { name: category, exact: true }).check();
+      continue;
+    }
+    const chip = page.getByRole("button", { name: item, exact: typeof item === "string" });
+    if ((await chip.getAttribute("aria-pressed")) !== "true") await chip.click();
+    await page.getByRole("button", { name: `Place in ${category}`, exact: true }).click();
+  }
+}
+
 /** Practice at rating sample answers is offered until a learner has done or declined it once this visit. */
 export async function skipPractice(page: Page) {
   const skip = page.getByRole("button", { name: "Skip the practice" });
@@ -168,7 +185,7 @@ export async function completeM01(page: Page) {
     "A delivery app estimates when your parcel will arrive": "Predict / forecast",
     "An image tool makes a poster from a description": "Generate (text, images)",
   };
-  for (const [item, cat] of Object.entries(place)) await page.getByLabel(item).selectOption({ label: cat });
+  await sortInto(page, Object.entries(place));
   await check(page);
   await cont(page);
   await revise(page, /Whether the café's own records/, "Somewhat");
@@ -312,12 +329,23 @@ export async function completeT01(page: Page) {
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
-/** Assigns a role to each task in a delegation desk, then sends them. */
+/**
+ * Assigns a role to each task in a delegation desk and sends it. A desk that arrives in batches is sent one
+ * batch at a time, opening the next batch after each one's outcomes, until every listed task is sent.
+ */
 export async function assignRoles(page: Page, roles: [string, string][]) {
-  for (const [title, role] of roles) {
-    await page.getByRole("group", { name: `Role for: ${title}` }).getByRole("radio", { name: role, exact: true }).check();
+  let remaining = [...roles];
+  while (remaining.length) {
+    const here: [string, string][] = [];
+    for (const entry of remaining) if (await page.getByRole("group", { name: `Role for: ${entry[0]}` }).count()) here.push(entry);
+    expect(here.length, "some listed task is in this batch").toBeGreaterThan(0);
+    for (const [title, role] of here) {
+      await page.getByRole("group", { name: `Role for: ${title}` }).getByRole("radio", { name: role, exact: true }).check();
+    }
+    await page.getByRole("button", { name: "Send the assignments" }).click();
+    remaining = remaining.filter((r) => !here.includes(r));
+    if (remaining.length) await page.getByRole("button", { name: "Open the next requests" }).click();
   }
-  await page.getByRole("button", { name: "Send the assignments" }).click();
 }
 
 export const M02_DESK: [string, string][] = [
@@ -367,11 +395,26 @@ export async function judgeChecklist(page: Page, criteria: RegExp[], next = "Con
   await page.getByRole("button", { name: next, exact: true }).click();
 }
 
+/** Traces each problem in Priya's first response to the part of the brief it came from. */
+export async function traceBrief(page: Page) {
+  for (const [problem, part] of [
+    [/volunteering in general/, "Objective"],
+    [/when or where/, "Context"],
+    [/what to bring/, "What it must include"],
+    [/CVs and community/, "Length and style"],
+  ] as const) {
+    await page.getByRole("group", { name: problem }).getByRole("radio", { name: part, exact: true }).check();
+  }
+  await check(page);
+  await cont(page);
+}
+
 export const M03_CRITERIA = [/written to new Homework Club/, /right date, time and room/, /what to bring/, /short, plain and friendly/];
 
 export async function completeM03(page: Page) {
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Yes\. Some tools are much better/);
+  await traceBrief(page);
   await runIt(page);
   for (const [part, option] of [
     ["Objective", /welcome email/],
@@ -391,7 +434,7 @@ export async function completeM03(page: Page) {
     [/80% of costs/, "Find evidence"],
     [/aimed at teenagers/, "Ask a clarifying question"],
   ];
-  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await sortInto(page, place);
   await check(page);
   await cont(page);
   await page.getByLabel(/The audience and its must-haves/).check();
@@ -423,7 +466,10 @@ export async function completeM07(page: Page) {
   await recordJudgment(page, /That the bar labels match/, "Fairly");
   await chartView(page, ["At zero"], "Next task");
   await chartView(page, ["Every month on record"], "Continue");
-  await chartView(page, ["Visits per 1,000 residents"], "Continue");
+  await chartView(page, ["Visits per 1,000 residents"], "Next task");
+  await page.getByLabel("Residents in Bramley").fill("5500");
+  await page.getByRole("button", { name: "Check this view" }).click();
+  await cont(page);
   await auditClaim(page, /Monthly visits rose/, { passage: "reg-visits", calc: "9.8", status: "Supported", action: "Retain" });
   await auditClaim(page, /AI helper caused/, { passage: "reg-helper", status: "Unsupported", action: "Qualify", repair: ["97", "101"] });
   await auditClaim(page, /typical visit now lasts/, { passage: "reg-length", calc: "59", status: "Misleading", action: "Qualify", repair: ["40", "20"] });
@@ -452,13 +498,13 @@ export async function completeM07(page: Page) {
 export async function completeM06Gym(page: Page) {
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Show me the answer/);
-  await page.getByLabel(/^€80, because/).check();
+  await page.getByLabel("What the jacket costs now").fill("80");
   await check(page);
   await page.getByRole("button", { name: /^Get a hint/ }).click();
-  await page.getByLabel(/^€75/).check();
+  await page.getByLabel("What the jacket costs now").fill("€75");
   await check(page);
   await page.getByRole("button", { name: "Next problem" }).click();
-  await page.getByLabel(/About 13\.3 km\/h/).check();
+  await page.getByLabel("Average speed for the whole trip").fill("13.3");
   await check(page);
   await cont(page);
   const place: [RegExp, string][] = [
@@ -467,17 +513,17 @@ export async function completeM06Gym(page: Page) {
     [/never seen this kind/, "A worked example"],
     [/stuck on one step/, "A hint"],
   ];
-  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await sortInto(page, place);
   await check(page);
   await cont(page);
   await page.getByLabel(/Solve a similar problem later/).check();
   await check(page);
   await cont(page);
   await revise(page, /Try the next one with no hint/);
-  await page.getByLabel(/^€48/).check();
+  await page.getByLabel("What the ticket costs now").fill("48");
   await check(page);
-  await cont(page);
-  await page.getByLabel(/^72 km\/h/).check();
+  await page.getByRole("button", { name: "Next problem" }).click();
+  await page.getByLabel("Average speed for the round trip").fill("72");
   await check(page);
   await cont(page);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
@@ -514,7 +560,7 @@ export async function completeM10(page: Page) {
     [/staff personnel files/, "Don't allow"],
     [/Issue refunds/, "Don't allow"],
   ];
-  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await sortInto(page, place);
   await check(page);
   await cont(page);
   await markAndCheck(page, [/Note to AI assistants/, /do not mention the price increase/]);
@@ -548,7 +594,7 @@ export async function completeM11(page: Page) {
     [/published novel/, "Needs permission first"],
     [/own figures/, "Fine as it is"],
   ];
-  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await sortInto(page, place);
   await check(page);
   await cont(page);
   await page.getByLabel(/I made it, with an AI headline/).check();
@@ -631,7 +677,7 @@ export async function completeM09(page: Page) {
     [/equal error rates/, "A choice that needs justifying"],
     [/automated screen at all/, "A choice that needs justifying"],
   ];
-  for (const [item, cat] of place) await page.getByLabel(item).selectOption({ label: cat });
+  await sortInto(page, place);
   await check(page);
   await cont(page);
   await page.getByLabel(/Other groups weren't checked/).check();

@@ -237,10 +237,21 @@ export interface DelegationTask {
   outcomes: Record<DelegationRole, DelegationOutcome>;
 }
 
+/** A batch of requests sent together, so what happened to one batch is known before the next (PRD M02). */
+export interface DelegationWave {
+  taskIds: string[];
+  /** Heading for this wave's outcome panel. */
+  later: string;
+  /** Shown above the wave's inbox when an earlier choice set this up: the consequences of earlier choices. */
+  carry?: { taskId: string; roles: DelegationRole[]; note: string }[];
+}
+
 export interface DelegationSpec {
   /** Heading for the outcome panel, such as "Three weeks later". */
   later: string;
   tasks: DelegationTask[];
+  /** Send in batches. Without waves, every task is sent at once. */
+  waves?: DelegationWave[];
   /** "independent": no trade-offs or hints are offered. Defaults to "guided". */
   support?: "guided" | "independent";
 }
@@ -308,6 +319,8 @@ export interface ChartView {
   measure: string;
   baseline: string;
   range: string;
+  /** The value of the spec's adjustable quantity, where it has one. */
+  adjust?: number;
 }
 
 /**
@@ -324,12 +337,20 @@ export interface ChartLabSpec {
   measures: { id: string; label: string; numerator: string; denominator?: string; per?: number; unit: string }[];
   baselines: { id: string; label: string; min: number }[];
   ranges: { id: string; label: string; categoryIds: string[] }[];
+  /**
+   * One authored figure the learner can move across its plausible range, to see whether a conclusion survives
+   * a change in the data (PRD M07). Shown from the first task that asks for it.
+   */
+  adjustable?: { quantity: string; category: string; label: string; note: string; min: number; max: number; step: number };
   start: ChartView;
   tasks: {
     id: string;
     title: string;
     instruction: string;
-    goal: Partial<ChartView>;
+    /** `topIsNot`: met when some other category has a higher value than this one. */
+    goal: Partial<ChartView> & { topIsNot?: string };
+    /** Show the adjustable figure from this task on. */
+    adjust?: boolean;
     solution: ChartView;
     success: string;
     /** Recorded for the debrief unless false. */
@@ -348,11 +369,26 @@ export interface GymHelp {
   givesAnswer?: boolean;
 }
 
+/** A worked-out answer, typed rather than picked, so it can't be reached by ruling options out (PRD M06). */
+export interface NumericAnswer {
+  label: string;
+  /** Written before the input, such as "€". */
+  prefix?: string;
+  /** Written after the input, such as "km/h". */
+  unit?: string;
+  min: number;
+  max: number;
+  explanation: string;
+}
+
 export interface GymProblem {
   id: string;
   title: string;
   text: string;
-  choices: Choice[];
+  /** Either options to choose from, or a number to work out. */
+  choices?: Choice[];
+  numeric?: NumericAnswer;
+  /** Empty means unaided: a transfer offers no help. */
   helps: GymHelp[];
 }
 
@@ -546,6 +582,8 @@ type StepUnion =
       id: string;
       title: string;
       prompt: string;
+      /** What the failures come from, shown above them, such as the response a brief produced. */
+      artifact?: { label: string; text: string };
       stages: { id: string; label: string; help: string }[];
       cases: { id: string; text: string; stageId: string; explanation: string }[];
     }
@@ -553,8 +591,11 @@ type StepUnion =
       kind: "sort";
       id: string;
       prompt: string;
-      /** Placeholder for each item's menu. Defaults to the interface wording for M01. */
-      chooseLabel?: string;
+      /**
+       * "bins": select an item, then the category to place it in. "toggles": a row of choices per item, like a
+       * permission screen. Defaults to "bins".
+       */
+      display?: "bins" | "toggles";
       hints?: Hint[];
       categories: { id: string; label: string }[];
       items: { id: string; label: string; categoryId: string; explanation: string }[];
@@ -591,6 +632,7 @@ type StepUnion =
   | { kind: "transfer"; id: string; title: string; prompt: string; allocation: AllocationSpec }
   | { kind: "transfer"; id: string; title: string; prompt: string; workflow: WorkflowSpec }
   | { kind: "transfer"; id: string; title: string; prompt: string; casefile: CasefileSpec }
+  | { kind: "transfer"; id: string; title: string; prompt: string; problems: GymProblem[] }
   | {
       kind: "dialogue";
       id: string;

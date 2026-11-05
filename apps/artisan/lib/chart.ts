@@ -17,11 +17,19 @@ export function baselineOf(spec: ChartLabSpec, view: ChartView) {
   return spec.baselines.find((b) => b.id === view.baseline) ?? spec.baselines[0];
 }
 
+/** A quantity's values in a view, with the adjustable figure set to where the learner has moved it. */
+export function valuesOf(spec: ChartLabSpec, view: ChartView, quantityId: string): Record<string, number> {
+  const values = spec.quantities.find((x) => x.id === quantityId)!.values;
+  const a = spec.adjustable;
+  if (!a || a.quantity !== quantityId || view.adjust === undefined) return values;
+  return { ...values, [a.category]: view.adjust };
+}
+
 /** The bars for a view: the chosen categories, with the chosen measure computed from the quantities. */
 export function barsFor(spec: ChartLabSpec, view: ChartView): Bar[] {
   const m = measureOf(spec, view);
   const range = spec.ranges.find((r) => r.id === view.range) ?? spec.ranges[0];
-  const q = (id: string) => spec.quantities.find((x) => x.id === id)!.values;
+  const q = (id: string) => valuesOf(spec, view, id);
   return spec.categories
     .filter((c) => range.categoryIds.includes(c.id))
     .map((c) => {
@@ -41,8 +49,16 @@ export function niceMax(max: number, min = 0): number {
 
 export const percentChange = (from: number, to: number) => (from === 0 ? 0 : round1(((to - from) / from) * 100));
 
-export const goalMet = (goal: Partial<ChartView>, view: ChartView) =>
-  (Object.keys(goal) as (keyof ChartView)[]).every((k) => goal[k] === view[k]);
+/** Every control the goal names is set as it says, and, for `topIsNot`, another category's bar is higher. */
+export function goalMet(goal: ChartLabSpec["tasks"][number]["goal"], view: ChartView, spec?: ChartLabSpec): boolean {
+  const { topIsNot, ...controls } = goal;
+  const set = (Object.keys(controls) as (keyof ChartView)[]).every((k) => controls[k] === view[k]);
+  if (!set || topIsNot === undefined) return set;
+  if (!spec) return false;
+  const bars = barsFor(spec, view);
+  const own = bars.find((b) => b.id === topIsNot)?.value ?? Infinity;
+  return bars.some((b) => b.id !== topIsNot && b.value > own);
+}
 
 export function chartItems(stepId: string, spec: ChartLabSpec): string[] {
   return spec.tasks.filter((t) => t.evidence !== false).map((t) => itemKey(stepId, t.id));

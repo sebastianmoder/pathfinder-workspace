@@ -72,9 +72,23 @@ export const m02: Mission = {
       id: "desk",
       title: "Triage the inbox",
       intro:
-        "Six requests are waiting. Choose a role for AI in each one. Nothing is revealed until you send all six, and then you will see how each went a few weeks into term.",
+        "Six requests are waiting, and they will reach you in two batches. Choose a role for AI in each of the first three and send them. You'll see how they went before the next three arrive.",
       delegation: {
         later: "Three weeks into term",
+        waves: [
+          { taskIds: ["bursary", "reminders", "translation"], later: "Three weeks into term" },
+          {
+            taskIds: ["complaint", "tags", "feedback"],
+            later: "By the end of term",
+            carry: [
+              { taskId: "reminders", roles: ["human"], note: "Sam is still typing every booking reminder by hand, about four hours a week, so the front desk is short of time." },
+              { taskId: "reminders", roles: ["assisted"], note: "Sam spends two hours a week approving reminders, and has started clicking through them without reading." },
+              { taskId: "bursary", roles: ["assisted", "automated"], note: "Refused bursary applicants have complained to the board. Joanna wants every decision about a person to be one somebody can explain." },
+              { taskId: "translation", roles: ["automated"], note: "After families found the doors locked on 1 May, Tomasz has asked that anything families rely on is checked before it goes out." },
+              { taskId: "translation", roles: ["human"], note: "The translated newsletter went out a week late, and the two volunteers are wary of taking on more unpaid work." },
+            ],
+          },
+        ],
         tasks: [
           {
             id: "bursary",

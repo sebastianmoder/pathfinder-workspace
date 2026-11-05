@@ -28,3 +28,14 @@ describe("gym", () => {
     expect(solveResult(p, ["hint", "answer"])).toEqual({ right: false, assisted: true });
   });
 });
+
+describe("a numeric problem", () => {
+  const numeric: GymProblem = { id: "n", title: "", text: "", numeric: { label: "", min: 13.2, max: 13.4, explanation: "x" }, helps: [] };
+
+  it("accepts a typed answer within the reviewed range, however it is written", () => {
+    expect(isRight(numeric, "13.3")).toBe(true);
+    expect(isRight(numeric, "13.3 km/h")).toBe(true);
+    expect(isRight(numeric, "15")).toBe(false);
+    expect(isRight(numeric, "")).toBe(false);
+  });
+});

@@ -60,10 +60,32 @@ export const m03: Mission = {
       choices: firstChoices,
     },
     {
+      kind: "faultTrace",
+      id: "trace",
+      title: "Trace the problems",
+      prompt: "This is what the AI tool gave Priya. Before changing her brief, work out which part of it caused each problem.",
+      artifact: {
+        label: "Priya's brief: “Write something about volunteering.” The response:",
+        text: "Volunteering is one of the most rewarding ways to give back. Across the country, millions of people give their time to causes they care about, and studies suggest it can improve wellbeing.\nVolunteering also builds skills for your CV, helps you meet new people and connects you with your community. Many volunteers say it is the highlight of their week. Whatever brought you here, we hope you find it as rewarding as so many others have, and that you'll stay with us for many terms to come. Thank you again for choosing to give your time.",
+      },
+      stages: [
+        { id: "objective", label: "Objective", help: "What you want produced, and what it is for." },
+        { id: "context", label: "Context", help: "What the AI can't know unless you tell it, such as the readers and the facts." },
+        { id: "criteria", label: "What it must include", help: "The things a reader needs, which you can check afterwards." },
+        { id: "constraints", label: "Length and style", help: "Limits on form, such as length, tone or format." },
+      ],
+      cases: [
+        { id: "general", text: "It's about volunteering in general, not a welcome to Homework Club.", stageId: "objective", explanation: "The brief never said what to write or what it was for, so the tool wrote the most typical text about the topic it was given." },
+        { id: "when", text: "It never says when or where the first session is.", stageId: "context", explanation: "The date, time and room are facts only Priya has. A model can't supply them, only guess." },
+        { id: "bring", text: "Nobody reading it would know what to bring or who to ask for.", stageId: "criteria", explanation: "Nothing in the brief said what the email had to contain, so nothing could be checked, and the practical details were left out." },
+        { id: "long", text: "It runs on about CVs and community for a whole paragraph.", stageId: "constraints", explanation: "With no limit on length or style, the tool kept going with typical filler." },
+      ],
+    },
+    {
       kind: "compose",
       id: "studio",
       title: "Fix the brief",
-      intro: "Priya's brief is on the left, with each part set to what she wrote. Change one part at a time, run it, and compare the new response with the previous one.",
+      intro: "Now fix it. Priya's brief is on the left, with each part set to what she wrote. Change one part at a time, run it, and compare the new response with the previous one.",
       compose: {
         workspaceLabel: "The brief",
         outputLabel: "The AI's response",
@@ -131,7 +153,6 @@ export const m03: Mission = {
       kind: "sort",
       id: "next-step",
       prompt: "A better brief isn't always the answer. For each situation, choose the most useful next step.",
-      chooseLabel: "Choose a next step",
       hints: [{ text: "Ask yourself: is the problem what I told the AI, a fact that needs a source, or something I was never told?" }],
       categories: [
         { id: "brief", label: "Improve the brief" },
@@ -271,6 +292,12 @@ export const m03: Mission = {
       id: "debrief",
       takeaway: "Tell AI what you want, who it is for, the facts it needs and how you will judge it. Then judge it that way.",
       skills: [
+        {
+          id: "trace-brief",
+          label: "Tracing a weak response to the part of the brief that caused it",
+          kind: "action",
+          items: ["trace/general", "trace/when", "trace/bring", "trace/long"],
+        },
         {
           id: "one-element",
           label: "Improving a brief one element at a time",

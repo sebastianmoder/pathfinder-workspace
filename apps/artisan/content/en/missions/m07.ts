@@ -293,6 +293,15 @@ export const m07: Mission = {
         ],
         baselines: [{ id: "zero", label: "At zero", min: 0 }],
         ranges: [{ id: "all", label: "All branches", categoryIds: ["riverside", "bramley", "hollins"] }],
+        adjustable: {
+          quantity: "residents",
+          category: "bramley",
+          label: "Residents in Bramley",
+          note: "The council's estimate dates from before the new estate was built. The planning office says it could now be anywhere up to 6,000.",
+          min: 3000,
+          max: 6000,
+          step: 250,
+        },
         start: { measure: "count", baseline: "zero", range: "all" },
         tasks: [
           {
@@ -302,6 +311,15 @@ export const m07: Mission = {
             goal: { measure: "rate" },
             solution: { measure: "rate", baseline: "zero", range: "all" },
             success: "Per 1,000 residents, Bramley's drop-in is used two and a half times as much as Riverside's. Counts mostly follow the size of the area; a rate shows reach. Both are still visits, not people: one person who comes every week counts twelve times.",
+          },
+          {
+            id: "survive",
+            title: "Does the conclusion survive?",
+            adjust: true,
+            instruction: "The rate rests on Bramley's resident figure, which may be out of date. Move it within its range and find a figure at which Bramley no longer has the highest rate.",
+            goal: { measure: "rate", topIsNot: "bramley" },
+            solution: { measure: "rate", baseline: "zero", range: "all", adjust: 5500 },
+            success: "Above 5,000 residents, Hollins overtakes Bramley. So “Bramley's drop-in reaches people most” depends on a figure nobody has checked, and the board needs a current estimate before using the rate to decide. A rate is only as good as its denominator.",
           },
         ],
       },
@@ -402,6 +420,12 @@ export const m07: Mission = {
               { id: "c", label: "Town A, which has half B's accidents per person.", verdict: "correct", explanation: "A has 0.5 per 1,000 people and B has 1. A better comparison would use cycling journeys, if you had them." },
             ],
           },
+        },
+        {
+          id: "survive",
+          label: "Testing whether a conclusion survives a change in the data",
+          kind: "action",
+          items: ["branches/survive"],
         },
         {
           id: "calculate",

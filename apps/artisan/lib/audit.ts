@@ -1,3 +1,4 @@
+import { inRange } from "./number";
 import type { AuditSpec, Claim, ClaimAction, ClaimStatus } from "@/content/types";
 import { itemKey } from "./evidence";
 
@@ -58,8 +59,7 @@ export function gradeClaim(claim: Claim, answer: ClaimAnswer): ClaimGrade {
 
 export function gradeCalculation(claim: Claim, answer: ClaimAnswer): boolean {
   if (!claim.calculation) return true;
-  const value = Number.parseFloat(normalize(answer.calc ?? ""));
-  return value >= claim.calculation.min && value <= claim.calculation.max;
+  return inRange(answer.calc ?? "", claim.calculation);
 }
 
 export function gradeRepair(claim: Claim, answer: ClaimAnswer): boolean {

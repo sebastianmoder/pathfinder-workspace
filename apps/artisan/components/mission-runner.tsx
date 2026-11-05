@@ -262,6 +262,7 @@ function StepView({
         : "workflow" in step ? t.howTo.workflow
         : "casefile" in step ? t.howTo.casefile
         : "compose" in step ? t.howTo.compose
+        : "problems" in step ? t.howTo.gymUnaided
         : "mark" in step ? (step.mode === "redact" ? t.howTo.markRedact : t.howTo.markFind)
         : undefined;
       if (!howTo && "choices" in step) {
@@ -287,6 +288,8 @@ function StepView({
             <Casefile stepId={step.id} spec={step.casefile} onEvidence={record} onContinue={onContinue} />
           ) : "compose" in step ? (
             <ComposeStudio stepId={step.id} spec={step.compose} onEvidence={record} onContinue={onContinue} />
+          ) : "problems" in step ? (
+            <HelpGym stepId={step.id} problems={step.problems} onEvidence={record} onContinue={onContinue} />
           ) : "mark" in step ? (
             <MarkText
               paragraphs={step.mark}
@@ -476,7 +479,7 @@ function StepView({
               <div>
                 <h3 className="font-bold">{t.debrief.next}: {next.title}</h3>
                 <PasswordCard code={next.password} />
-                <Link href={`/missions/${next.missionId}`} className="mt-3 inline-block btn btn-primary">{next.title}</Link>
+                <Link href={`/missions/${next.missionId}`} prefetch={true} className="mt-3 inline-block btn btn-primary">{next.title}</Link>
               </div>
             ) : (
               <p>{t.debrief.endOfContent}</p>

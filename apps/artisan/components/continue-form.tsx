@@ -53,7 +53,7 @@ export function ContinueForm({ registry }: { registry: Entry[] }) {
           <div className="rounded-lg border border-border bg-surface p-4">
             <p className="font-bold">{t.continuePage.found(result.title)}</p>
             <p className="mt-1 text-sm text-muted">{t.continuePage.restartNote}</p>
-            <Link href={`/missions/${result.missionId}`} onClick={() => session.restart(result.missionId)} className="mt-3 inline-block btn btn-primary">
+            <Link href={`/missions/${result.missionId}`} prefetch={true} onClick={() => session.restart(result.missionId)} className="mt-3 inline-block btn btn-primary">
               {t.continuePage.start}
             </Link>
           </div>

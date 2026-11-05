@@ -8,14 +8,16 @@ test("M06 gym: help is offered after an attempt, noted as help, and a revealed a
   await recordJudgment(page, /Give me a hint/);
 
   await expect(page.getByRole("heading", { name: "Choose help" })).toHaveCount(0);
-  await page.getByLabel(/^€80, because/).check();
-  await check(page);
+  // The answer is typed, so it can't be reached by ruling options out.
+  await expect(page.getByRole("radio")).toHaveCount(0);
+  await page.getByLabel("What the jacket costs now").fill("80");
+  await page.getByLabel("What the jacket costs now").press("Enter");
   await expect(page.getByText(/Not yet/)).toBeVisible();
   await expect(page.getByText(/What it does/).first()).toBeVisible();
   await page.getByRole("button", { name: /^Ask the AI for the answer/ }).click();
   await expect(page.getByText(/25% of €60 is €15, so the new price is €75/)).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-  await page.getByLabel(/^€75/).check();
+  await page.getByLabel("What the jacket costs now").fill("€75");
   await check(page);
   await expect(page.getByText(/leaves the method with the AI/)).toBeVisible();
   await page.getByRole("button", { name: "Next problem" }).click();

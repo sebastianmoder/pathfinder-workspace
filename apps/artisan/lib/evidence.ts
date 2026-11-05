@@ -89,6 +89,7 @@ export function evidenceItems(step: Step): string[] {
       if ("casefile" in step) return casefileItems(step.id, step.casefile);
       if ("workflow" in step) return workflowItems(step.id, step.workflow);
       if ("allocation" in step) return allocationItems(step.id);
+      if ("problems" in step) return gymItems(step.id, step.problems);
       return [step.id];
     case "claimAudit":
       return auditItems(step.id, step.audit);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DelegationSpec, DelegationTask } from "@/content/types";
-import { bestRole, delegationItems, delegationResults, isSound } from "./delegation";
+import { bestRole, carryNotes, delegationItems, delegationResults, isSound, wavesOf } from "./delegation";
 
 const outcome = (verdict: "correct" | "defensible" | "weaker") => ({ verdict, event: "e", explanation: "x" });
 const task = (id: string, best: "human" | "assisted" | "automated"): DelegationTask => ({
@@ -34,5 +34,22 @@ describe("delegation", () => {
       ["desk/a", { right: true, assisted: false }],
       ["desk/b", { right: false, assisted: true }],
     ]);
+  });
+});
+
+describe("delegation waves", () => {
+  it("sends everything at once without authored waves", () => {
+    expect(wavesOf(spec)).toEqual([{ taskIds: ["a", "b"], later: "Later" }]);
+  });
+
+  it("records only the wave that was sent", () => {
+    expect(delegationResults("d", spec, { a: "human", b: "human" }, [], ["b"])).toEqual([["d/b", { right: false, assisted: false }]]);
+  });
+
+  it("opens a later wave with what earlier choices set up, and nothing else", () => {
+    const wave = { taskIds: ["b"], later: "", carry: [{ taskId: "a", roles: ["automated" as const], note: "fallout" }] };
+    expect(carryNotes(wave, { a: "automated" })).toEqual(["fallout"]);
+    expect(carryNotes(wave, { a: "human" })).toEqual([]);
+    expect(carryNotes(wave, {})).toEqual([]);
   });
 });

@@ -298,6 +298,76 @@
     background: var(--surface);
     padding: 0.75rem 1rem;
   }
+  /* Sorting: an item is a chip; selecting one marks it like a highlighter, and bins show where things are. */
+  .chip {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: baseline;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background: var(--background);
+    padding: 0.4rem 0.7rem;
+    text-align: left;
+    font-size: 0.9375rem;
+    cursor: pointer;
+  }
+  .chip:hover {
+    border-color: var(--foreground);
+  }
+  .chip[aria-pressed="true"] {
+    border: 2px solid var(--foreground);
+    background: var(--highlighter);
+    color: var(--highlighter-ink);
+    font-weight: 700;
+  }
+  .bin {
+    min-height: 6rem;
+    border: 2px dashed var(--border);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+  }
+  /* A permission screen: one row per action, its setting chosen from a segmented control. */
+  .permission-list > li {
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 0;
+  }
+  .segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .segmented label {
+    position: relative;
+    cursor: pointer;
+  }
+  .segmented label + label {
+    border-left: 1px solid var(--border);
+  }
+  .segmented input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+  .segmented span {
+    display: block;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.9375rem;
+  }
+  .segmented input:checked + span {
+    background: var(--foreground);
+    color: var(--background);
+    font-weight: 700;
+  }
+  .segmented input:checked + span::before {
+    content: "● ";
+  }
+  .segmented input:focus-visible + span {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+  }
   .howto-folded {
     padding-block: 0.5rem;
   }

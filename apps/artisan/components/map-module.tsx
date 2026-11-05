@@ -40,14 +40,14 @@ export function MapModule({ module, availableInOrder }: { module: ModuleEntry; a
             {parts.map((p, i) => (
               <li key={p.id}>
                 {t.map.part(i + 1)}{" "}
-                <Link href={`/missions/${p.id}`} className="underline">{p.title}</Link>
+                <Link href={`/missions/${p.id}`} prefetch={true} className="underline">{p.title}</Link>
                 {isCompleted(p.id) && <span className="mark-yes"> <span aria-hidden="true">✔ </span>{t.map.partDone}</span>}
               </li>
             ))}
           </ol>
         )}
       </div>
-      <Link href={`/missions/${nextMission}`} className={`btn btn-small ${recommended ? "btn-primary" : "btn-secondary"}`}>
+      <Link href={`/missions/${nextMission}`} prefetch={true} className={`btn btn-small ${recommended ? "btn-primary" : "btn-secondary"}`}>
         {t.map.play}<span className="sr-only">: {module.title}</span>
       </Link>
     </li>

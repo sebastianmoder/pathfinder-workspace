@@ -66,11 +66,13 @@ export const m06Gym: Mission = {
           id: "sale",
           title: "The sale price",
           text: "A jacket costs €80. In the sale, it is reduced by 25%. A week later, the sale price goes up by 25%. What does the jacket cost now?",
-          choices: [
-            { id: "a", label: "€80, because going down 25% and up 25% cancel out.", verdict: "weaker", explanation: "The two 25%s are of different amounts: 25% of €80 is €20, but 25% of €60 is only €15." },
-            { id: "b", label: "€75: down €20 to €60, then up €15.", verdict: "correct", explanation: "Each percentage is taken from the price at that moment: €80 − €20 = €60, then €60 + €15 = €75." },
-            { id: "c", label: "€70, because the price was cut and then cut again.", verdict: "weaker", explanation: "The second change was a rise. It added 25% of €60, which is €15." },
-          ],
+          numeric: {
+            label: "What the jacket costs now",
+            prefix: "€",
+            min: 75,
+            max: 75,
+            explanation: "Each percentage is taken from the price at that moment: €80 − €20 = €60, then €60 + €15 = €75. Going down 25% and up 25% doesn't cancel out, because the two 25%s are of different amounts.",
+          },
           helps: [
             { id: "hint", label: "Get a hint", provides: "A nudge towards the next step. You still do all the working.", content: "Each 25% is a percentage of something. Of what, the second time?" },
             { id: "example", label: "See a worked example", provides: "The method, shown on different numbers. You apply it to yours.", content: "A €40 bag is reduced by 50%, to €20. Then the €20 price goes up by 50%: 50% of €20 is €10, so it costs €30. Each percentage is worked out from the price at that moment." },
@@ -82,11 +84,13 @@ export const m06Gym: Mission = {
           id: "trip",
           title: "The round trip",
           text: "You cycle 10 km to the Commons at 20 km/h, then the same 10 km home, uphill, at 10 km/h. What is your average speed for the whole trip?",
-          choices: [
-            { id: "a", label: "15 km/h, halfway between the two speeds.", verdict: "weaker", explanation: "That would be right only if you spent equal time at each speed. You spent 30 minutes going and an hour coming back." },
-            { id: "b", label: "10 km/h, since the slow part sets the pace.", verdict: "weaker", explanation: "The faster half counts too. You covered 20 km in an hour and a half." },
-            { id: "c", label: "About 13.3 km/h: 20 km in 1.5 hours.", verdict: "correct", explanation: "Out takes 0.5 hours, back takes 1 hour. 20 km in 1.5 hours is about 13.3 km/h." },
-          ],
+          numeric: {
+            label: "Average speed for the whole trip",
+            unit: "km/h",
+            min: 13.2,
+            max: 13.4,
+            explanation: "Out takes 0.5 hours, back takes 1 hour. 20 km in 1.5 hours is about 13.3 km/h. Halfway between the speeds, 15 km/h, would only be right if you spent the same time at each.",
+          },
           helps: [
             { id: "hint", label: "Get a hint", provides: "A nudge towards the next step. You still do all the working.", content: "Average speed is total distance divided by total time. What is the total time?" },
             { id: "example", label: "See a worked example", provides: "The method, shown on different numbers. You apply it to yours.", content: "A 60 km drive out at 60 km/h takes 1 hour. The drive back at 30 km/h takes 2 hours. That is 120 km in 3 hours: 40 km/h, not 45." },
@@ -100,7 +104,6 @@ export const m06Gym: Mission = {
       kind: "sort",
       id: "help-fit",
       prompt: "The right help depends on what you're trying to do. Choose the help that fits each situation.",
-      chooseLabel: "Choose the help",
       hints: [{ text: "First ask: do I need to be able to do this myself later, or do I only need the result?" }],
       categories: [
         { id: "hint", label: "A hint" },
@@ -140,24 +143,36 @@ export const m06Gym: Mission = {
     },
     {
       kind: "transfer",
-      id: "transfer-price",
-      title: "Without help: a new price",
-      prompt: "A concert ticket costs €50. The price rises by 20%, then the new price falls by 20%. What does it cost now?",
-      choices: [
-        { id: "a", label: "€50, because the rise and the fall cancel out.", verdict: "weaker", explanation: "The 20% fall is of €60, not €50, so it removes €12, more than the €10 that was added." },
-        { id: "b", label: "€48: up €10 to €60, then down €12.", verdict: "correct", explanation: "Each change is a percentage of the price at that moment." },
-        { id: "c", label: "€52, because the rise was applied first.", verdict: "weaker", explanation: "The order doesn't help here: the fall is the larger change, because it is taken from the higher price." },
-      ],
-    },
-    {
-      kind: "transfer",
-      id: "transfer-speed",
-      title: "Without help: a new trip",
-      prompt: "A delivery van drives 30 km to a depot at 60 km/h, and drives back empty at 90 km/h. What is its average speed for the round trip?",
-      choices: [
-        { id: "a", label: "75 km/h, halfway between the two speeds.", verdict: "weaker", explanation: "The van spends longer at the slower speed: 30 minutes out and 20 minutes back." },
-        { id: "b", label: "72 km/h: 60 km in 50 minutes.", verdict: "correct", explanation: "Out takes 30 minutes, back takes 20. 60 km in 50 minutes is 72 km/h." },
-        { id: "c", label: "90 km/h, the speed of the faster leg.", verdict: "weaker", explanation: "Both legs count, and the slower one takes longer." },
+      id: "transfer",
+      title: "Without help",
+      prompt: "Two problems like the ones you just did, with new numbers. There's no help this time: work them out and type the answers.",
+      problems: [
+        {
+          id: "price",
+          title: "A new price",
+          text: "A concert ticket costs €50. The price rises by 20%, then the new price falls by 20%. What does it cost now?",
+          numeric: {
+            label: "What the ticket costs now",
+            prefix: "€",
+            min: 48,
+            max: 48,
+            explanation: "Up €10 to €60, then down 20% of €60, which is €12. The fall is the larger change, because it is taken from the higher price.",
+          },
+          helps: [],
+        },
+        {
+          id: "speed",
+          title: "A new trip",
+          text: "A delivery van drives 30 km to a depot at 60 km/h, and drives back empty at 90 km/h. What is its average speed for the round trip?",
+          numeric: {
+            label: "Average speed for the round trip",
+            unit: "km/h",
+            min: 72,
+            max: 72,
+            explanation: "Out takes 30 minutes and back takes 20. 60 km in 50 minutes is 72 km/h, not the 75 km/h halfway between the speeds.",
+          },
+          helps: [],
+        },
       ],
     },
     {
@@ -195,7 +210,7 @@ export const m06Gym: Mission = {
           id: "unaided",
           label: "Solving related problems later, without help",
           kind: "transfer",
-          items: ["transfer-price", "transfer-speed"],
+          items: ["transfer/price/attempt", "transfer/speed/attempt"],
         },
       ],
       nextMissionId: "m06-teach",

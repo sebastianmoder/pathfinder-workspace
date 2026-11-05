@@ -85,8 +85,8 @@ export const m10: Mission = {
     {
       kind: "sort",
       id: "permissions",
+      display: "toggles",
       prompt: "The assistant will help with room bookings. For each action, choose the permission it should have.",
-      chooseLabel: "Choose a permission",
       hints: [{ text: "For each one, ask: does the booking job need it, and if it goes wrong, can it be undone?" }],
       categories: [
         { id: "allow", label: "Allow" },

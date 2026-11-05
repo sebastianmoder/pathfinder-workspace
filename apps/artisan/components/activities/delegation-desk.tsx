@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { DELEGATION_ROLES, type DelegationRole, type DelegationSpec, type DelegationTask } from "@/content/types";
-import { delegationResults, isSound } from "@/lib/delegation";
+import { carryNotes, delegationResults, isSound, wavesOf } from "@/lib/delegation";
 import type { EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
 import { ActionBar } from "../step-ui";
@@ -11,9 +11,11 @@ const FACTORS = ["stakes", "evidence", "sensitivity", "reversibility"] as const;
 const roleLabel = (role: DelegationRole) => t.delegation.roles[role].label;
 
 /**
- * Task inbox (PRD M02). The learner assigns a role to every request before anything is revealed, then sees
- * what happened later, why, and who answers for it. Other roles can be inspected afterwards, labelled as such,
- * so a replayed outcome is never mistaken for the learner's own (PRD §9, Replay).
+ * Task inbox (PRD M02). The learner assigns a role to every request in a batch before anything is revealed,
+ * then sees what happened later, why, and who answers for it. With more than one batch, the next one opens
+ * with what the earlier choices led to, so later events follow from earlier decisions. Other roles can be
+ * inspected afterwards, labelled as such, so a replayed outcome is never mistaken for the learner's own
+ * (PRD §9, Replay).
  */
 export function DelegationDesk({
   stepId,
@@ -30,37 +32,66 @@ export function DelegationDesk({
   const guided = spec.support !== "independent";
   const [assigned, setAssigned] = useState<Record<string, DelegationRole>>({});
   const [hinted, setHinted] = useState<string[]>([]);
-  const [sent, setSent] = useState<Record<string, DelegationRole> | null>(null);
+  const waves = wavesOf(spec);
+  const [waveIndex, setWaveIndex] = useState(0);
+  // Assignments as they were when each batch was sent.
+  const [sent, setSent] = useState<Record<string, DelegationRole>>({});
+  const [showing, setShowing] = useState(false);
   const laterRef = useRef<HTMLHeadingElement>(null);
+  const inboxRef = useRef<HTMLHeadingElement>(null);
+  const firstRender = useRef(true);
 
   useEffect(() => {
-    if (sent) laterRef.current?.focus();
-  }, [sent]);
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    (showing ? laterRef : inboxRef).current?.focus();
+  }, [showing, waveIndex]);
 
-  const count = spec.tasks.filter((task) => assigned[task.id]).length;
+  const wave = waves[waveIndex];
+  const tasks = spec.tasks.filter((task) => wave.taskIds.includes(task.id));
+  const count = tasks.filter((task) => assigned[task.id]).length;
+  const more = waveIndex + 1 < waves.length;
 
-  if (sent) {
-    const sound = spec.tasks.filter((task) => isSound(task, sent[task.id])).length;
+  if (showing) {
+    const sound = tasks.filter((task) => isSound(task, sent[task.id])).length;
     return (
       <div>
-        <h3 ref={laterRef} tabIndex={-1} className="text-xl font-bold outline-offset-4">{spec.later}</h3>
+        {waves.length > 1 && <p className="text-sm font-bold">{t.delegation.wave(waveIndex + 1, waves.length)}</p>}
+        <h3 ref={laterRef} tabIndex={-1} className="text-xl font-bold outline-offset-4">{wave.later}</h3>
         <p className="text-sm text-muted">{t.delegation.laterNote}</p>
-        <p className="mt-2" role="status">{t.delegation.summary(sound, spec.tasks.length)}</p>
+        <p className="mt-2" role="status">{t.delegation.summary(sound, tasks.length)}</p>
         <ul className="mt-4 space-y-4">
-          {spec.tasks.map((task) => (
+          {tasks.map((task) => (
             <Outcome key={task.id} task={task} chosen={sent[task.id]} />
           ))}
         </ul>
         <ActionBar>
-          <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>
+          {more ? (
+            <button
+              type="button"
+              onClick={() => {
+                setWaveIndex(waveIndex + 1);
+                setShowing(false);
+              }}
+              className="btn btn-primary"
+            >
+              {t.delegation.nextWave}
+            </button>
+          ) : (
+            <button type="button" onClick={onContinue} className="btn btn-primary">{t.mission.next}</button>
+          )}
         </ActionBar>
       </div>
     );
   }
 
+  const notes = carryNotes(wave, sent);
+
   return (
     <div>
-      <details className="rounded-lg border border-border bg-surface p-3" open>
+      <details className="rounded-lg border border-border bg-surface p-3" open={waveIndex === 0}>
         <summary className="cursor-pointer font-bold">{t.delegation.rolesHeading}</summary>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
           {DELEGATION_ROLES.map((role) => (
@@ -73,9 +104,20 @@ export function DelegationDesk({
       </details>
       {!guided && <p className="mt-3 text-sm">{t.delegation.independentNote}</p>}
 
-      <h3 className="mt-5 text-lg font-bold">{t.delegation.inbox}</h3>
+      {waves.length > 1 && <p className="mt-5 text-sm font-bold">{t.delegation.wave(waveIndex + 1, waves.length)}</p>}
+      <h3 ref={inboxRef} tabIndex={-1} className={`${waves.length > 1 ? "" : "mt-5 "}text-lg font-bold outline-offset-4`}>
+        {waveIndex === 0 ? t.delegation.inbox : t.delegation.inboxLater}
+      </h3>
+      {notes.length > 0 && (
+        <section className="mt-2 rounded-lg border-l-4 border-[var(--highlighter)] bg-surface p-3" aria-label={t.delegation.sinceThen}>
+          <p className="text-sm font-bold">{t.delegation.sinceThen}</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5">
+            {notes.map((n) => <li key={n}>{n}</li>)}
+          </ul>
+        </section>
+      )}
       <ul className="mt-2 space-y-4">
-        {spec.tasks.map((task) => (
+        {tasks.map((task) => (
           <li key={task.id} className="ticket">
             <h4 className="text-lg">{task.title}</h4>
             <p className="text-sm text-muted">{t.delegation.from}: {task.from}</p>
@@ -127,16 +169,17 @@ export function DelegationDesk({
       <ActionBar>
         <button
           type="button"
-          disabled={count < spec.tasks.length}
+          disabled={count < tasks.length}
           onClick={() => {
-            for (const [item, result] of delegationResults(stepId, spec, assigned, hinted)) onEvidence(item, result);
-            setSent(assigned);
+            for (const [item, result] of delegationResults(stepId, spec, assigned, hinted, wave.taskIds)) onEvidence(item, result);
+            setSent((s) => ({ ...s, ...Object.fromEntries(tasks.map((task) => [task.id, assigned[task.id]])) }));
+            setShowing(true);
           }}
           className="btn btn-primary"
         >
           {t.delegation.send}
         </button>
-        <span className="text-sm font-bold" aria-live="polite">{t.delegation.progress(count, spec.tasks.length)}</span>
+        <span className="text-sm font-bold" aria-live="polite">{t.delegation.progress(count, tasks.length)}</span>
       </ActionBar>
     </div>
   );

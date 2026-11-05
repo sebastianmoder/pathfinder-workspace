@@ -9,7 +9,9 @@ import { ActionBar, useReveal } from "../step-ui";
 
 /**
  * Attempt, choose help, try again (PRD M06). Help is offered after a first attempt, each kind says what it
- * does for the learner, and nothing about using help is treated as failure.
+ * does for the learner, and nothing about using help is treated as failure. A numeric problem takes a typed
+ * answer, so the help is what gets a learner there, not ruling options out. With no help on offer, the
+ * same problems serve as an unaided transfer.
  */
 export function HelpGym({
   stepId,
@@ -40,8 +42,9 @@ export function HelpGym({
   }, [index]);
 
   const problem = problems[index];
+  const unaided = problem.helps.length === 0;
   const solved = checked !== null && isRight(problem, checked);
-  const chosen = problem.choices.find((c) => c.id === checked);
+  const explanation = problem.numeric ? problem.numeric.explanation : problem.choices?.find((c) => c.id === checked)?.explanation;
 
   const check = () => {
     if (!selected) return;
@@ -73,27 +76,56 @@ export function HelpGym({
       <div className="mat mt-3 p-3 sm:p-5">
         <p className="sheet p-4 sm:p-5">{problem.text}</p>
       </div>
-      {attempts === 0 && <p className="mt-3 text-sm text-muted">{t.gym.attemptFirst}</p>}
+      {attempts === 0 && <p className="mt-3 text-sm text-muted">{unaided ? t.gym.attemptUnaided : t.gym.attemptFirst}</p>}
 
-      <fieldset className="mt-4" disabled={solved}>
-        <legend className="font-bold">{t.gym.yourAnswer}</legend>
-        <div className="mt-2 space-y-2">
-          {problem.choices.map((c) => (
-            <label key={c.id} className="option">
-              <input
-                type="radio"
-                name={`${uid}-${problem.id}`}
-                checked={selected === c.id}
-                onChange={() => {
-                  setSelected(c.id);
-                  setChecked(null);
-                }}
-              />
-              <span>{c.label}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {problem.numeric ? (
+        <form
+          className="mt-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            check();
+          }}
+        >
+          <label htmlFor={`${uid}-${problem.id}-answer`} className="block font-bold">{problem.numeric.label}</label>
+          <div className="mt-1 flex items-center gap-2">
+            {problem.numeric.prefix && <span aria-hidden="true">{problem.numeric.prefix}</span>}
+            <input
+              id={`${uid}-${problem.id}-answer`}
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              value={selected ?? ""}
+              disabled={solved}
+              onChange={(e) => {
+                setSelected(e.target.value.trim() ? e.target.value : null);
+                setChecked(null);
+              }}
+              className="w-32 rounded border border-border bg-surface px-3 py-2 tabular-nums"
+            />
+            {problem.numeric.unit && <span>{problem.numeric.unit}</span>}
+          </div>
+        </form>
+      ) : (
+        <fieldset className="mt-4" disabled={solved}>
+          <legend className="font-bold">{t.gym.yourAnswer}</legend>
+          <div className="mt-2 space-y-2">
+            {(problem.choices ?? []).map((c) => (
+              <label key={c.id} className="option">
+                <input
+                  type="radio"
+                  name={`${uid}-${problem.id}`}
+                  checked={selected === c.id}
+                  onChange={() => {
+                    setSelected(c.id);
+                    setChecked(null);
+                  }}
+                />
+                <span>{c.label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
       <div ref={feedbackRef} className="reveal">
         {checked && (
           <p role="status" className="mt-3">
@@ -101,12 +133,13 @@ export function HelpGym({
               <span aria-hidden="true" className={solved ? "mark-yes" : "mark-no"}>{solved ? "✔ " : "✖ "}</span>
               {solved ? t.gym.right : t.gym.notYet}
             </strong>
-            {solved && chosen && <> {chosen.explanation}</>}
+            {solved && explanation && <> {explanation}</>}
+            {!solved && unaided && <> {t.gym.checkWorking}</>}
           </p>
         )}
       </div>
 
-      {attempts > 0 && (
+      {attempts > 0 && !unaided && (
         <section className="mt-5 rounded-lg border border-border bg-surface p-4" aria-labelledby={`${uid}-help`}>
           <h4 id={`${uid}-help`} className="font-bold">{t.gym.helpHeading}</h4>
           <p className="text-sm text-muted">{t.gym.helpIntro}</p>
@@ -139,7 +172,7 @@ export function HelpGym({
         <p className="mt-5">{usedLabels.length ? t.gym.usedSummary(usedLabels.join(", ")) : t.gym.noHelp} {sawAnswer ? t.gym.answerNote : usedLabels.length ? t.gym.methodNote : ""}</p>
       )}
 
-      <ActionBar note={!selected && !solved ? t.mission.chooseFirst : checked && !solved ? t.gym.tryHelp : undefined}>
+      <ActionBar note={!selected && !solved ? (problem.numeric ? t.gym.typeFirst : t.mission.chooseFirst) : checked && !solved ? (unaided ? undefined : t.gym.tryHelp) : undefined}>
         {!solved && (
           <button type="button" disabled={!selected} onClick={check} className="btn btn-primary">
             {t.mission.commit}
