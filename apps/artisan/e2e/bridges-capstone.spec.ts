@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { completeB01, completeB03, completeC01Evidence, completeC01Review, completeC01Scope, completeC01Workflow } from "./helpers";
+import { assignRoles, check, completeB01, completeB03, completeC01Evidence, completeC01Review, completeC01Scope, completeC01Workflow, cont, recordJudgment } from "./helpers";
 
 test("B01, the stage 1 bridge, is completable and leads into stage 2", async ({ page }) => {
   await page.goto("/missions/b01-faq");
@@ -8,6 +8,27 @@ test("B01, the stage 1 bridge, is completable and leads into stage 2", async ({ 
   await completeB01(page);
   await expect(page.getByRole("heading", { name: /Recommended next mission: The Evidence Bureau/ })).toBeVisible();
   await expect(page.getByText(/Choosing roles for AI across a project/)).toBeVisible();
+});
+
+test("B01 branches: drafts that went out unchecked come back as a complaint to put right", async ({ page }) => {
+  await page.goto("/missions/b01-faq");
+  await cont(page);
+  await recordJudgment(page, /Ask it for the whole FAQ/);
+  await assignRoles(page, [
+    ["Find the most common questions", "AI-assisted"],
+    ["Draft the answers", "Supervised automation"],
+    ["Decide the refund policy wording", "Human-led"],
+  ]);
+  await cont(page);
+  await expect(page.getByText(/There is no café/)).toBeVisible();
+  await page.getByLabel(/Reply that the AI wrote that answer/).check();
+  await check(page);
+  await expect(page.getByText(/The Commons published it, so the Commons answers for it/)).toBeVisible();
+  await page.getByLabel(/Fix the page, tell Marta/).check();
+  await check(page);
+  await cont(page);
+  await expect(page.getByRole("heading", { name: "Brief one answer" })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
 test("B03, the stage 3 bridge, is completable and leads into stage 4", async ({ page }) => {
@@ -21,6 +42,15 @@ test("C01 runs through all four chapters, and the last one ends the journey", as
   await page.goto("/missions/c01-scope");
   await completeC01Scope(page);
   await page.getByRole("link", { name: "The Commission, chapter 2: evidence", exact: true }).click();
+  // The dossier carries chapter 1's decisions into chapter 2, and shows the case pack for what isn't done yet.
+  const dossier = page.locator("details.dossier").locator("visible=true"); // the previous chapter's page stays in the DOM, hidden
+  await expect(dossier.getByText("1 of 4 chapters from your work this visit")).toBeVisible();
+  await expect(dossier).not.toHaveAttribute("open"); // folded, so the brief comes first
+  await dossier.locator("summary").click();
+  const scope = dossier.getByRole("listitem").filter({ hasText: "Chapter 1: what the service may do" });
+  await expect(scope.getByText("From your work this visit")).toBeVisible();
+  await expect(scope.getByText("Answer questions about courses: Supervised automation")).toBeVisible();
+  await expect(dossier.getByRole("listitem").filter({ hasText: "Chapter 3: how the service is set up" }).getByText("From the case pack")).toBeVisible();
   await completeC01Evidence(page);
   await page.getByRole("link", { name: "The Commission, chapter 3: workflow", exact: true }).click();
   await completeC01Workflow(page);

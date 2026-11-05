@@ -92,7 +92,7 @@ test("finding claims does not depend on being right, and every claim is still av
   await cont(page); // brief, with the refresher folded in
   await page.getByRole("button", { name: /Everyone at the Commons can be proud/ }).click();
   await page.getByRole("button", { name: "Check my answer" }).click();
-  await expect(page.getByText("You marked 0 of 6, and 1 that does not belong.")).toBeVisible();
+  await expect(page.getByText("You marked 0 of 7, and 1 that does not belong.")).toBeVisible();
   await page.getByRole("button", { name: "Audit the claims" }).click();
   await firstRead(page, "I would check it first");
   await expect(page.getByRole("button", { name: /enrolled 48 people/ })).toBeAttached();

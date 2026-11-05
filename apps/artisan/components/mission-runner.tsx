@@ -29,7 +29,9 @@ import { AllocationBoard } from "./activities/allocation-board";
 import { Epilogue } from "./activities/epilogue";
 import { ActionBar, FamiliarContext, HowTo, StepIntro } from "./step-ui";
 import { ArtefactFrame } from "./artefacts/frames";
+import { Dossier } from "./dossier";
 import { activityKey, ownScreen, phasesOf, PHASES } from "@/lib/phases";
+import { conditionHolds, inputFrom } from "@/lib/epilogue";
 
 interface Props {
   mission: Mission;
@@ -44,10 +46,13 @@ export function MissionRunner({ mission, password, next }: Props) {
   const helpTitleId = useId();
   const reminder = mission.steps.find((s) => s.kind === "refresher");
   const pauseTitleId = useId();
-  const { stepIndex, answers } = session.progress(mission.id);
+  const progressNow = session.progress(mission.id);
+  const { stepIndex, answers } = progressNow;
   const step = mission.steps[stepIndex];
   // A refresher right after the brief shares the brief's screen, so it isn't counted as a step of its own.
-  const screens = ownScreen(mission.steps);
+  // Steps that branch on earlier work are left out when their condition doesn't hold.
+  const input = inputFrom(progressNow);
+  const screens = ownScreen(mission.steps).map((own, i) => own && conditionHolds(mission.steps[i].showIf, input));
   const total = screens.filter(Boolean).length;
   const shownIndex = screens.slice(0, stepIndex + 1).filter(Boolean).length; // 1-based
   const phases = phasesOf(mission.steps);
@@ -142,6 +147,11 @@ export function MissionRunner({ mission, password, next }: Props) {
             <p><strong>{t.mission.fictional}</strong> {mission.scenario}</p>
           </div>
         </div>
+      )}
+
+      {/* Keyed so that each chapter, and its debrief, starts the dossier in its own state rather than one carried over. */}
+      {mission.dossier && (
+        <Dossier key={`${mission.id}-${step.kind === "debrief"}`} sections={mission.dossier} currentMissionId={mission.id} open={step.kind === "debrief"} />
       )}
 
       <div className="mt-6">

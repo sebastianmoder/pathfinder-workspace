@@ -751,7 +751,11 @@ type StepUnion =
       nextMissionId: MissionId | null;
     };
 
-export type Step = StepUnion & { motifs?: Motif[] };
+export type Step = StepUnion & {
+  motifs?: Motif[];
+  /** Shown only when this holds for what the learner did earlier, so a case can branch (PRD §6, bridges). */
+  showIf?: EpilogueCondition;
+};
 
 export type StepKind = Step["kind"];
 
@@ -779,9 +783,26 @@ export interface EpilogueLine {
   beats: EpilogueBeat[];
 }
 
+/**
+ * One part of a project's shared workspace (PRD C01): what a chapter produced this visit, or the case pack's
+ * reviewed version for anyone who hasn't done that chapter, so no chapter depends on an earlier visit.
+ */
+export interface DossierSection {
+  id: string;
+  title: string;
+  /** The chapter that produces it. */
+  missionId: MissionId;
+  /** The case pack's version. */
+  prepared: string[];
+  /** Built from what the chapter recorded: roles from a desk, a workflow's arrangement, or a plan's conditions. */
+  source?: { kind: "roles" | "arrangement" | "plan"; stepId: string };
+}
+
 export interface Mission {
   id: MissionId;
   title: string;
+  /** A workspace shared by a project's chapters, shown beside the mission. */
+  dossier?: DossierSection[];
   outcome: string;
   scenario: string;
   approxMinutes: number;

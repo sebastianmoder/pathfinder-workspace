@@ -10,9 +10,13 @@ export function initialsOf(name: string): string {
   return letters.join("").toUpperCase();
 }
 
+/** FNV-1a over the name, which spreads each conversation's cast across different tones. */
 export function toneOf(name: string): (typeof TONES)[number] {
-  let hash = 0;
-  for (const ch of name.split(",")[0].trim()) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  let hash = 2166136261;
+  for (const ch of name.split(",")[0].trim()) {
+    hash ^= ch.charCodeAt(0);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
   return TONES[hash % TONES.length];
 }
 

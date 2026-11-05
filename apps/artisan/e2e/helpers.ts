@@ -315,10 +315,11 @@ export async function completeM05(page: Page) {
 export async function completeT01(page: Page) {
   await cont(page); // brief, with the refresher folded in
   await expect(page.getByRole("button", { name: "Need a hint?" })).toHaveCount(0);
-  await markAndCheck(page, [/enrolled 48 people/, /Almost everyone/, /shown to improve/, /One in four/, /completely free/, /next course starts/i], "Audit the claims");
+  await markAndCheck(page, [/enrolled 48 people/, /share of people completing/, /Almost everyone/, /shown to improve/, /One in four/, /completely free/, /next course starts/i], "Audit the claims");
   await firstRead(page, "Not sure");
   const save = { independent: true };
   await auditClaim(page, /enrolled 48 people/, { ...save, passage: "register-numbers", status: "Supported", action: "Retain" });
+  await auditClaim(page, /share of people completing/, { ...save, passage: "register-last", calc: "64.6", status: "Misleading", action: "Qualify", repair: ["60", "65"] });
   await auditClaim(page, /Almost everyone/, { ...save, passage: "questionnaire-result", status: "Misleading", action: "Qualify", repair: ["24", "20"] });
   await auditClaim(page, /shown to improve/, { ...save, passage: "questionnaire-scope", status: "Unsupported", action: "Remove" });
   await auditClaim(page, /One in four/, { ...save, passage: "county-2026-broadband", status: "Outdated", action: "Correct", repair: ["seven"] });
@@ -327,6 +328,9 @@ export async function completeT01(page: Page) {
   await page.getByRole("button", { name: "Submit the audit" }).click();
   await page.getByRole("button", { name: "See the final briefing" }).click();
   await expect(page.getByText(/One in seven adults/).first()).toBeVisible();
+  await cont(page);
+  await page.getByLabel(/I'll work one out myself/).check();
+  await check(page);
   await cont(page);
   await markAndCheck(page, [/^People$/, /double its size/]);
   await skipPractice(page);
@@ -800,12 +804,9 @@ export async function completeB01(page: Page) {
     ["Decide the refund policy wording", "Human-led"],
   ]);
   await cont(page);
-  await pickPart(page, "Objective", /When is the Commons open/);
-  await pickPart(page, "Context", /current hours/);
-  await pickPart(page, "What it must include", /noticeboard/);
-  await pickPart(page, "Length and style", /Under 50 words/);
+  await pickPart(page, "The facts it is given", /The current hours/);
   await runIt(page);
-  await judgeChecklist(page, [/answers the question asked/, /hours come from you/, /holiday changes/, /short and plain/]);
+  await judgeChecklist(page, [/they are the current ones/, /nothing the Commons doesn't have/]);
   await markAndCheck(page, [/Children under 12/, /family room/, /children's activities are free/]);
   await page.getByLabel(/Remove it, or check it/).check();
   await check(page);
@@ -817,7 +818,7 @@ export async function completeB01(page: Page) {
 export async function completeB03(page: Page) {
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /On spelling and layout/);
-  await markAndCheck(page, [/^Haddad,$/, /asylum case/, /Canal Street/, /Note for the AI/]);
+  await markAndCheck(page, [/Packed library on our opening night/, /^Amira Haddad$/, /asylum case/, /fair to everyone/, /Every word of this report/]);
   await followLead(page, "Check the file's history");
   await followLead(page, "Look for consent forms");
   await page.getByRole("button", { name: "Finish investigating" }).click();
@@ -827,13 +828,21 @@ export async function completeB03(page: Page) {
     [/meant to mislead/, "Still uncertain"],
   ]);
   await cont(page);
-  await page.getByLabel(/State what was checked/).check();
-  await check(page);
-  await cont(page);
-  await page.getByLabel(/A note saying it was written with AI/).check();
+  await sortInto(page, [
+    ["Amira's surname", "Take it out"],
+    ["Amira's asylum case", "Take it out"],
+    ["The cover photo", "Replace it with one the Commons may use"],
+    ["“Fair to everyone, because one pass mark”", "Say only what was actually checked"],
+    ["The foreword's line about who wrote it", "Say that AI wrote it"],
+  ]);
   await check(page);
   await cont(page);
   await reviseAndFinish(page, /How many were asked and answered/);
+  await writeNote(page, [
+    [/^What you changed/, "PRIVATE-B03-NOTE: removed two details about Amira, the photo, the fairness line."],
+    [/^Why each change/, "Consent, the photo's origin, no evidence, the disclosure rule."],
+    [/^What still has to happen/, "Choose a consented cover photo."],
+  ]);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
@@ -902,8 +911,10 @@ export async function completeC01Review(page: Page) {
   await page.getByLabel("Your answer").fill("PRIVATE-C01-MEMO: launch in English with interpreter calls.");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
-  await page.getByLabel(/The independent trial found/).check();
-  await check(page);
+  // The challenge is a conversation now: answer with the evidence, turn the cost into a condition, name an owner.
+  await showPassage(page, "trial-languages");
+  await choose(page, /Keep them until Polish and Arabic answers reach 90%/);
+  await choose(page, /A named service owner at the council/);
   await cont(page);
   await skipPractice(page);
   await expect(page.getByText(/PRIVATE-C01-MEMO: launch in English/)).toBeVisible();

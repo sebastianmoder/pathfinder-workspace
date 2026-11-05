@@ -27,6 +27,15 @@ export function conditionHolds(c: EpilogueCondition | undefined, input: Epilogue
   return true;
 }
 
+/** What epilogues and conditional steps read, from a mission's progress in the session. */
+export function inputFrom(progress: { answers: Record<string, { choiceId?: string }>; facts: Record<string, string[]>; evidence: EvidenceLedger }): EpilogueInput {
+  return {
+    choices: Object.fromEntries(Object.entries(progress.answers).map(([id, a]) => [id, a.choiceId])),
+    facts: progress.facts,
+    evidence: progress.evidence,
+  };
+}
+
 /** The beat a line shows for this learner: the first whose conditions hold. */
 export function beatFor(line: EpilogueLine, input: EpilogueInput): EpilogueBeat {
   return line.beats.find((b) => conditionHolds(b.when, input)) ?? line.beats[line.beats.length - 1];

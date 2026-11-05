@@ -3,7 +3,8 @@ import type { AuditSpec, Mission } from "../../types";
 /**
  * T01 — The Newsletter Desk: the pilot's combined transfer case.
  * All organisations, documents and figures are fictional. A small precursor to C01, not a substitute for it.
- * Arithmetic to re-check on review: 20 of 24 respondents is 83%; 24 of 31 finishers responded; 31 of 48 enrolled finished.
+ * Arithmetic to re-check on review: 20 of 24 respondents is 83%; 24 of 31 finishers responded; 31 of 48 enrolled finished
+ * (64.6%); last year 30 of 50 finished (60%), so completion rose by about 5 percentage points, a relative rise of about 8%.
  */
 
 const audit: AuditSpec = {
@@ -22,6 +23,7 @@ const audit: AuditSpec = {
       date: "October 2026",
       passages: [
         { id: "register-numbers", text: "The autumn Digital Skills for All course enrolled 48 people. 31 attended at least six of the eight sessions." },
+        { id: "register-last", text: "Last year's autumn course enrolled 50 people, and 30 attended at least six of the eight sessions." },
         { id: "register-fee", text: "There is no charge for tuition. A €15 materials fee applies, and it is waived on request." },
       ],
     },
@@ -58,7 +60,7 @@ const audit: AuditSpec = {
     },
   ],
   briefing: [
-    [{ decoyId: "proud" }, " ", { claimId: "enrolled" }, " ", { claimId: "confident" }, " ", { claimId: "skills" }],
+    [{ decoyId: "proud" }, " ", { claimId: "enrolled" }, " ", { claimId: "completion" }, " ", { claimId: "confident" }, " ", { claimId: "skills" }],
     [{ decoyId: "matters" }, " ", { claimId: "broadband" }, " ", { claimId: "free" }, " ", { claimId: "next" }],
   ],
   claims: [
@@ -73,6 +75,21 @@ const audit: AuditSpec = {
       actionExplanation: "Nothing needs to change.",
       finalText: "The autumn Digital Skills for All course enrolled 48 people [Course register].",
       ifLost: "Readers could not tell how many people the course had reached.",
+    },
+    {
+      id: "completion",
+      text: "The share of people completing the course rose by 5% on last year [Course register].",
+      status: "misleading",
+      passageIds: ["register-numbers", "register-last"],
+      bestAction: "qualify",
+      defensibleActions: ["correct"],
+      evidenceExplanation: "The two register passages give this year's 31 of 48 and last year's 30 of 50.",
+      statusExplanation: "Completion went from 60% to about 65%: a rise of 5 percentage points, which is a relative rise of about 8%. “Rose by 5%” mixes the two, and readers can't tell which is meant.",
+      actionExplanation: "State both shares, so readers can see the change for themselves. Rewording it as a correction is also defensible.",
+      finalText: "The share of people completing the course rose from 60% last year to 65% this year [Course register].",
+      repair: ["The share of people completing the course rose from ", { id: "last", accept: ["60"] }, "% last year to ", { id: "now", accept: ["65", "64.6", "64"] }, "% this year [Course register]."],
+      calculation: { prompt: "Work it out: what share of this year's 48 enrolled completed the course?", min: 64, max: 65, explanation: "31 of 48 is 64.6%, about 65%. Last year, 30 of 50 was 60%." },
+      ifKept: "A councillor quoted “completion up 5%” in a funding debate, and was asked whether that meant 5 points or 5 percent. Nobody could say.",
     },
     {
       id: "confident",
@@ -148,7 +165,7 @@ const audit: AuditSpec = {
 export const t01: Mission = {
   id: "t01-transfer",
   title: "The Newsletter Desk",
-  outcome: "Use claim checking and assumption spotting together on a new case, with less help.",
+  outcome: "Use claim checking, working figures out and assumption spotting together on a new case, with less help.",
   scenario:
     "You are the editor of the newsletter at the Riverside Learning Commons, a community learning centre. An AI assistant has drafted the lead article about a digital skills course, and a colleague has added an argument for expanding it.",
   approxMinutes: 13,
@@ -178,6 +195,20 @@ export const t01: Mission = {
       title: "Audit the draft",
       prompt: "The newsletter goes out today, and the draft reads well. Check what it says before it goes.",
       audit,
+    },
+    {
+      kind: "quiz",
+      id: "tutor-check",
+      prompt: "Before the newsletter goes, your colleague adds a message. What do you reply?",
+      artefact: {
+        kind: "chat",
+        messages: [{ from: "Dev, newsletter volunteer", text: "Don't worry about the numbers: I had the AI tutor check all my percentages, so they're right." }],
+      },
+      choices: [
+        { id: "a", label: "Thanks, but I'll work one out myself from the register.", verdict: "correct", explanation: "The tutor checked the arithmetic it was given, not whether the figures match the register, and you've just found some that don't. Working a figure out yourself is the check." },
+        { id: "b", label: "Great: the tutor is good at maths, so they'll be right.", verdict: "weaker", explanation: "Good arithmetic on the wrong figures gives the wrong answer. The tutor couldn't know what the register says." },
+        { id: "c", label: "Could you ask it to check them again, more carefully?", verdict: "weaker", explanation: "Asking again gets more generated text from the same figures. The source to check against is the register." },
+      ],
     },
     {
       kind: "transfer",
@@ -277,7 +308,13 @@ export const t01: Mission = {
           id: "write-fix",
           label: "Writing an accurate fix from the source",
           kind: "transfer",
-          items: ["confident", "broadband", "free"].map((id) => `audit/${id}/repair`),
+          items: ["completion", "confident", "broadband", "free"].map((id) => `audit/${id}/repair`),
+        },
+        {
+          id: "work-it-out",
+          label: "Working a figure out instead of trusting someone else's check",
+          kind: "transfer",
+          items: ["audit/completion/calc", "tutor-check"],
         },
         {
           id: "note-to-colleague",

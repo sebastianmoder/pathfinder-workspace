@@ -190,7 +190,13 @@ export function DialogueActivity({
     <div>
       <h2 className="text-2xl">{step.title}</h2>
       <p className="mt-1">{step.intro}</p>
-      <HowTo steps={t.howTo.dialogue} />
+      <HowTo
+        steps={[
+          t.howTo.dialogue[0],
+          spec.discoveries.length ? t.howTo.dialogue[1] : t.howTo.dialogueNotes,
+          spec.boardQuestions?.length ? t.howTo.dialogue[2] : t.howTo.dialogueEnd,
+        ]}
+      />
       <p className="mt-3 border-l-4 border-border pl-3 text-sm">{t.dialogue.scripted}</p>
 
       <details className="mt-3 rounded-lg border border-border bg-surface p-3" open={!path.ended && path.turns.length <= 1}>
@@ -218,7 +224,7 @@ export function DialogueActivity({
           <Conversation spec={spec} sources={step.sources} path={path} onChoose={choose} />
         </div>
         <div data-scroll-panel className="mt-4 space-y-4 lg:sticky lg:top-4 lg:mt-0 lg:max-h-[calc(100vh-8rem)] lg:self-start lg:overflow-y-auto">
-          <Discoveries spec={spec} found={path.discovered} showMissed={path.ended} />
+          {spec.discoveries.length > 0 && <Discoveries spec={spec} found={path.discovered} showMissed={path.ended} />}
           <SourceDrawer
             sources={step.sources}
             hasClaim

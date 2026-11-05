@@ -186,6 +186,8 @@ export const en = {
       "What you uncover is listed beside the conversation. Your notes are private.",
       "When the conversation ends, answer the board's questions and continue.",
     ],
+    dialogueNotes: "Your notes beside the conversation are private.",
+    dialogueEnd: "When the conversation ends, continue.",
     argumentMap: [
       "Select a card on the left.",
       "Press “Place here” on the part of the map where it belongs.",
@@ -764,6 +766,16 @@ export const en = {
     backToTray: "Back to the tray",
     placed: (item: string, category: string) => `Placed “${item}” in “${category}”.`,
     returned: (item: string) => `“${item}” is back in the tray.`,
+  },
+
+  dossier: {
+    title: "The commission's dossier",
+    count: (yours: number, total: number) => (yours ? `${yours} of ${total} chapters from your work this visit` : "From the case pack"),
+    intro: "What the commission has settled so far. Where you haven't done a chapter this visit, the case pack's version is shown, so every chapter works on its own.",
+    yours: "From your work this visit",
+    checked: "Checked by you this visit",
+    thisChapter: "This chapter. The case pack's version until you finish it.",
+    prepared: "From the case pack",
   },
 
   epilogue: {

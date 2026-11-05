@@ -89,46 +89,59 @@ export const b01: Mission = {
       },
     },
     {
+      kind: "quiz",
+      id: "complaint",
+      showIf: { fact: { key: "roles/roles", any: ["answers:automated"] } },
+      prompt: "You let the AI's answers go live unchecked. A week later, this arrives. What do you do first?",
+      artefact: {
+        kind: "email",
+        from: "Contact form on the Commons website",
+        to: "Front desk",
+        subject: "Your FAQ",
+        body: [
+          "Your FAQ says “our ground-floor café serves drinks all day”. I brought my mum in for lunch on Tuesday. There is no café.",
+          "Is anything else on that page true? Marta",
+        ],
+      },
+      choices: [
+        { id: "a", label: "Fix the page, tell Marta, and check every other answer.", verdict: "correct", explanation: "Correct what is wrong where readers see it, answer the person it misled, and find the other unchecked facts before someone else does. Priya still answers for every fact on the page." },
+        { id: "b", label: "Reply that the AI wrote that answer, so it isn't our fault.", verdict: "weaker", explanation: "The Commons published it, so the Commons answers for it. Blaming the tool tells Marta nobody checked, and fixes nothing." },
+        { id: "c", label: "Add a line saying the answers on the page may have mistakes.", verdict: "weaker", explanation: "A warning moves the checking onto readers and leaves the false café on the page. The fix is to check the facts." },
+      ],
+    },
+    {
       kind: "transfer",
       id: "brief-it",
       title: "Brief one answer",
-      prompt: "Brief the AI to draft the FAQ answer about opening hours.",
+      prompt: "Priya has written the brief for the opening-hours answer: what it's for, what it must include and how long it can be. What's missing is the facts. Choose what to give the AI, and run it.",
       compose: {
         workspaceLabel: "The brief",
         outputLabel: "The AI's draft",
         support: "independent",
-        start: { objective: "vague", context: "none", criteria: "none", constraints: "none" },
+        start: { facts: "none" },
         elements: [
-          { id: "objective", label: "Objective", help: "", options: [
-            { id: "vague", label: "Write about the Commons.", output: "The Riverside Learning Commons is a vibrant hub for learning in the heart of the community." },
-            { id: "specific", label: "Write the FAQ answer to “When is the Commons open?”", output: "When is the Commons open?" },
-          ] },
-          { id: "context", label: "Context", help: "", options: [
-            { id: "none", label: "(no context given)", output: "\nWe're open Monday to Saturday, 9:00 to 20:00, and our ground-floor café serves drinks all day." },
-            { id: "hours", label: "Here are the current hours: Mon–Fri 9:00–19:00, Sat 10:00–16:00, closed Sun and bank holidays.", output: "\nMonday to Friday, 9:00 to 19:00, and Saturday, 10:00 to 16:00. We're closed on Sundays and bank holidays." },
-          ] },
-          { id: "criteria", label: "What it must include", help: "", options: [
-            { id: "none", label: "(no requirements given)", output: "" },
-            { id: "link", label: "Say where to check holiday changes: the noticeboard and the website.", output: "Holiday changes are posted on the noticeboard and the website." },
-          ] },
-          { id: "constraints", label: "Length and style", help: "", options: [
-            { id: "none", label: "(no constraints given)", output: "\nWe look forward to welcoming you and helping you on your learning journey, whatever your goals may be!" },
-            { id: "short", label: "Under 50 words, plain language.", output: "" },
-          ] },
+          {
+            id: "facts",
+            label: "The facts it is given",
+            help: "",
+            options: [
+              { id: "none", label: "(no facts given)", output: "When is the Commons open?\nWe're open Monday to Saturday, 9:00 to 20:00, and our ground-floor café serves drinks all day.\nHoliday changes are posted on the noticeboard and the website." },
+              { id: "old", label: "The hours from last year's leaflet: Mon–Sat 9:00–20:00.", output: "When is the Commons open?\nMonday to Saturday, 9:00 to 20:00.\nHoliday changes are posted on the noticeboard and the website." },
+              { id: "hours", label: "The current hours: Mon–Fri 9:00–19:00, Sat 10:00–16:00, closed Sun and bank holidays.", output: "When is the Commons open?\nMonday to Friday, 9:00 to 19:00, and Saturday, 10:00 to 16:00. We're closed on Sundays and bank holidays.\nHoliday changes are posted on the noticeboard and the website." },
+            ],
+          },
         ],
         rounds: [
           {
             id: "hours",
             title: "The opening-hours answer",
-            instruction: "Get a draft that meets all four criteria, then judge it with the checklist.",
+            instruction: "Get a draft that meets both criteria, then judge it with the checklist.",
             criteria: [
-              { id: "answers", text: "It answers the question asked.", requires: { objective: ["specific"] } },
-              { id: "facts", text: "Its hours come from you, not from the AI.", requires: { context: ["hours"] } },
-              { id: "changes", text: "It says where to check holiday changes.", requires: { criteria: ["link"] } },
-              { id: "short", text: "It is short and plain.", requires: { constraints: ["short"] } },
+              { id: "facts", text: "Its hours come from you, and they are the current ones.", requires: { facts: ["hours"] } },
+              { id: "nothing", text: "It mentions nothing the Commons doesn't have.", requires: { facts: ["old", "hours"] } },
             ],
-            solution: { objective: "specific", context: "hours", criteria: "link", constraints: "short" },
-            success: "The hours came from you. Compare the first draft: without them, the AI supplied typical hours, and a café that doesn't exist.",
+            solution: { facts: "hours" },
+            success: "The hours came from you, and they're current. Compare the first draft: without facts, the AI supplied typical hours and a café that doesn't exist. Last year's leaflet gave it facts, but out-of-date ones.",
           },
         ],
       },

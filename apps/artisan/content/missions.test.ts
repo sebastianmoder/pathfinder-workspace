@@ -9,7 +9,7 @@ import { evidenceItems } from "@/lib/evidence";
 import { clockState } from "@/lib/casefile";
 import { segmentsOf } from "@/lib/mark";
 import { askMachine, goalMet } from "@/lib/sandbox";
-import { DELEGATION_ROLES, PROPOSAL, type Artefact, type AuditSpec, type Choice, type DelegationSpec, type Motif, type Step } from "./types";
+import { DELEGATION_ROLES, PROPOSAL, type Artefact, type AuditSpec, type EpilogueCondition, type Choice, type DelegationSpec, type Motif, type Step } from "./types";
 import { bestRole } from "@/lib/delegation";
 import { allMet } from "@/lib/compose";
 import { barsFor, goalMet as chartGoalMet } from "@/lib/chart";
@@ -37,6 +37,32 @@ function choiceSets(mission: (typeof missions)[number]): [string, Choice[]][] {
     if (decision) sets.push([`${s.id}/decision`, decision.choices]);
   }
   return sets;
+}
+
+/** What an activity can record as a fact, so a condition on it can be checked against real values. */
+function factValues(s: Step, name: string): string[] | null {
+  if (name === "plan" && "allocation" in s) return s.allocation.options.map((o) => o.id);
+  if (name === "leads" && "casefile" in s) return s.casefile.leads.map((l) => l.id);
+  if (name === "roles" && "delegation" in s) return s.delegation.tasks.flatMap((x) => DELEGATION_ROLES.map((r) => `${x.id}:${r}`));
+  if (name === "arrangement" && "workflow" in s) return s.workflow.slots.flatMap((x) => x.options.map((o) => `${x.id}:${o.id}`));
+  return null;
+}
+
+/** A condition (on an epilogue beat or a conditional step) names only choices, facts and results from earlier steps. */
+function expectConditionRefersBack(c: EpilogueCondition, earlier: Step[], label: string) {
+  if (c.choice) {
+    const step = earlier.find((x) => x.id === c.choice!.step);
+    const ids = step ? choicesOf(step).map((x) => x.id) : [];
+    for (const id of c.choice.ids) expect(ids, `${label}: ${c.choice.step}/${id}`).toContain(id);
+  }
+  if (c.fact) {
+    const [stepId, name] = c.fact.key.split("/");
+    const step = earlier.find((x) => x.id === stepId);
+    const values = step ? factValues(step, name) : null;
+    expect(values, `${label}: ${c.fact.key} is recorded by an earlier step`).not.toBeNull();
+    for (const v of [...(c.fact.all ?? []), ...(c.fact.any ?? []), ...(c.fact.none ?? [])]) expect(values, `${label}: ${v}`).toContain(v);
+  }
+  if (c.evidence) expect(new Set(earlier.flatMap(evidenceItems)).has(c.evidence.item), `${label}: ${c.evidence.item}`).toBe(true);
 }
 
 /** How much longer the one correct option is than the mean of the others, or null without exactly one. */
@@ -224,38 +250,15 @@ describe.each(missions)("mission $id", (mission) => {
     }
   });
 
-  it("epilogues always show something, and only refer to what an earlier step records", () => {
-    const factValues = (s: Step, name: string): string[] | null => {
-      if (name === "plan" && "allocation" in s) return s.allocation.options.map((o) => o.id);
-      if (name === "leads" && "casefile" in s) return s.casefile.leads.map((l) => l.id);
-      if (name === "roles" && "delegation" in s) return s.delegation.tasks.flatMap((x) => DELEGATION_ROLES.map((r) => `${x.id}:${r}`));
-      if (name === "arrangement" && "workflow" in s) return s.workflow.slots.flatMap((x) => x.options.map((o) => `${x.id}:${o.id}`));
-      return null;
-    };
+  it("epilogues always show something, and conditions only refer to what an earlier step records", () => {
     mission.steps.forEach((s, index) => {
-      if (s.kind !== "epilogue") return;
       const earlier = mission.steps.slice(0, index);
-      const items = new Set(earlier.flatMap(evidenceItems));
+      if (s.showIf) expectConditionRefersBack(s.showIf, earlier, `${s.id} (showIf)`);
+      if (s.kind !== "epilogue") return;
       for (const line of s.lines) {
         expect(line.beats.length, line.id).toBeGreaterThan(0);
         expect(line.beats.at(-1)!.when, `${line.id}: the last beat is the default`).toBeUndefined();
-        for (const beat of line.beats) {
-          const c = beat.when;
-          if (!c) continue;
-          if (c.choice) {
-            const step = earlier.find((x) => x.id === c.choice!.step);
-            const ids = step ? choicesOf(step).map((x) => x.id) : [];
-            for (const id of c.choice.ids) expect(ids, `${line.id}: ${c.choice.step}/${id}`).toContain(id);
-          }
-          if (c.fact) {
-            const [stepId, name] = c.fact.key.split("/");
-            const step = earlier.find((x) => x.id === stepId);
-            const values = step ? factValues(step, name) : null;
-            expect(values, `${line.id}: ${c.fact.key} is recorded by an earlier step`).not.toBeNull();
-            for (const v of [...(c.fact.all ?? []), ...(c.fact.any ?? []), ...(c.fact.none ?? [])]) expect(values, `${line.id}: ${v}`).toContain(v);
-          }
-          if (c.evidence) expect(items.has(c.evidence.item), `${line.id}: ${c.evidence.item}`).toBe(true);
-        }
+        for (const beat of line.beats) if (beat.when) expectConditionRefersBack(beat.when, earlier, line.id);
       }
     });
   });
@@ -1007,5 +1010,23 @@ describe("variety across the journey", () => {
   it("uses more than one format for written answers", () => {
     const formats = new Set(missions.flatMap((m) => m.steps.flatMap((s) => (s.kind === "openResponse" ? [s.format ?? "free"] : []))));
     expect(formats).toEqual(new Set(["free", "structured", "pickImprove"]));
+  });
+});
+
+describe("the commission's dossier", () => {
+  const chapters = missions.filter((m) => m.id.startsWith("c01-"));
+
+  it("is shared by every chapter, and each section's source is a real step of its chapter", () => {
+    const dossier = chapters[0].dossier!;
+    for (const m of chapters) expect(m.dossier, m.id).toBe(dossier);
+    for (const section of dossier) {
+      const chapter = missions.find((m) => m.id === section.missionId);
+      expect(chapter, section.id).toBeDefined();
+      expect(section.prepared.length, `${section.id}: a returning learner sees the case pack`).toBeGreaterThan(0);
+      if (section.source) {
+        const step = chapter!.steps.find((s) => s.id === section.source!.stepId);
+        expect(step && factValues(step, section.source.kind), `${section.id}: ${section.source.stepId}`).toBeTruthy();
+      }
+    }
   });
 });

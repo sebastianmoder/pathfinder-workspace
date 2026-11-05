@@ -1,7 +1,7 @@
 "use client";
 
 import type { Step } from "@/content/types";
-import { beatFor } from "@/lib/epilogue";
+import { beatFor, inputFrom } from "@/lib/epilogue";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { CastBadge } from "../artefacts/cast-badge";
@@ -18,11 +18,7 @@ const TONE_MARK = { gain: "✔", cost: "◆", harm: "✖" } as const;
 export function Epilogue({ missionId, step, onContinue }: { missionId: string; step: EpilogueStep; onContinue: () => void }) {
   const session = useSession();
   const progress = session.progress(missionId);
-  const input = {
-    choices: Object.fromEntries(Object.entries(progress.answers).map(([id, a]) => [id, a.choiceId])),
-    facts: progress.facts,
-    evidence: progress.evidence,
-  };
+  const input = inputFrom(progress);
 
   return (
     <div>

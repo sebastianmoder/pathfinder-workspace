@@ -1,4 +1,4 @@
-import type { AuditSpec, Choice, Mission, Rubric } from "../../types";
+import type { AuditSpec, Choice, DialogueChoice, DossierSection, Mission, Rubric } from "../../types";
 
 /**
  * C01 — The ARTISAN Commission, in four chapters that each restart on their own (PRD C01).
@@ -18,6 +18,55 @@ const META = {
   sourcesToReview: ["All figures are fictional; the arithmetic is listed at the top of this file."],
 };
 
+/** The commission's shared workspace, carried across all four chapters (PRD C01). */
+const DOSSIER: DossierSection[] = [
+  {
+    id: "scope",
+    title: "Chapter 1: what the service may do",
+    missionId: "c01-scope",
+    source: { kind: "roles", stepId: "uses" },
+    prepared: [
+      "Course questions: answered by the service, with a weekly sample check.",
+      "Council tax support: the service explains the rules and books a call; an adviser decides.",
+      "Messages about risk: emergency numbers at once, then straight to the duty officer.",
+      "Event listings: AI drafts the translations, and volunteers check each language.",
+    ],
+  },
+  {
+    id: "evidence",
+    title: "Chapter 2: what the evidence shows",
+    missionId: "c01-evidence",
+    prepared: [
+      "Overall, 950 of 1,050 sampled answers were correct: about 90%, not the vendor's 95%.",
+      "By language: about 95% in English, 67% in Polish and 63% in Arabic.",
+      "All 3 risk conversations reached a person within a minute, though 3 is very few.",
+    ],
+  },
+  {
+    id: "workflow",
+    title: "Chapter 3: how the service is set up",
+    missionId: "c01-workflow",
+    source: { kind: "arrangement", stepId: "service" },
+    prepared: [
+      "Where answers come from: the council's and the Commons' published pages.",
+      "Entitlements: explain the rules, and book a call with an adviser.",
+      "Risk: emergency numbers, and the duty officer at once.",
+      "Other languages: answer in English, and offer an interpreter call.",
+      "Gaps: say it doesn't know, and pass the question to staff.",
+    ],
+  },
+  {
+    id: "conditions",
+    title: "Chapter 4: conditions for launch",
+    missionId: "c01-review",
+    source: { kind: "plan", stepId: "conditions" },
+    prepared: ["Not set yet: the review meeting decides them."],
+  },
+];
+
+const say = (id: string, strategy: DialogueChoice["strategy"], label: string, note: string, next: string, scored?: DialogueChoice["scored"]): DialogueChoice =>
+  ({ id, strategy, label, note, next, ...(scored ? { scored } : {}) });
+
 const refresher = (focus: string) => ({
   kind: "refresher" as const,
   id: "refresher",
@@ -34,6 +83,7 @@ export const c01Scope: Mission = {
   scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. First, decide its scope.",
   approxMinutes: 12,
   meta: META,
+  dossier: DOSSIER,
   steps: [
     { kind: "brief", id: "brief", title: "Your task", body: "Assign a role for AI to each use the planners propose, and prepare the data they want to give the service. This is the capstone: there are no hints." },
     refresher("This chapter uses choosing a role for AI (the Delegation Desk) and sharing only what a task needs (the Boundary Room)."),
@@ -236,6 +286,7 @@ export const c01Evidence: Mission = {
   scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. The vendor has made its case; check it.",
   approxMinutes: 14,
   meta: META,
+  dossier: DOSSIER,
   steps: [
     { kind: "brief", id: "brief", title: "Your task", body: "Audit the vendor's case against an independent evaluation, and look at what its accuracy figure hides. This is the capstone: there are no hints." },
     refresher("This chapter uses checking claims against sources (the Evidence Bureau) and comparing groups fairly with rates (the Numbers Lab, the Fairness Council)."),
@@ -315,6 +366,7 @@ export const c01Workflow: Mission = {
   scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. Test how it is set up before anyone relies on it.",
   approxMinutes: 12,
   meta: META,
+  dossier: DOSSIER,
   steps: [
     { kind: "brief", id: "brief", title: "Your task", body: "Configure the service from its steps, run the trial cases, diagnose the failures and fix them. This is the capstone: there are no hints." },
     refresher("This chapter uses testing a workflow (the Systems Workshop), keeping decisions about people with people (the Delegation Desk), and treating document text as content (the Boundary Room)."),
@@ -416,6 +468,7 @@ export const c01Review: Mission = {
   scenario: "You lead a commission on “Riverside Answers”, an AI chat service for residents. The council meets to hear your recommendation.",
   approxMinutes: 15,
   meta: META,
+  dossier: DOSSIER,
   steps: [
     {
       kind: "brief",
@@ -457,21 +510,90 @@ export const c01Review: Mission = {
       rubric: memoRubric(),
     },
     {
-      kind: "quiz",
+      kind: "dialogue",
       id: "challenge",
-      prompt: "A councillor challenges you: “The vendor says it's 95% accurate in every language. Your conditions cost €30,000. Why not just trust the vendor?” What is the strongest reply?",
-      choices: [
-        { id: "a", label: "“The independent trial found Polish and Arabic far lower.”", verdict: "correct", explanation: "It answers the challenge with the specific evidence, and shows why the conditions follow from it." },
-        { id: "b", label: "“AI vendors always exaggerate, so we shouldn't believe them.”", verdict: "weaker", explanation: "A generalisation, not evidence. It invites the councillor to dismiss your view the same way." },
-        { id: "c", label: "“You may be right; perhaps we could drop the conditions.”", verdict: "weaker", explanation: "Changing your view is good when there's a better reason. Here the evidence is on your side." },
-      ],
+      title: "Face the committee",
+      intro: "The services committee has read your recommendation. Councillor Hughes leads the questions. Answer from the evidence: you can show a passage from the evaluation at any point.",
+      initialStepId: "initial",
+      sources: pitch.sources,
+      reflectionPrompt: "What is the strongest part of your case, and the weakest?",
+      continueLabel: "Continue",
+      dialogue: {
+        characters: [
+          { id: "hughes", name: "Councillor Hughes", role: "chair of the services committee", knows: "The vendor's brochure, and the council's budget.", wants: "A good reason to spend €30,000 on conditions." },
+          { id: "okoro", name: "Councillor Okoro", role: "committee member", knows: "The complaints residents send about the council's website.", wants: "To know who residents turn to when the service is wrong." },
+        ],
+        start: "trust",
+        starts: { a: "trust", b: "trust", c: "trust" },
+        discoveries: [],
+        nodes: [
+          {
+            id: "trust",
+            speakerId: "hughes",
+            text: "“The vendor says it's 95% accurate in every language. Your conditions cost €30,000. Why not just trust the vendor?”",
+            choices: [
+              say("vendors", "restate", "“AI vendors always exaggerate, so we shouldn't believe them.”", "A generalisation, not evidence. It invites the councillor to dismiss your view the same way.", "pushback", { item: "evidence", right: false }),
+              say("drop", "concede", "“You may be right. Perhaps we could drop the conditions.”", "Conceding is right when there's a better reason. Here the evidence is on your side, and you gave it up.", "drop", { item: "evidence", right: false }),
+            ],
+            cite: {
+              responses: [
+                { passageIds: ["trial-languages"], note: "You showed the independent evaluation: about 95% in English, but about two-thirds in Polish and Arabic. That answers the claim head on.", next: "cost", scored: { item: "evidence", right: true } },
+                { passageIds: ["trial-accuracy"], note: "You showed that overall accuracy was about 90%, not 95%. True and useful, though the conditions rest on the language breakdown.", next: "cost", scored: { item: "evidence", right: true } },
+              ],
+              otherwise: { note: "That passage doesn't answer the 95% claim. The evaluation's figures do.", next: "pushback", scored: { item: "evidence", right: false } },
+            },
+          },
+          {
+            id: "pushback",
+            speakerId: "hughes",
+            text: "“That's an opinion. Show me something I can check.”",
+            choices: [
+              say("show", "evidence", "“The independent trial found Polish and Arabic answers right only about two-thirds of the time.”", "Now you've answered with the evidence. Lead with it next time.", "cost"),
+              say("give", "concede", "“I don't have anything more than that.”", "You did: the evaluation is in your pack, and it answers him.", "drop"),
+            ],
+            cite: {
+              responses: [{ passageIds: ["trial-languages", "trial-accuracy"], note: "You showed the evaluation. That is something he can check.", next: "cost" }],
+              otherwise: { note: "That passage doesn't answer him. The evaluation's figures do.", next: "cost" },
+            },
+          },
+          {
+            id: "drop",
+            speakerId: "okoro",
+            text: "“Wait. If we drop the conditions, what happens to Polish and Arabic speakers who get wrong answers? Who do they turn to?”",
+            choices: [
+              say("back", "evidence", "“You're right. The trial found them wrong a third of the time, so the conditions stay.”", "You came back to the evidence. Changing your mind for a good reason is still a good reason.", "cost"),
+              say("shrug", "restate", "“They can always use the English service.”", "Many of them can't, which is the whole point of the condition.", "cost"),
+            ],
+          },
+          {
+            id: "cost",
+            speakerId: "hughes",
+            text: "“Even so: €10,000 a year for interpreter calls, for a few hundred residents?”",
+            choices: [
+              say("condition", "alternative", "“Keep them until Polish and Arabic answers reach 90%, checked monthly.”", "You turned the cost into a condition with an end point: easier to agree to, and it still protects the residents the evidence says are worst served.", "owner", { item: "condition", right: true }),
+              say("cheap", "concede", "“Fine. We can drop the interpreter calls to save money.”", "It saves money by moving the cost onto the residents the evidence says are worst served.", "owner", { item: "condition", right: false }),
+              say("insist", "restate", "“It's not negotiable. Every resident deserves the best service.”", "It may be right, but it gives the committee nothing to weigh or review.", "owner", { item: "condition", right: false }),
+            ],
+          },
+          {
+            id: "owner",
+            speakerId: "okoro",
+            text: "“And when it's wrong, who do residents complain to?”",
+            choices: [
+              say("named", "evidence", "“A named service owner at the council, with time for complaints.”", "A named person makes the service answerable to residents, not just to the council.", "close", { item: "owner", right: true }),
+              say("vendor", "restate", "“The vendor, since their system writes the answers.”", "The vendor answers to the council. Residents need someone at the council to answer to them.", "close", { item: "owner", right: false }),
+            ],
+          },
+          { id: "close", speakerId: "hughes", text: "“Thank you. Put that in your revised recommendation, and the committee will vote next month.”", choices: [] },
+        ],
+      },
     },
     {
       kind: "openResponse",
       id: "memo-revised",
       priorResponse: "memo",
-      prompt: "Revise your recommendation so it answers the councillor's challenge directly. You can start from your first version.",
-      rubric: memoRubric({ id: "challenge", text: "Answers the challenge with specific evidence." }),
+      prompt: "Revise your recommendation so it answers the committee's questions directly. You can start from your first version.",
+      rubric: memoRubric({ id: "challenge", text: "Answers the committee's questions with specific evidence: the 95% claim, the cost, and who residents turn to." }),
     },
     {
       kind: "revision",
@@ -491,7 +613,9 @@ export const c01Review: Mission = {
       skills: [
         { id: "conditions", label: "Setting conditions that protect the people most at risk", kind: "transfer", items: ["conditions/plan"] },
         { id: "memo", label: "Writing an evidence-based recommendation", kind: "reasoning", items: ["memo"] },
-        { id: "defend", label: "Answering a challenge with evidence", kind: "reasoning", items: ["challenge", "revision"] },
+        { id: "defend", label: "Answering a challenge with evidence", kind: "reasoning", items: ["challenge/evidence", "revision"] },
+        { id: "negotiate", label: "Turning a cost into a condition with an end point", kind: "reasoning", items: ["challenge/condition"] },
+        { id: "answerable", label: "Saying who residents turn to when it's wrong", kind: "reasoning", items: ["challenge/owner"] },
         { id: "revise", label: "Revising a recommendation after a challenge", kind: "reasoning", items: ["memo-revised"] },
       ],
       nextMissionId: null,
