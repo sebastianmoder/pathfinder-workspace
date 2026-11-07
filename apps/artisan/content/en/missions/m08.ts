@@ -5,7 +5,7 @@ import type { Choice, Mission } from "../../types";
  * All people, accounts, outlets and records are fictional. Media are described in text (PRD M08: start with text and still images).
  */
 
-const FLOOD = "Brown floodwater pouring over the road at Riverside Bridge on a grey, rainy day, a red car stranded halfway across, the railings on both sides just visible above the water.";
+const FLOOD = "Brown floodwater pouring over the road at Riverside Bridge on a grey, misty day, a mud-splashed red car stranded halfway across, the railings just visible above the water, bare trees and houses behind.";
 
 const firstMove = "Rosa drops this on your desk: “Looks real to me. Can we run it?” You have a few minutes before you start checking. What is your first move?";
 const firstChoices: Choice[] = [

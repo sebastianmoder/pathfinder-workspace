@@ -3,7 +3,7 @@ import type { Artefact, ComposeFrame, ComposeSpec, MarkFrame } from "@/content/t
 import { partOf, sceneOf, type Choices } from "@/lib/compose";
 import { t } from "@/lib/i18n/en";
 import { CastBadge } from "./cast-badge";
-import { Scene, isGeneratedImage } from "./scenes";
+import { Scene } from "./scenes";
 
 /*
  * Case artefacts shown as the things they are, lying on the cutting mat: a chat, an email, a post, a slide.
@@ -67,11 +67,12 @@ export function MarkShell({ frame, children }: { frame?: MarkFrame; children: Re
 
 const paragraphs = (body: string[]) => body.map((p, i) => <p key={i} className="mt-2 first:mt-0">{p}</p>);
 
-function Drawing({ scene, alt, sizes }: { scene: NonNullable<Extract<Artefact, { kind: "photo" }>["scene"]>; alt: string; sizes?: string }) {
+/** A case's image, with the label that says it is a stand-in made with AI and what it shows. */
+function SceneImage({ scene, alt, sizes }: { scene: NonNullable<Extract<Artefact, { kind: "photo" }>["scene"]>; alt: string; sizes?: string }) {
   return (
-    <div className="drawing">
+    <div className="scene-figure">
       <Scene id={scene} alt={alt} sizes={sizes} />
-      <p className="drawing-note">{isGeneratedImage(scene) ? t.artefact.generatedImage : t.artefact.drawing}: {alt}</p>
+      <p className="scene-note">{t.artefact.standIn}: {alt}</p>
     </div>
   );
 }
@@ -119,7 +120,7 @@ export function ArtefactFrame({ artefact, className }: { artefact: Artefact; cla
               </div>
             </div>
             <p className="mt-3 text-lg">{artefact.text}</p>
-            {artefact.scene && <div className="mt-3"><Drawing scene={artefact.scene} alt={artefact.alt ?? ""} /></div>}
+            {artefact.scene && <div className="mt-3"><SceneImage scene={artefact.scene} alt={artefact.alt ?? ""} /></div>}
             {artefact.reach && <p className="mt-2 text-sm text-muted">{artefact.reach}</p>}
           </article>
         </Specimen>
@@ -131,7 +132,7 @@ export function ArtefactFrame({ artefact, className }: { artefact: Artefact; cla
             <p className="article-outlet">{artefact.outlet}</p>
             <p className="text-sm text-muted">{artefact.date}</p>
             <p className="article-headline">{artefact.headline}</p>
-            {artefact.scene && <div className="mt-3"><Drawing scene={artefact.scene} alt={artefact.alt ?? ""} /></div>}
+            {artefact.scene && <div className="mt-3"><SceneImage scene={artefact.scene} alt={artefact.alt ?? ""} /></div>}
             {artefact.caption && <p className="mt-2 text-sm italic">{artefact.caption}</p>}
           </article>
         </Specimen>
@@ -176,9 +177,9 @@ export function ArtefactFrame({ artefact, className }: { artefact: Artefact; cla
       );
     case "photo":
       return (
-        <Specimen tag={isGeneratedImage(artefact.scene) ? t.artefact.tag.generatedPhoto : t.artefact.tag.photo} className={className}>
+        <Specimen tag={t.artefact.tag.photo} className={className}>
           <div className="sheet p-2">
-            <Drawing scene={artefact.scene} alt={artefact.alt} />
+            <SceneImage scene={artefact.scene} alt={artefact.alt} />
             <p className="mt-2 px-1 text-sm">{artefact.caption}</p>
           </div>
         </Specimen>
@@ -247,7 +248,7 @@ export function ComposeOutput({
   const imageLabel = imagePart && (imagePart.alt ?? imagePart.label.replace(/\s*\([^)]*\)$/, ""));
   const footer = frame.footer ? partOf(spec, choices, frame.footer)?.output.trim() : undefined;
   const headline = frame.kind === "poster" ? partOf(spec, choices, frame.headline)?.output.trim() : undefined;
-  // An image without a drawing stays in the text, so nothing the learner chose goes missing.
+  // An image option without a picture stays in the text, so nothing the learner chose goes missing.
   const placed = new Set([frame.kind === "poster" ? frame.headline : "", image ? frame.image! : "", frame.footer ?? ""]);
   const body = (spec.outputOrder ?? spec.elements.map((e) => e.id))
     .filter((id) => !placed.has(id))
@@ -259,7 +260,7 @@ export function ComposeOutput({
       <div className={`sheet ${frame.kind === "poster" ? "poster" : "card"}`}>
         {headline && <p className="poster-headline">{headline}</p>}
         {frame.kind === "card" && body.map((p, i) => <p key={i} className="card-message">{p}</p>)}
-        {image && imageLabel && <div className="mt-3"><Drawing scene={image} alt={imageLabel} sizes="(max-width: 24rem) 100vw, 24rem" /></div>}
+        {image && imageLabel && <div className="mt-3"><SceneImage scene={image} alt={imageLabel} sizes="(max-width: 24rem) 100vw, 24rem" /></div>}
         {frame.kind === "poster" && body.map((p, i) => <p key={i} className="mt-3">{p}</p>)}
         {footer && <p className="poster-footer">{footer}</p>}
       </div>

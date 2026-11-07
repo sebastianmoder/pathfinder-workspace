@@ -1,6 +1,6 @@
 export type MissionId = string;
 
-/** Photos and images in a case: drawings, or AI-generated images. Each is labelled as what it is wherever it appears. */
+/** Photos and images in a case, all stand-ins made with AI. Each is labelled as such wherever it appears. */
 export type SceneId = "flood" | "library" | "readingParty" | "meadow" | "famousLibrary" | "groupParty" | "heart" | "thankYou";
 
 /**
@@ -10,7 +10,7 @@ export type SceneId = "flood" | "library" | "readingParty" | "meadow" | "famousL
 export type Artefact =
   | { kind: "chat"; messages: { from: string; text: string; /** A message the AI tool wrote, quoted in the chat. */ ai?: boolean }[] }
   | { kind: "email"; from: string; to: string; subject: string; body: string[] }
-  | { kind: "post"; account: string; posted: string; text: string; scene?: SceneId; /** What the drawing shows. */ alt?: string; reach?: string }
+  | { kind: "post"; account: string; posted: string; text: string; scene?: SceneId; /** What the image shows. */ alt?: string; reach?: string }
   | { kind: "article"; outlet: string; date: string; headline: string; scene?: SceneId; alt?: string; caption?: string }
   | { kind: "slide"; title: string; body: string[]; number?: number }
   | { kind: "worksheet"; title: string; owner: string; lines: { question: string; answer: string; mark?: "right" | "wrong"; note?: string }[]; teacherNote?: string }
@@ -293,9 +293,9 @@ export interface ComposeOption {
   /** The part of the authored output this option produces. Empty adds nothing. */
   output: string;
   by?: Contributor;
-  /** A drawing or image shown for this option in a framed output, such as an image on a poster. */
+  /** An image shown for this option in a framed output, such as the picture on a poster. */
   scene?: SceneId;
-  /** What that drawing or image shows. Defaults to the label without its bracketed note. */
+  /** What that image shows. Defaults to the label without its bracketed note. */
   alt?: string;
 }
 

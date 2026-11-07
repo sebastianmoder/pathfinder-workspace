@@ -371,10 +371,10 @@
     line-height: 1.15;
   }
 
-  .drawing {
+  .scene-figure {
     border: 1px solid var(--border);
   }
-  .drawing-note {
+  .scene-note {
     padding: 0.3rem 0.5rem;
     font-size: 0.8125rem;
     color: var(--muted);
@@ -477,11 +477,11 @@
     padding-top: 0.4rem;
     font-size: 0.8125rem;
   }
-  .poster .drawing {
+  .poster .scene-figure {
     border-color: var(--highlighter-ink);
     background: #ffffff;
   }
-  .poster .drawing-note {
+  .poster .scene-note {
     color: #33443d;
   }
   .card {

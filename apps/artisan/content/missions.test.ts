@@ -255,7 +255,7 @@ describe.each(missions)("mission $id", (mission) => {
     }
   });
 
-  it("artefacts describe every drawing, and framed outputs place parts that exist", () => {
+  it("artefacts describe every image, and framed outputs place parts that exist", () => {
     const artefacts: Artefact[] = [];
     for (const s of mission.steps) {
       if ("artefact" in s && s.artefact) artefacts.push(s.artefact);
@@ -275,7 +275,7 @@ describe.each(missions)("mission $id", (mission) => {
       }
     }
     for (const a of artefacts) {
-      if ((a.kind === "post" || a.kind === "article") && a.scene) expect(a.alt?.trim(), `${a.kind} drawing`).toBeTruthy();
+      if ((a.kind === "post" || a.kind === "article") && a.scene) expect(a.alt?.trim(), `${a.kind} image`).toBeTruthy();
       if (a.kind === "photo") expect(a.alt.trim()).toBeTruthy();
       if (a.kind === "chat") expect(a.messages.length).toBeGreaterThan(0);
     }

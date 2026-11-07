@@ -31,7 +31,7 @@ const holds = (set: Record<string, string[]>, choices: Choices) =>
 /** The option chosen for one element, for frames that place parts by element (a poster's headline, its image). */
 export const partOf = (spec: ComposeSpec, choices: Choices, elementId: string) => optionOf(spec, elementId, choices[elementId]);
 
-/** The drawing for the option chosen in an element, if it has one. */
+/** The image for the option chosen in an element, if it has one. */
 export const sceneOf = (spec: ComposeSpec, choices: Choices, elementId: string) => partOf(spec, choices, elementId)?.scene;
 
 export const criterionMet = (c: ComposeCriterion, choices: Choices) =>

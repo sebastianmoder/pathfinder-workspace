@@ -71,9 +71,9 @@ export const m11: Mission = {
             label: "Image",
             help: "Check the policy on photos and images.",
             options: [
-              { id: "ai-meadow", label: "AI-generated illustration of children reading in a meadow", output: "\n[Image: an AI-generated illustration of children reading in a meadow]", by: "ai", scene: "meadow", alt: "AI-generated illustration of children reading in a sunny meadow under a large tree" },
-              { id: "party", label: "Photo of last year's reading party (every person in it signed a consent form)", output: "\n[Image: last year's reading party at the Commons]", by: "supplied", scene: "readingParty", alt: "Children and adults holding open books under paper bunting at last summer's reading party at the Commons" },
-              { id: "web", label: "Photo of a famous library, found on a website", output: "\n[Image: a famous library, from a website]", by: "supplied", scene: "famousLibrary", alt: "A grand historic library reading room with galleries, tall wooden shelves and a vaulted ceiling" },
+              { id: "ai-meadow", label: "AI-generated illustration of children reading in a meadow", output: "\n[Image: an AI-generated illustration of children reading in a meadow]", by: "ai", scene: "meadow", alt: "AI-generated illustration of three smiling children reading picture books in a flowering meadow under a large tree, the sun setting behind hills" },
+              { id: "party", label: "Photo of last year's reading party (every person in it signed a consent form)", output: "\n[Image: last year's reading party at the Commons]", by: "supplied", scene: "readingParty", alt: "Children and adults laughing over open books under colourful paper bunting at last summer's reading party at the Commons" },
+              { id: "web", label: "Photo of a famous library, found on a website", output: "\n[Image: a famous library, from a website]", by: "supplied", scene: "famousLibrary", alt: "A grand historic library reading room with two levels of wooden galleries, rolling ladders and a painted vaulted ceiling" },
             ],
           },
           {
