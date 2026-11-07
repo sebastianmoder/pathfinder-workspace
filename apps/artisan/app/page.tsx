@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { HeroDemo } from "@/components/hero-demo";
+import { HomeActions } from "@/components/home-actions";
 import { t } from "@/lib/i18n/en";
 
 export default function Home() {
@@ -10,10 +10,7 @@ export default function Home() {
           <h1 className="text-5xl sm:text-6xl">{t.promise}</h1>
           <p className="mt-5 max-w-lg text-lg">{t.welcome.intro}</p>
           <p className="mt-2 max-w-lg">{t.welcome.time}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/start" className="btn btn-on-mat">{t.welcome.start}</Link>
-            <Link href="/continue" className="btn btn-outline-on-mat">{t.welcome.continue}</Link>
-          </div>
+          <HomeActions />
         </div>
         <div className="mt-10 lg:mt-0">
           <HeroDemo />

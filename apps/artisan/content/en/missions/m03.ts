@@ -175,15 +175,22 @@ export const m03: Mission = {
       ],
     },
     {
-      kind: "quiz",
+      kind: "mark",
       id: "parents",
-      prompt: "Priya likes the email and asks: “Can it go to the volunteers' parents too? Two of them are under 18.” What should you change?",
-      choices: [
-        { id: "a", label: "Nothing, since a brief that works well should work for any reader.", verdict: "weaker", explanation: "A brief works for the reader it describes. Parents need different information, such as safeguarding and pick-up details." },
-        { id: "b", label: "The audience and its must-haves: parents need other details.", verdict: "correct", explanation: "A new reader changes the context and the criteria. Update those, then check the new response against the new criteria." },
-        { id: "c", label: "Send it as it is, adding one line at the top that addresses parents.", verdict: "weaker", explanation: "A line at the top doesn't give parents what they need to know, and the rest still speaks to someone else." },
+      title: "A new reader",
+      prompt: "Priya likes the email and asks: “Can it go to the volunteers' parents too? Two of them are under 18.” Mark the parts of the brief that must change for that reader.",
+      frame: { kind: "document", title: "Priya's brief", meta: "The version that produced the welcome email" },
+      mark: [
+        ["Objective: ", { id: "objective", text: "Write a welcome email to new Homework Club volunteers before their first session.", target: false, optional: true, explanation: "It could say who the email is for now. Changing it is reasonable; the parts below matter more." }],
+        [
+          "Context: ",
+          { id: "readers", text: "The readers are adults, most new to tutoring.", target: true, explanation: "The reader has changed: parents of volunteers, two of them under 18. Everything the AI writes follows from who it thinks is reading." },
+          " ",
+          { id: "session", text: "The first session is Saturday 9 November, 10:00, in Room 2.", target: false, explanation: "Still true, and parents need it too." },
+        ],
+        ["What it must include: ", { id: "musts", text: "Say what to bring (photo ID for the sign-in desk), who to ask for (Priya), and how to cancel (text 07700 900123).", target: true, explanation: "Parents need other details, such as safeguarding and pick-up. New must-haves give you new criteria to check the response against." }],
+        ["Length and style: ", { id: "style", text: "Under 120 words, plain and friendly.", target: false, explanation: "Still fits. A short, plain email suits parents as well as volunteers." }],
       ],
-      hints: [{ text: "Which parts of the brief describe the reader and what the reader needs?" }],
     },
     {
       kind: "revision",
@@ -343,7 +350,7 @@ export const m03: Mission = {
           id: "audience",
           label: "Updating a brief when the reader changes",
           kind: "knowledge",
-          items: ["parents", "revision"],
+          items: ["parents/readers", "parents/musts", "parents/style", "revision"],
         },
         {
           id: "new-brief",

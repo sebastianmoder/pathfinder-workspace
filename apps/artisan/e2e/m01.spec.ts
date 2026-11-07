@@ -13,7 +13,7 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await expect(page.getByText("Say how confident you are.")).toBeVisible();
   await page.getByLabel(/Check the time against the library's own notice/).check();
   await page.getByLabel("Fairly", { exact: true }).check();
-  await page.getByRole("button", { name: "Record my judgment" }).click();
+  await page.getByRole("button", { name: /^(Record my judgment|Play this move)$/ }).click();
   await expect(page.getByText("Weaker fit")).toHaveCount(0); // no verdict before investigating
   await cont(page);
 
@@ -136,7 +136,7 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await cont(page);
 
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The Delegation Desk/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The Delegation Desk" })).toBeVisible();
 
   // The debrief says what happened: the worked solution and the wrong predictions are not credited.
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
@@ -155,7 +155,7 @@ test("a learner who skips and guesses can finish, and is not credited with what 
   await cont(page); // brief, with the refresher folded in
   await page.getByLabel(/Use it\. It is specific/).check();
   await page.getByLabel("Very", { exact: true }).check();
-  await page.getByRole("button", { name: "Record my judgment" }).click();
+  await page.getByRole("button", { name: /^(Record my judgment|Play this move)$/ }).click();
   await cont(page);
 
   await trainAndAsk(page, "seven");
@@ -226,7 +226,7 @@ test("M01 can be driven by keyboard and focus follows each new step", async ({ p
   await expect(page.getByRole("region", { name: "Step 2 of 11" })).toBeFocused();
   await page.keyboard.press("Tab"); // first control inside the step
   await page.keyboard.press("Space"); // first radio option
-  await expect(page.getByRole("button", { name: "Record my judgment" })).toBeDisabled(); // confidence still required
+  await expect(page.getByRole("button", { name: /^(Record my judgment|Play this move)$/ })).toBeDisabled(); // confidence still required
 });
 
 test("the sandbox works by keyboard, and focus moves to each new task", async ({ page }) => {
@@ -234,7 +234,7 @@ test("the sandbox works by keyboard, and focus moves to each new task", async ({
   await cont(page); // brief, with the refresher folded in
   await page.getByLabel(/Check the time against the library's own notice/).check();
   await page.getByLabel("Fairly", { exact: true }).check();
-  await page.getByRole("button", { name: "Record my judgment" }).click();
+  await page.getByRole("button", { name: /^(Record my judgment|Play this move)$/ }).click();
   await cont(page);
 
   await page.getByRole("button", { name: "Train the machine" }).focus();

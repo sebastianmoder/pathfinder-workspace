@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { missions } from "./missions";
 import { modules } from "./journey";
-import { passwords } from "./passwords";
 import { hasCycle, reachableNodes } from "@/lib/dialogue";
 import { fillRepair } from "@/lib/audit";
 import { citeChoiceId, walk } from "@/lib/dialogue";
@@ -113,6 +112,35 @@ describe.each(missions)("mission $id", (mission) => {
           expect(cats, i.id).toContain(i.categoryId);
           expect(i.explanation.trim(), i.id).not.toBe("");
         }
+      }
+  });
+
+  it("match boards pair one to one with real cards, and explain every pair", () => {
+    for (const s of mission.steps)
+      if (s.kind === "match") {
+        const rights = s.right.map((r) => r.id);
+        const targets = s.left.map((l) => l.matchId);
+        expect(new Set(rights).size, s.id).toBe(rights.length);
+        expect(new Set(s.left.map((l) => l.id)).size, s.id).toBe(s.left.length);
+        expect(new Set(targets).size, `${s.id}: two cards share a partner`).toBe(targets.length);
+        for (const l of s.left) {
+          expect(rights, `${s.id}/${l.id}`).toContain(l.matchId);
+          expect(l.explanation.trim(), `${s.id}/${l.id}`).not.toBe("");
+        }
+        expect(s.left.length, s.id).toBeGreaterThanOrEqual(3);
+      }
+  });
+
+  it("rankings judge real cards, never accept every card at an end, and explain each card", () => {
+    for (const s of mission.steps)
+      if (s.kind === "rank") {
+        const ids = s.items.map((i) => i.id);
+        expect(new Set(ids).size, s.id).toBe(ids.length);
+        expect(ids.length, s.id).toBeGreaterThanOrEqual(3);
+        for (const id of [...s.first, ...(s.last ?? [])]) expect(ids, `${s.id}/${id}`).toContain(id);
+        expect(s.first.length, s.id).toBeLessThan(ids.length);
+        expect(s.first.filter((id) => s.last?.includes(id)), s.id).toEqual([]);
+        for (const i of s.items) expect(i.explanation.trim(), `${s.id}/${i.id}`).not.toBe("");
       }
   });
 
@@ -618,9 +646,8 @@ describe.each(missions)("mission $id", (mission) => {
       if (s.kind === "openResponse") expect(s.rubric.examples.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("is registered in the journey and has a password", () => {
+  it("is registered in the journey", () => {
     expect(modules.some((m) => m.missionIds.includes(mission.id))).toBe(true);
-    expect(passwords.some((p) => p.missionId === mission.id)).toBe(true);
   });
 });
 

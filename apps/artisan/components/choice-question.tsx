@@ -28,6 +28,11 @@ interface Props {
   onContinue?: () => void;
   /** The moves this question asks for, shown above it. */
   howTo?: readonly string[];
+  /**
+   * "move": the options are in-scenario first moves, laid out as a hand of cards; the chosen one is played and
+   * stays face up. Presentation only: the same radio group underneath.
+   */
+  variant?: "move";
 }
 
 /**
@@ -47,7 +52,9 @@ export function ChoiceQuestion({
   onEvidence,
   onContinue,
   howTo,
+  variant,
 }: Props) {
+  const move = variant === "move";
   // Next keeps recent pages in the DOM while hidden, and radios with the same name interfere across them.
   const group = `${useId()}-${name}`;
   const { orderSeed } = useSession();
@@ -74,9 +81,9 @@ export function ChoiceQuestion({
       {howTo && <div className="mb-4"><HowTo steps={howTo} /></div>}
       <fieldset disabled={committed && !!acceptable}>
         <legend className="text-xl font-bold">{prompt}</legend>
-        <div className="mt-4 space-y-2">
+        <div className={move ? "move-hand mt-4" : "mt-4 space-y-2"} data-played={move && committed ? true : undefined}>
           {ordered.map((c) => (
-            <label key={c.id} className="option">
+            <label key={c.id} className={move ? "option move-card" : "option"}>
               <input
                 type="radio"
                 name={group}
@@ -112,7 +119,7 @@ export function ChoiceQuestion({
 
       <div ref={feedbackRef} className="reveal">
         {committed && recordOnly && (
-          <p role="status" className="mt-4 text-sm">{t.mission.recorded}</p>
+          <p role="status" className="mt-4 text-sm">{move ? t.mission.played : t.mission.recorded}</p>
         )}
         {showAll && (
           <div role="status" className="mt-5 space-y-2">
@@ -161,7 +168,7 @@ export function ChoiceQuestion({
               }}
               className="btn btn-primary"
             >
-              {recordOnly ? t.mission.record : t.mission.commit}
+              {recordOnly ? (move ? t.mission.play : t.mission.record) : t.mission.commit}
             </button>
           )}
           {!committed && ladder.button}

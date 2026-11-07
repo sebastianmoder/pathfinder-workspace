@@ -2,8 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { mergeEvidence, type EvidenceLedger, type EvidenceResult } from "@/lib/evidence";
+import { clearStored, mergeProgress, readStored, writeStored, type StoredProgress } from "./stored-progress";
 
-/** In-memory only. Deliberately never written to storage (PRD §11). */
+/** In-memory only. Answers are never written to storage (PRD §11); only `StoredProgress` is. */
 export interface Answer {
   choiceId?: string;
   confidence?: number; // 0..4
@@ -27,9 +28,12 @@ interface MissionProgress {
 interface SessionState {
   missions: Record<string, MissionProgress>;
   completed: string[];
-  orientation: Record<string, string>;
-  /** Kinds of activity finished this visit, so instructions for familiar ones can fade (PRD §4). */
+  /** Kinds of activity finished, so instructions for familiar ones can fade (PRD §4). */
   seen: string[];
+  /** Furthest step shown per unfinished mission, kept on this device. */
+  reached: StoredProgress["reached"];
+  /** A mission just finished, so the map can show the route moving on. Never stored. */
+  arrival: string | null;
 }
 
 interface SessionApi {
@@ -46,18 +50,37 @@ interface SessionApi {
   orderSeed: number;
   complete(missionId: string): void;
   restart(missionId: string): void;
-  orientation: Record<string, string>;
-  setOrientation(questionId: string, choiceId: string): void;
   hasSeen(key: string): boolean;
   markSeen(key: string): void;
+  /** Step reached last time in an unfinished mission, as [step, total]. */
+  reached(missionId: string): [number, number] | undefined;
+  markReached(missionId: string, step: number, total: number): void;
+  /** True once this device's saved progress has been read, so pages can avoid showing a blank path first. */
+  hydrated: boolean;
+  arrival: string | null;
+  setArrival(missionId: string | null): void;
+  /** Forgets everything on this device and in this tab. */
+  resetProgress(): void;
 }
 
 const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {}, evidence: {}, facts: {} };
 const SessionContext = createContext<SessionApi | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<SessionState>({ missions: {}, completed: [], orientation: {}, seen: [] });
+  const [state, setState] = useState<SessionState>({ missions: {}, completed: [], seen: [], reached: {}, arrival: null });
   const [orderSeed, setOrderSeed] = useState(0);
+  const [hydrated, setHydrated] = useState(false);
+  // Saved progress can only be read in the browser, after the prerendered page has hydrated.
+  useEffect(() => {
+    const stored = readStored();
+    /* eslint-disable react-hooks/set-state-in-effect -- storage can't be read during render */
+    setState((s) => ({ ...s, ...mergeProgress(stored, { completed: s.completed, reached: s.reached, seen: s.seen }) }));
+    setHydrated(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+  useEffect(() => {
+    if (hydrated) writeStored({ completed: state.completed, reached: state.reached, seen: state.seen });
+  }, [hydrated, state.completed, state.reached, state.seen]);
   // Pages are prerendered, so this has to wait until the browser. Answer options only appear after a
   // learner has moved past a mission's first step, so nobody sees them reorder.
   useEffect(() => {
@@ -101,15 +124,30 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setFact: (id, key, values) => update(id, (p) => ({ ...p, facts: { ...p.facts, [key]: values } })),
       orderSeed,
       complete: (id) =>
-        setState((s) => (s.completed.includes(id) ? s : { ...s, completed: [...s.completed, id] })),
+        setState((s) => {
+          if (s.completed.includes(id)) return s;
+          const reached = { ...s.reached };
+          delete reached[id];
+          return { ...s, completed: [...s.completed, id], reached };
+        }),
       restart: (id) => update(id, () => empty),
-      orientation: state.orientation,
-      setOrientation: (questionId, choiceId) =>
-        setState((s) => ({ ...s, orientation: { ...s.orientation, [questionId]: choiceId } })),
       hasSeen: (key) => state.seen.includes(key),
       markSeen: (key) => setState((s) => (s.seen.includes(key) ? s : { ...s, seen: [...s.seen, key] })),
+      reached: (id) => state.reached[id],
+      markReached: (id, step, total) =>
+        setState((s) => {
+          if (s.completed.includes(id) || (s.reached[id] && s.reached[id][0] >= step)) return s;
+          return { ...s, reached: { ...s.reached, [id]: [step, total] } };
+        }),
+      hydrated,
+      arrival: state.arrival,
+      setArrival: (id) => setState((s) => (s.arrival === id ? s : { ...s, arrival: id })),
+      resetProgress: () => {
+        clearStored();
+        setState({ missions: {}, completed: [], seen: [], reached: {}, arrival: null });
+      },
     }),
-    [state, update, orderSeed],
+    [state, update, orderSeed, hydrated],
   );
 
   return <SessionContext value={api}>{children}</SessionContext>;

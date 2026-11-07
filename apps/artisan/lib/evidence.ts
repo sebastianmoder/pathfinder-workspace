@@ -9,6 +9,8 @@ import { thresholdItems } from "./threshold";
 import { workflowItems } from "./workflow";
 import { allocationItems } from "./allocation";
 import { segmentsOf } from "./mark";
+import { matchItems } from "./match";
+import { rankItems } from "./rank";
 
 /**
  * What a learner actually did, step by step, for the active visit only (PRD §11).
@@ -113,6 +115,10 @@ export function evidenceItems(step: Step): string[] {
       return segmentsOf(step.mark).filter((s) => !s.optional).map((s) => itemKey(step.id, s.id));
     case "sort":
       return step.items.map((i) => itemKey(step.id, i.id));
+    case "match":
+      return matchItems(step.id, step);
+    case "rank":
+      return rankItems(step.id, step);
     case "argumentMap":
       return [
         ...step.cards.map((c) => itemKey(step.id, c.id)),

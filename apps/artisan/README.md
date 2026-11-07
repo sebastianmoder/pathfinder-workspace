@@ -2,7 +2,7 @@
 
 An interactive website for learning to think better with AI. See `ARTISAN-PRD.md` for the product scope.
 
-There are no accounts or database. Every route is prerendered, and learner state lives in memory for the active visit only. Mission passwords are static lookups that open a mission at its start.
+There are no accounts or database. Every route is prerendered, and answers live in memory for the active visit only. The browser keeps one small record, `artisan_progress` in `localStorage`, of finished missions, the furthest step reached in unfinished ones, and familiar activities (`lib/session/stored-progress.ts`). It never holds answers or text. `/start` and `/continue` are retired and redirect (see `next.config.ts`).
 
 ## Running it
 
@@ -19,8 +19,8 @@ pnpm lint
 | Path | What it holds |
 | --- | --- |
 | `content/en/missions/` | Mission content, answer keys and review metadata |
-| `content/journey.ts` | Stages and modules, with `available` or `planned` status |
-| `content/passwords.ts` | Password registry. Append-only once learners hold codes |
+| `content/journey.ts` | Stages and modules, with `available` or `planned` status; `bridge: true` puts a module on the seam between stages |
+| `components/path/` | The mission map: a route across a sheet per stage, the mission card, and the eyelet glyphs. `lib/journey-nav.ts` holds its logic |
 | `lib/i18n/en.ts` | All interface wording |
 | `components/activities/` | The reusable interaction patterns (see below) |
 | `lib/evidence.ts` | What the learner did this visit, which the debrief reads. Each debrief skill in the content names the items that show it |
@@ -28,7 +28,7 @@ pnpm lint
 
 ## Curriculum
 
-All of the PRD's journey is available: stages 1–4 (M01–M13), a bridge challenge at the end of stages 1–3 (B01, T01, B03), and the C01 capstone in four chapters. The guided order follows the curriculum, and each debrief's `nextMissionId` points at the next mission. A module can hold several missions (M06, C01); the map lists them as parts.
+All of the PRD's journey is available: stages 1–4 (M01–M13), a bridge challenge at the end of stages 1–3 (B01, T01, B03), and the C01 capstone in four chapters. The guided order follows the curriculum, and each debrief's `nextMissionId` points at the next mission. A module can hold several missions (M06, C01); the map card lists them as parts. A debrief points to its `nextMissionId`, or to the first unfinished mission on the path if that one is done.
 
 ## Interaction patterns
 
@@ -48,15 +48,18 @@ Each pattern is a step kind in `content/types.ts`, with its pure logic in `lib/`
 | `mark` | Mark text; `mode: "redact"` shows what each party receives | M10, B03, C01 |
 | `workflow` | Assemble steps, run tests, diagnose, fix | M12, C01 |
 | `allocation` | Spend a budget on conditions; stakeholder coverage map | M13, C01 |
+| `match` | Pin cards to partners one to one, with threads between pairs | M08, M11 |
+| `rank` | Order cards between two ends; only the ends are judged | M07, B01 |
+
+Initial judgments that are in-scenario first moves are shown as a hand of move cards (`ChoiceQuestion` `variant="move"`); a position that the revision re-asks as it was keeps the plain list.
 
 `content/missions.test.ts` checks each pattern's content: that every task can be completed, that worked solutions work, and that the data tells the story the mission tells (for example, that no threshold on M09's original score closes the gap).
 
 ## Adding a module
 
 1. Write the mission in `content/en/missions/` and register it in `content/missions.ts`.
-2. Add the password to `content/passwords.ts`. Never edit an existing code.
-3. Set the module to `available` in `content/journey.ts`, and point the previous debrief's `nextMissionId` at it.
-4. Record `reviewedOn` and `reviewedBy` in its `meta` once the content has been reviewed.
+2. Set the module to `available` in `content/journey.ts`, and point the previous debrief's `nextMissionId` at it.
+3. Record `reviewedOn` and `reviewedBy` in its `meta` once the content has been reviewed.
 
 `content/missions.test.ts` enforces the PRD's mission structure, so run `pnpm test` to catch missing parts.
 

@@ -334,15 +334,23 @@ export const m07: Mission = {
       audit,
     },
     {
-      kind: "quiz",
+      kind: "rank",
       id: "matters",
-      prompt: "The board will decide whether to renew the AI helper's licence. Which problem in the deck matters most to that decision?",
-      choices: [
-        { id: "a", label: "The slide's axis starting at 85, which exaggerates the change.", verdict: "weaker", explanation: "It made a 10% rise look bigger, but the board could still see the numbers. It doesn't change what the helper did." },
-        { id: "b", label: "Treating the rise since March as caused by the helper.", verdict: "correct", explanation: "Renewal rests on what the helper achieved. The records can't show it achieved anything, so that is the claim the decision depends on." },
-        { id: "c", label: "Rounding a 9.8% rise up to “about 10%” in the summary.", verdict: "weaker", explanation: "That rounding is fair, and changes nothing about the decision." },
+      title: "What matters to the board?",
+      intro: "The board will decide whether to renew the AI helper's licence. Rank the deck's problems by how much each would change that decision.",
+      hints: [{ text: "Renewal weighs what the helper achieved against what it costs. Which problems misstate one of those?" }],
+      top: "Matters most to the renewal",
+      bottom: "Matters least",
+      items: [
+        { id: "caused", label: "Treating the rise since March as caused by the helper", explanation: "Renewal rests on what the helper achieved. The records can't show it achieved anything, so the decision depends on this claim." },
+        { id: "cost", label: "Giving the licence as €180 instead of €1,800, with no staff time", explanation: "The cost is the other side of the decision, and it was understated tenfold." },
+        { id: "typical", label: "Calling an hour the typical visit, when most last 40 minutes", explanation: "A real distortion, but it affects staffing plans more than whether the helper is worth renewing." },
+        { id: "axis", label: "Starting the chart's axis at 85, which exaggerates the rise", explanation: "It made a 10% rise look bigger, but the numbers were visible, and it says nothing about what the helper did." },
+        { id: "rounding", label: "Rounding a 9.8% rise up to “about 10%”", explanation: "That rounding is fair. It changes nothing about the decision." },
       ],
-      hints: [{ text: "What would the board need to believe in order to renew the licence?" }],
+      first: ["caused", "cost"],
+      last: ["rounding"],
+      takeaway: "Check every figure, then weigh each problem by the decision it feeds. A tenfold cost error and an unsupported cause matter far more than a fair rounding.",
     },
     {
       kind: "revision",
@@ -439,7 +447,7 @@ export const m07: Mission = {
           id: "cause",
           label: "Telling a cause apart from timing",
           kind: "reasoning",
-          items: ["audit/caused/status", "matters"],
+          items: ["audit/caused/status", "matters/first", "matters/last"],
           practice: {
             prompt: "Library visits rose after a new café opened next door. What can you conclude?",
             choices: [

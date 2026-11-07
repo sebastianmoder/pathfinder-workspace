@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { OrientationQuestion } from "@/content/en/orientation";
 import type { Mission } from "@/content/types";
 import { summarizeMission, summaryToText, type MissionSummary } from "@/lib/summary";
 import { useSession } from "@/lib/session/session";
@@ -10,21 +9,19 @@ import { t } from "@/lib/i18n/en";
 
 interface Props {
   missions: Mission[];
-  questions: OrientationQuestion[];
-  passwords: { title: string; code: string }[];
+  /** Every mission on the path, for the count of what this device remembers. */
+  pathIds: string[];
 }
 
-export function SessionSummary({ missions, questions, passwords }: Props) {
+export function SessionSummary({ missions, pathIds }: Props) {
   const session = useSession();
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const [cleared, setCleared] = useState(false);
+  const doneOnDevice = pathIds.filter(session.isCompleted).length;
 
   const rows = missions.flatMap((m): MissionSummary[] => {
     const row = summarizeMission(m, session.progress(m.id), session.isCompleted(m.id));
     return row ? [row] : [];
-  });
-  const startingPoint = questions.flatMap((q) => {
-    const answer = q.choices.find((c) => c.id === session.orientation[q.id])?.label;
-    return answer ? [{ question: q.prompt, answer }] : [];
   });
   const confidence = (n: number | null) => (n === null ? "" : ` (${t.mission.confidence[n]})`);
 
@@ -32,8 +29,6 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
     const text = summaryToText({
       heading: t.summary.title,
       note: t.summary.temporary,
-      startingPoint,
-      startingPointLabel: t.summary.startingPoint,
       missions: rows,
       labels: {
         takeaway: t.summary.takeaway,
@@ -45,10 +40,8 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
         before: t.summary.before,
         after: t.summary.after,
         notFinished: t.summary.notFinished,
-        passwords: t.summary.passwords,
       },
       confidenceLabels: t.mission.confidence,
-      passwords,
     });
     try {
       await navigator.clipboard.writeText(text);
@@ -73,14 +66,6 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
         {copyStatus === "failed" && t.summary.copyFailed}
       </p>
 
-      {startingPoint.length > 0 && (
-        <section className="mt-4">
-          <h2 className="text-2xl">{t.summary.startingPoint}</h2>
-          <ul className="mt-2 space-y-1 text-sm">
-            {startingPoint.map((a) => <li key={a.question}>{a.question} <strong>{a.answer}</strong></li>)}
-          </ul>
-        </section>
-      )}
 
       {rows.length === 0 ? (
         <p className="mt-6">
@@ -119,14 +104,21 @@ export function SessionSummary({ missions, questions, passwords }: Props) {
         </div>
       )}
 
-      <section className="mt-6">
-        <h2 className="text-2xl">{t.summary.passwords}</h2>
-        <p className="mt-1 text-sm text-muted">{t.summary.passwordsHelp}</p>
-        <ul className="mt-2 space-y-1">
-          {passwords.map((p) => (
-            <li key={p.code}>{p.title}: <span className="select-all font-mono font-semibold">{p.code}</span></li>
-          ))}
-        </ul>
+      <section className="no-print mt-8 border-t border-border pt-4">
+        <h2 className="text-2xl">{t.summary.device}</h2>
+        <p className="mt-1 text-sm">{t.summary.deviceHelp(doneOnDevice, pathIds.length)}</p>
+        <button
+          type="button"
+          className="btn btn-secondary btn-small mt-3"
+          onClick={() => {
+            if (!window.confirm(t.summary.resetConfirm)) return;
+            session.resetProgress();
+            setCleared(true);
+          }}
+        >
+          {t.summary.reset}
+        </button>
+        <p role="status" className="mt-2 min-h-5 text-sm">{cleared && t.summary.resetDone}</p>
       </section>
     </div>
   );

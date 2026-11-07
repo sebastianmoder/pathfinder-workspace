@@ -162,15 +162,27 @@ export const m08: Mission = {
       },
     },
     {
-      kind: "quiz",
+      kind: "match",
       id: "looks",
-      prompt: "Your close look at the image found no signs of editing. What does that tell you?",
-      choices: [
-        { id: "a", label: "That the photo is genuine and was taken this morning.", verdict: "weaker", explanation: "An unedited photo can still be from 2024, as this one is. Looks can't establish a date." },
-        { id: "b", label: "Little: an unedited photo can still be old or from elsewhere.", verdict: "correct", explanation: "Editing is only one way to mislead. Reusing a real photo with a false caption is more common, and leaves nothing to see." },
-        { id: "c", label: "That the account which posted it is being honest.", verdict: "weaker", explanation: "The image says nothing about the poster's knowledge or intent." },
-      ],
+      title: "What can each check tell you?",
+      intro: "Your close look found no signs of editing. Pair each check with the question it can actually answer. One card on the right fits none of them.",
       hints: [{ text: "What did the caption actually claim, and could looking at the photo test that?" }],
+      leftLabel: "Check",
+      rightLabel: "What it can tell you",
+      left: [
+        { id: "zoom", label: "Examining the image closely", matchId: "edited", explanation: "Looks can show editing, and nothing else. An unedited photo can still be from 2024, as this one is." },
+        { id: "reverse", label: "Searching for earlier copies", matchId: "before", explanation: "An earlier copy settles the caption's “right now” claim, whatever the photo looks like." },
+        { id: "gauge", label: "Checking the river-level record", matchId: "now", explanation: "A record made every 15 minutes says what the river is doing, independently of any photo." },
+        { id: "uploader", label: "Messaging the account that posted it", matchId: "source", explanation: "The poster can tell you how they got it. That's a lead, not a confirmation: they may simply be wrong." },
+      ],
+      right: [
+        { id: "edited", label: "Whether the image has been altered" },
+        { id: "before", label: "Whether the photo existed before this morning" },
+        { id: "now", label: "Whether the river is high right now" },
+        { id: "source", label: "How the poster came by the photo" },
+        { id: "today", label: "That the photo was taken this morning" },
+      ],
+      outcome: "No single check can show the photo was taken this morning, and looking at it can't even begin to. The date comes from where the photo has been before, and the flood from records of the river.",
     },
     {
       kind: "quiz",
@@ -344,7 +356,7 @@ export const m08: Mission = {
           id: "appearance",
           label: "Not relying on how an image looks",
           kind: "knowledge",
-          items: ["looks", "revision"],
+          items: ["looks/zoom", "looks/reverse", "revision"],
           practice: {
             prompt: "A video of a politician saying something shocking looks completely real. What would best test it?",
             choices: [

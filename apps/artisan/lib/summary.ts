@@ -65,8 +65,6 @@ export function summarizeMission(mission: Mission, input: MissionInput, complete
 export interface SummaryText {
   heading: string;
   note: string;
-  startingPoint: { question: string; answer: string }[];
-  startingPointLabel: string;
   missions: MissionSummary[];
   labels: {
     takeaway: string;
@@ -78,21 +76,14 @@ export interface SummaryText {
     before: string;
     after: string;
     notFinished: string;
-    passwords: string;
   };
   confidenceLabels: readonly string[];
-  passwords: { title: string; code: string }[];
 }
 
 /** Plain text for copying. Contains exactly what the page says it contains, and no written answers. */
 export function summaryToText(s: SummaryText): string {
   const conf = (n: number | null) => (n === null ? "" : ` (${s.confidenceLabels[n]})`);
   const lines = [s.heading, s.note, ""];
-  if (s.startingPoint.length) {
-    lines.push(s.startingPointLabel);
-    for (const a of s.startingPoint) lines.push(`- ${a.question} ${a.answer}`);
-    lines.push("");
-  }
   for (const m of s.missions) {
     lines.push(m.title);
     if (!m.completed) lines.push(s.labels.notFinished);
@@ -105,7 +96,5 @@ export function summaryToText(s: SummaryText): string {
     if (m.review.length) lines.push(`${s.labels.review}: ${m.review.join("; ")}`);
     lines.push("");
   }
-  lines.push(s.labels.passwords);
-  for (const p of s.passwords) lines.push(`- ${p.title}: ${p.code}`);
-  return lines.join("\n");
+  return lines.join("\n").trimEnd();
 }

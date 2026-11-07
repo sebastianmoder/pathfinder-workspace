@@ -1,59 +1,53 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { missions } from "../content/missions";
-import { passwords } from "../content/passwords";
 import { modules } from "../content/journey";
 import {
   completeB01, completeB03, completeC01Evidence, completeC01Review, completeC01Scope, completeC01Workflow,
   completeM01, completeM02, completeM03, completeM04, completeM05, completeM06Gym, completeM06Teach, completeM07,
-  completeM08, completeM09, completeM10, completeM11, completeM12, completeM13, completeT01,
+  completeM08, completeM09, completeM10, completeM11, completeM12, completeM13, completeT01, cont, openFromMap,
 } from "./helpers";
 
-const ROUTES = ["/", "/start", "/map", "/continue", "/summary", ...missions.map((m) => `/missions/${m.id}`)];
+const ROUTES = ["/", "/map", "/summary", ...missions.map((m) => `/missions/${m.id}`)];
 
 test("criterion 1: a new learner completes the whole journey, from the welcome page to the capstone, with no account", async ({ page, context }) => {
   test.setTimeout(300_000);
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
-  await page.getByRole("link", { name: "Start", exact: true }).click();
-
-  // P0, answered but unmarked.
-  await page.getByLabel("Open the source and read the relevant part").check();
-  await expect(page.getByText(/Weaker|Fits the case/)).toHaveCount(0);
   await page.getByRole("link", { name: "Start the first mission" }).click();
 
   await completeM01(page);
-  await page.getByRole("link", { name: "The Delegation Desk", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Delegation Desk", exact: true }).click();
   await completeM02(page);
-  await page.getByRole("link", { name: "The Briefing Studio", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Briefing Studio", exact: true }).click();
   await completeM03(page);
-  await page.getByRole("link", { name: "The FAQ Project", exact: true }).click();
+  await page.getByRole("link", { name: "Start The FAQ Project", exact: true }).click();
   await completeB01(page);
-  await page.getByRole("link", { name: "The Evidence Bureau", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Evidence Bureau", exact: true }).click();
   await completeM04(page);
-  await page.getByRole("link", { name: "The Argument Forge", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Argument Forge", exact: true }).click();
   await completeM05(page);
-  await page.getByRole("link", { name: "The Thinking Gym: learning with help", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Thinking Gym: learning with help", exact: true }).click();
   await completeM06Gym(page);
-  await page.getByRole("link", { name: "The Thinking Gym: teach it back", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Thinking Gym: teach it back", exact: true }).click();
   await completeM06Teach(page);
-  await page.getByRole("link", { name: "The Numbers Lab", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Numbers Lab", exact: true }).click();
   await completeM07(page);
-  await page.getByRole("link", { name: "The Newsletter Desk", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Newsletter Desk", exact: true }).click();
   await completeT01(page);
-  await page.getByRole("link", { name: "The Newsroom", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Newsroom", exact: true }).click();
   await completeM08(page);
-  await page.getByRole("link", { name: "The Fairness Council", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Fairness Council", exact: true }).click();
   await completeM09(page);
-  await page.getByRole("link", { name: "The Boundary Room", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Boundary Room", exact: true }).click();
   await completeM10(page);
-  await page.getByRole("link", { name: "The Co-Creation Studio", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Co-Creation Studio", exact: true }).click();
   await completeM11(page);
-  await page.getByRole("link", { name: "The Annual Report", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Annual Report", exact: true }).click();
   await completeB03(page);
-  await page.getByRole("link", { name: "The Systems Workshop", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Systems Workshop", exact: true }).click();
   await completeM12(page);
-  await page.getByRole("link", { name: "The Citizens' Assembly", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Citizens' Assembly", exact: true }).click();
   await completeM13(page);
   for (const [title, complete] of [
     ["The Commission, chapter 1: scope", completeC01Scope],
@@ -61,21 +55,19 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
     ["The Commission, chapter 3: workflow", completeC01Workflow],
     ["The Commission, chapter 4: the review meeting", completeC01Review],
   ] as const) {
-    await page.getByRole("link", { name: title, exact: true }).click();
+    await page.getByRole("link", { name: `Start ${title}`, exact: true }).click();
     await complete(page);
   }
 
-  // End of the available journey: no next password is issued.
-  await expect(page.getByText(/You have completed the currently available journey/)).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Recommended next mission/ })).toHaveCount(0);
+  // End of the path: nothing further is offered.
+  await expect(page.getByRole("heading", { name: /You've finished every mission on the path/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Start / })).toHaveCount(0);
 
   // P5.
   await page.getByRole("link", { name: "See your session summary" }).click();
-  await expect(page.locator("strong", { hasText: "Open the source and read the relevant part" })).toBeVisible();
   await expect(page.getByText(/Use it\. It is specific.*\(Very\)/)).toBeVisible();
   await expect(page.getByText(/Whether the café's own records say the same thing\. \(Somewhat\)/)).toBeVisible();
-  for (const { code } of passwords)
-    await expect(page.locator("li").getByText(code).locator("visible=true")).toBeVisible();
+  await expect(page.getByText(/finished 21 of 21 missions/)).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   // What it says it contains is what it contains: no written answers on the page or when copied.
@@ -83,7 +75,6 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
   await page.getByRole("button", { name: "Copy summary" }).click();
   await expect(page.getByText("Summary copied")).toBeVisible();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
-  expect(copied).toContain("BIRCH-HARBOUR-58");
   expect(copied).toContain("Whether the café's own records say the same thing. (Somewhat)");
   expect(copied).not.toContain("PRIVATE-");
   expect(copied).toContain("You would have relied on 7 claims"); // M04's first read, against the evidence
@@ -98,44 +89,53 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
   await expect(page.getByRole("navigation", { name: "Main" })).toBeHidden();
   await page.emulateMedia({ media: "screen" });
 
-  // The map shows what this visit completed, and only for this visit.
-  await page.getByRole("link", { name: "Mission map", exact: true }).click();
-  await expect(page.getByText("Completed this visit")).toHaveCount(modules.filter((m) => m.status === "available").length);
+  // The map shows every stop finished, and the capstone's four seals filled.
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Mission map", exact: true }).click();
+  await expect(page.locator(".stop-state[data-state=done]")).toHaveCount(modules.filter((m) => m.status === "available").length);
+  await expect(page.getByText("All four stages finished")).toBeVisible();
 });
 
-test("criterion 1: the starting questions can be skipped", async ({ page }) => {
-  await page.goto("/start");
-  await page.getByRole("link", { name: "Skip these questions" }).click();
-  await expect(page.getByRole("heading", { name: "Inside the Machine" })).toBeVisible();
+test("this device remembers finished missions and how far others got, and nothing a learner chose or wrote", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/");
+  await page.getByRole("link", { name: "Start the first mission" }).click();
+  await completeM01(page);
+  await page.getByRole("link", { name: "Back to the mission map" }).click();
+  await expect(page.getByRole("button", { name: /Inside the Machine.*Finished/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /The Delegation Desk.*Next/ })).toBeVisible();
+
+  // Part-way through another mission, then a new visit.
+  await openFromMap(page, "The Argument Forge");
+  await cont(page);
+  await expect(page.getByText(/^Step 2 of/)).toBeVisible();
+  await page.reload();
+  await expect(page.getByText(/^Step 1 of/)).toBeVisible(); // answers aren't kept, so the mission starts again
+  await page.goto("/map");
+  await expect(page.getByRole("button", { name: /Inside the Machine.*Finished/ })).toBeVisible();
+  await page.getByRole("button", { name: /The Argument Forge.*Step 2 of/ }).click();
+  await expect(page.getByText(/You reached step 2 of \d+ last time/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start again: The Argument Forge" })).toBeVisible();
+
+  // What is stored: three lists, no answers.
+  const stored = await page.evaluate(() => localStorage.getItem("artisan_progress"));
+  const data = JSON.parse(stored!);
+  expect(Object.keys(data).sort()).toEqual(["completed", "reached", "seen", "v"]);
+  expect(data.completed).toEqual(["m01-foundations"]);
+  expect(stored).not.toMatch(/PRIVATE-|choiceId|confidence/);
+
+  // The welcome page offers the way back in.
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: /^Continue: / })).toBeVisible();
+
+  // Clearing it empties the map.
+  await page.goto("/summary");
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Clear my progress on this device" }).click();
+  await expect(page.getByText("Progress cleared.")).toBeVisible();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Mission map", exact: true }).click();
+  await expect(page.locator(".stop-state[data-state=done]")).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("artisan_progress"))).not.toContain("m01-foundations");
 });
-
-// Each code is typed differently, as learners do: case, spaces and separators are ignored.
-const variants = [(c: string) => c, (c: string) => c.toLowerCase().replace(/-/g, " "), (c: string) => c.replace(/-/g, ""), (c: string) => c.toLowerCase()];
-for (const [i, { code: published, missionId: id }] of passwords.entries()) {
-  const mission = missions.find((m) => m.id === id)!;
-  const title = mission.title;
-  const code = variants[i % variants.length](published);
-  test(`criteria 2, 6, 7: ${title} opens from its password in a fresh browser, claiming no history`, async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    await page.goto("/continue");
-    await page.getByLabel("Mission password").fill(code);
-    await page.getByRole("button", { name: "Find mission" }).click();
-    await expect(page.getByText(`This password opens: ${title}`)).toBeVisible();
-    await page.getByRole("link", { name: "Start mission" }).click();
-    await expect(page).toHaveURL(new RegExp(`/missions/${id}$`));
-    await expect(page.getByText(/^Step 1 of/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Your task" })).toBeVisible();
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
-    await expect(page.getByText(/^Step 2 of/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Your task" })).toHaveCount(0);
-
-    // Nothing was inferred from the password.
-    await page.getByRole("link", { name: "Mission map", exact: true }).click();
-    await expect(page.getByText("Completed this visit")).toHaveCount(0);
-    await context.close();
-  });
-}
 
 test("criterion 9: refreshing mid-activity gives a clear restart on every mission", async ({ page }) => {
   test.setTimeout(120_000);
@@ -149,18 +149,15 @@ test("criterion 9: refreshing mid-activity gives a clear restart on every missio
   }
 });
 
-test("Pause explains that a refresh also restarts", async ({ page }) => {
+test("leaving a mission by the breadcrumb keeps its place, and the map offers to resume it", async ({ page }) => {
   await page.goto("/missions/m05-argument");
-  await page.getByRole("button", { name: "Pause" }).click();
-  await expect(page.getByText(/ALDER-THIMBLE-26/).first()).toBeVisible();
-  await expect(page.getByText(/your earlier answers are not saved/)).toBeVisible();
-  await expect(page.getByText(/Refreshing the page or closing this tab/)).toBeVisible();
-
-  // Printing from Pause prints the password, not the mission behind it.
-  await page.emulateMedia({ media: "print" });
-  await expect(page.getByRole("dialog").locator("p.font-mono")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "The Argument Forge" })).toBeHidden();
-  await page.emulateMedia({ media: "screen" });
+  await expect(page.getByRole("button", { name: "Pause" })).toHaveCount(0);
+  await cont(page);
+  await expect(page.getByText(/^Step 2 of/)).toBeVisible();
+  await page.getByRole("navigation", { name: "Where you are" }).getByRole("link", { name: "Mission map" }).click();
+  await expect(page.getByRole("button", { name: /The Argument Forge.*Resume/ })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("link", { name: "Resume mission: The Argument Forge" }).click();
+  await expect(page.getByText(/^Step 2 of/)).toBeVisible();
 });
 
 for (const route of ROUTES) {
@@ -184,24 +181,22 @@ test("criterion 10: the pilot makes no requests to outside services", async ({ p
 });
 
 test("regression: pages kept alive in the background do not interfere with the visible one", async ({ page }) => {
-  // M01 and M04 share step ids ("initial", "explain"), and the orientation shares "citation" with M04.
-  await page.goto("/start");
-  await page.getByLabel("Open the source and read the relevant part").check();
-  await page.getByRole("link", { name: "Mission map", exact: true }).click();
-  await page.getByRole("link", { name: /Open mission.*Inside the Machine/ }).click();
+  // M01 and M04 share step ids ("initial", "explain").
+  await page.goto("/map");
+  await openFromMap(page, "Inside the Machine");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByLabel(/Use it\. It is specific/).check();
 
-  await page.getByRole("link", { name: "Mission map", exact: true }).click();
-  await page.getByRole("link", { name: /Open mission.*The Evidence Bureau/ }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Mission map", exact: true }).click();
+  await openFromMap(page, "The Evidence Bureau");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   const answer = page.getByRole("group", { name: /Attendance averaged/ }).getByRole("radio", { name: "Not sure" });
   await answer.check();
   await expect(answer).toBeChecked();
 
   // Back in M01, the earlier selection is intact, and ids in the document are unique.
-  await page.getByRole("link", { name: "Mission map", exact: true }).click();
-  await page.getByRole("link", { name: /Open mission.*Inside the Machine/ }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Mission map", exact: true }).click();
+  await openFromMap(page, "Inside the Machine");
   await expect(page.getByLabel(/Use it\. It is specific/)).toBeChecked();
   const duplicates = await page.evaluate(() => {
     const ids = [...document.querySelectorAll("[id]")].map((e) => e.id);

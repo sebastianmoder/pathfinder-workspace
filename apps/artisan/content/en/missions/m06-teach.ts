@@ -201,15 +201,22 @@ export const m06Teach: Mission = {
       },
     },
     {
-      kind: "quiz",
+      kind: "sort",
       id: "use-app",
-      prompt: "Leo will keep using the AI app for homework. What would help him learn from it, rather than copy from it?",
-      choices: [
-        { id: "a", label: "Ask it to check his working, not to give the answer.", verdict: "correct", explanation: "Feedback on his own attempt keeps the thinking his, and it would have shown him where his rule broke." },
-        { id: "b", label: "Stop using the app, since it gave him a wrong answer.", verdict: "weaker", explanation: "It may well be right more often than not. The problem was using its answer instead of his own working." },
-        { id: "c", label: "Ask it the same question again and compare its answers.", verdict: "weaker", explanation: "Two generated answers that agree aren't a check, and comparing them still teaches him no method." },
-      ],
+      prompt: "Leo will keep using the AI app for homework. Sort these ways of using it: which keep the thinking his?",
       hints: [{ text: "What did Leo do that let a wrong idea through without anyone noticing?" }],
+      categories: [
+        { id: "his", label: "Keeps the thinking his" },
+        { id: "app", label: "Does the thinking for him" },
+      ],
+      items: [
+        { id: "check", label: "Ask it to check his working, not to give the answer", categoryId: "his", explanation: "Feedback on his own attempt keeps the thinking his, and would have shown him where his rule broke." },
+        { id: "hint", label: "Ask for a hint about the next step, then try it himself", categoryId: "his", explanation: "A hint leaves the step to him. He still has to make it work." },
+        { id: "new", label: "Have it explain the method, then do a fresh question without it", categoryId: "his", explanation: "The fresh question shows whether the method is his now." },
+        { id: "copy", label: "Ask for the answer and copy it into his book", categoryId: "app", explanation: "The page looks finished, but nothing went through his head. That's how a wrong idea slips by." },
+        { id: "twice", label: "Ask the same question twice and keep the answer that matches", categoryId: "app", explanation: "Two generated answers that agree aren't a check, and comparing them teaches no method." },
+        { id: "solution", label: "Read a full worked solution instead of trying first", categoryId: "app", explanation: "Reading feels like learning, but he never tries the method himself, so he can't tell if he has it." },
+      ],
     },
     {
       kind: "revision",
@@ -284,7 +291,7 @@ export const m06Teach: Mission = {
           id: "learn-with-ai",
           label: "Using AI to learn rather than to copy",
           kind: "knowledge",
-          items: ["use-app", "revision"],
+          items: ["use-app/check", "use-app/new", "use-app/copy", "use-app/twice", "revision"],
           practice: {
             prompt: "You're learning a new spreadsheet formula with an AI assistant. Which request builds your skill most?",
             choices: [

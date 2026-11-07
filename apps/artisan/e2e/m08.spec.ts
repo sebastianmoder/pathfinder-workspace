@@ -5,7 +5,7 @@ import { completeM08, cont, followLead, judgeStatements, recordJudgment } from "
 test("M08 is completable end to end", async ({ page }) => {
   await page.goto("/missions/m08-newsroom");
   await completeM08(page);
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The Fairness Council/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The Fairness Council" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Tracing where and when an image first appeared")).toBeVisible();
   await expect(shown.getByText("Investigating a new viral post, without hints")).toBeVisible();

@@ -7,7 +7,7 @@ export const check = (page: Page) => page.getByRole("button", { name: "Check my 
 export async function recordJudgment(page: Page, answer: RegExp | string, confidence?: string) {
   await page.getByLabel(answer).check();
   if (confidence) await page.getByLabel(confidence, { exact: true }).check();
-  await page.getByRole("button", { name: "Record my judgment" }).click();
+  await page.getByRole("button", { name: /^(Record my judgment|Play this move)$/ }).click();
   await expect(page.getByText("Weaker fit")).toHaveCount(0); // no verdict before investigating
   await cont(page);
 }
@@ -98,6 +98,33 @@ export async function auditClaim(
   const withoutReason = page.getByRole("button", { name: /without explaining/ });
   if (!opts.reason && (await withoutReason.count())) await withoutReason.click();
   else await page.getByRole("button", { name: opts.independent ? "Save my judgment" : "Check this claim" }).click();
+}
+
+/**
+ * Pairs cards with select-and-place: select the left card, then its partner in the right-hand column. Then checks.
+ */
+export async function matchPairs(page: Page, pairs: [RegExp, string][]) {
+  const left = page.locator(".match-col").first();
+  for (const [card, partner] of pairs) {
+    const button = left.getByRole("button", { name: card });
+    if ((await button.getAttribute("aria-pressed")) !== "true") await button.click();
+    await page.locator(".match-col").nth(1).getByRole("button", { name: new RegExp(`: ${partner.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) }).click();
+  }
+  await page.getByRole("button", { name: "Check my pairs" }).click();
+}
+
+/** Orders the cards top to bottom with their move-up buttons, then checks. */
+export async function rankInto(page: Page, order: RegExp[]) {
+  for (let k = 0; k < order.length; k++) {
+    for (;;) {
+      const labels = await page.locator(".rank-label").allInnerTexts();
+      const at = labels.findIndex((l) => order[k].test(l));
+      expect(at, String(order[k])).toBeGreaterThanOrEqual(0);
+      if (at <= k) break;
+      await page.getByRole("button", { name: new RegExp(`Move up: .*${order[k].source}`) }).click();
+    }
+  }
+  await page.getByRole("button", { name: "Check my order" }).click();
 }
 
 /** Marks every statement in the list, then checks and moves on with the given button. */
@@ -448,9 +475,7 @@ export async function completeM03(page: Page) {
   await sortInto(page, place);
   await check(page);
   await cont(page);
-  await page.getByLabel(/The audience and its must-haves/).check();
-  await check(page);
-  await cont(page);
+  await markAndCheck(page, [/The readers are adults/, /Say what to bring/]);
   await revise(page, /Check every date, time and number/);
   await pickPart(page, "Objective", /announcing the repair café's new hours/);
   await pickPart(page, "Context", /first Saturday/);
@@ -487,8 +512,8 @@ export async function completeM07(page: Page) {
   await auditClaim(page, /costs just/, { passage: "costs-helper", status: "Incorrect", action: "Correct", repair: ["1,800", "2"] });
   await page.getByRole("button", { name: "See the final briefing" }).click();
   await cont(page);
-  await page.getByLabel(/Treating the rise since March/).check();
-  await check(page);
+  await rankInto(page, [/Treating the rise since March/, /€180/, /typical visit/, /axis at 85/, /Rounding/]);
+  await expect(page.getByText("Both ends hold up.")).toBeVisible();
   await cont(page);
   await revise(page, /No: 20% to 30% is half as much again/, "Somewhat");
   await markAndCheck(page, [/Membership grew/, /girls playing/, /Injuries at training/], "Audit the claims");
@@ -548,9 +573,7 @@ export async function completeM06Teach(page: Page) {
   await choose(page, /50% of what\?/);
   await choose(page, /Now try Q2 on your own/);
   await cont(page);
-  await page.getByLabel(/check his working/).check();
-  await check(page);
-  await cont(page);
+  await sortLeoApp(page);
   await revise(page, /Asking him to do a new one/);
   await page.getByLabel(/half a pizza/).check();
   await check(page);
@@ -608,8 +631,13 @@ export async function completeM11(page: Page) {
   await sortInto(page, place);
   await check(page);
   await cont(page);
-  await page.getByLabel(/I made it, with an AI headline/).check();
-  await check(page);
+  await matchPairs(page, [
+    [/The headline/, "An AI suggestion, kept word for word"],
+    [/The main text/, "You, rewriting an AI draft"],
+    [/The photo/, "The Commons' archive, used with consent"],
+    [/What went in/, "You alone"],
+  ]);
+  await expect(page.getByText(/So the accurate answer is/)).toBeVisible();
   await cont(page);
   await revise(page, /You look into it and fix it/);
   await pickPart(page, "Message", /this year's facts/);
@@ -645,8 +673,13 @@ export async function completeM08(page: Page) {
     [/shared about 4,000/, "Established"],
   ]);
   await cont(page);
-  await page.getByLabel(/Little: an unedited photo/).check();
-  await check(page);
+  await matchPairs(page, [
+    [/Examining the image closely/, "Whether the image has been altered"],
+    [/Searching for earlier copies/, "Whether the photo existed before this morning"],
+    [/river-level record/, "Whether the river is high right now"],
+    [/Messaging the account/, "How the poster came by the photo"],
+  ]);
+  await expect(page.getByText(/No single check can show/)).toBeVisible();
   await cont(page);
   await page.getByLabel(/Publish a short report/).check();
   await check(page);
@@ -924,4 +957,24 @@ export async function completeC01Review(page: Page) {
   await cont(page);
   await reviseAndFinish(page, /Check the new figures/);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+}
+
+/** M06-teach: sorts the ways Leo could use the app. */
+export async function sortLeoApp(page: Page) {
+  await sortInto(page, [
+    [/check his working/, "Keeps the thinking his"],
+    [/hint about the next step/, "Keeps the thinking his"],
+    [/fresh question/, "Keeps the thinking his"],
+    [/copy it into his book/, "Does the thinking for him"],
+    [/same question twice/, "Does the thinking for him"],
+    [/full worked solution/, "Does the thinking for him"],
+  ]);
+  await check(page);
+  await cont(page);
+}
+
+/** Opens a mission from the map: select its stop, then use the card's main action. */
+export async function openFromMap(page: Page, title: string) {
+  await page.locator(".route-stops, .seam-stop").getByRole("button", { name: new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) }).click();
+  await page.getByRole("complementary", { name: "Selected mission" }).getByRole("link", { name: new RegExp(`: ${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) }).click();
 }

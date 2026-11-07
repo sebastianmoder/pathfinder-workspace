@@ -89,10 +89,11 @@ export const b01: Mission = {
       },
     },
     {
-      kind: "quiz",
+      kind: "rank",
       id: "complaint",
       showIf: { fact: { key: "roles/roles", any: ["answers:automated"] } },
-      prompt: "You let the AI's answers go live unchecked. A week later, this arrives. What do you do first?",
+      title: "Marta's complaint",
+      intro: "You let the AI's answers go live unchecked. A week later, this arrives. Rank what you could do, from what to do first to what helps least.",
       artefact: {
         kind: "email",
         from: "Contact form on the Commons website",
@@ -103,11 +104,18 @@ export const b01: Mission = {
           "Is anything else on that page true? Marta",
         ],
       },
-      choices: [
-        { id: "a", label: "Fix the page, tell Marta, and check every other answer.", verdict: "correct", explanation: "Correct what is wrong where readers see it, answer the person it misled, and find the other unchecked facts before someone else does. Priya still answers for every fact on the page." },
-        { id: "b", label: "Reply that the AI wrote that answer, so it isn't our fault.", verdict: "weaker", explanation: "The Commons published it, so the Commons answers for it. Blaming the tool tells Marta nobody checked, and fixes nothing." },
-        { id: "c", label: "Add a line saying the answers on the page may have mistakes.", verdict: "weaker", explanation: "A warning moves the checking onto readers and leaves the false café on the page. The fix is to check the facts." },
+      top: "Do first",
+      bottom: "Helps least",
+      items: [
+        { id: "fix", label: "Take the false café line off the page", explanation: "Correct what is wrong where readers see it, before anyone else is misled." },
+        { id: "check", label: "Check every other answer against the facts you have", explanation: "Marta's question is a fair one. Find the other unchecked facts before someone else does." },
+        { id: "reply", label: "Reply to Marta: it was wrong, and it's fixed", explanation: "Answer the person it misled, once you can say what you've done." },
+        { id: "warn", label: "Add a line saying the answers may contain mistakes", explanation: "A warning moves the checking onto readers and leaves wrong facts on the page." },
+        { id: "blame", label: "Tell Marta the AI wrote that answer", explanation: "The Commons published it, so the Commons answers for it. Blaming the tool tells Marta nobody checked." },
       ],
+      first: ["fix", "check"],
+      last: ["warn", "blame"],
+      takeaway: "Fix what is wrong where readers see it, check the rest, and answer the person it misled. Priya still answers for every fact on the page.",
     },
     {
       kind: "transfer",

@@ -5,8 +5,7 @@ import { completeM03, cont, judgeChecklist, M03_CRITERIA, pickPart, recordJudgme
 test("M03 is completable end to end and recommends the next mission", async ({ page }) => {
   await page.goto("/missions/m03-briefing");
   await completeM03(page);
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The FAQ Project/ })).toBeVisible();
-  await expect(page.getByText("WILLOW-QUILL-84").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The FAQ Project" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Improving a brief one element at a time")).toBeVisible();
   await expect(shown.getByText("Building a brief for a new task without guidance")).toBeVisible();

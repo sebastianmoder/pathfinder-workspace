@@ -43,6 +43,7 @@ export const modules: ModuleEntry[] = [
     stage: 1,
     status: "available",
     missionIds: ["b01-faq"],
+    bridge: true,
     recommendedBefore: ["M01", "M02", "M03"],
   },
   {
@@ -88,6 +89,7 @@ export const modules: ModuleEntry[] = [
     stage: 2,
     status: "available",
     missionIds: ["t01-transfer"],
+    bridge: true,
     recommendedBefore: ["M04", "M05"],
   },
   {
@@ -133,6 +135,7 @@ export const modules: ModuleEntry[] = [
     stage: 3,
     status: "available",
     missionIds: ["b03-report"],
+    bridge: true,
     recommendedBefore: ["M08", "M09", "M10", "M11"],
   },
   {

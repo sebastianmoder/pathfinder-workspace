@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { check, choose, completeM06Gym, completeM06Teach, cont, recordJudgment } from "./helpers";
+import { check, choose, completeM06Gym, completeM06Teach, cont, recordJudgment, sortLeoApp } from "./helpers";
 
 test("M06 gym: help is offered after an attempt, noted as help, and a revealed answer is not credited", async ({ page }) => {
   await page.goto("/missions/m06-gym");
@@ -27,7 +27,7 @@ test("M06 gym: help is offered after an attempt, noted as help, and a revealed a
 test("M06 gym completes and leads to the teach-back", async ({ page }) => {
   await page.goto("/missions/m06-gym");
   await completeM06Gym(page);
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The Thinking Gym: teach it back/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The Thinking Gym: teach it back" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Using help to reach a solution yourself")).toBeVisible();
   await expect(shown.getByText(/with help/).first()).toBeVisible();
@@ -37,12 +37,12 @@ test("M06 gym completes and leads to the teach-back", async ({ page }) => {
 test("M06 teach-back completes, and the map marks the module done only when both missions are", async ({ page }) => {
   await page.goto("/missions/m06-teach");
   await completeM06Teach(page);
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The Numbers Lab/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The Numbers Lab" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Finding out what someone thinks before explaining")).toBeVisible();
   await expect(shown.getByText("Handing the next step back to the learner")).toBeVisible();
   await expect(page.getByText(/PRIVATE-/)).toHaveCount(0);
-  await page.getByRole("navigation").getByRole("link", { name: "Mission map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Mission map", exact: true }).click();
   const gym = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "The Thinking Gym" }) });
   await expect(gym.getByText("Completed this visit")).toHaveCount(0);
 });
@@ -56,9 +56,7 @@ test("telling Leo the answer is recorded as such, and the debrief says so", asyn
   await choose(page, /No, it's €99\. Moving on/);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await cont(page);
-  await page.getByLabel(/check his working/).check();
-  await check(page);
-  await cont(page);
+  await sortLeoApp(page);
   await page.getByLabel(/Reading the app's explanation/).check();
   await check(page);
   await expect(page.getByText(/A correct explanation can still slide past/)).toBeVisible();

@@ -72,19 +72,15 @@ describe("calibration", () => {
 });
 
 describe("summaryToText", () => {
-  it("includes judgments and passwords, with no score", () => {
+  it("includes judgments, with no score", () => {
     const text = summaryToText({
       heading: "H",
       note: "N",
-      startingPoint: [],
-      startingPointLabel: "Start",
       missions: [summarizeMission(mission, { stepIndex: 2, answers: { i: { choiceId: "a", confidence: 0 } }, evidence: {} }, true)!],
-      labels: { takeaway: "T", shown: "Shown", selfAssessed: "Self", review: "Review", calibration: "C", calibrationText: () => "", before: "Before", after: "After", notFinished: "NF", passwords: "P" },
+      labels: { takeaway: "T", shown: "Shown", selfAssessed: "Self", review: "Review", calibration: "C", calibrationText: () => "", before: "Before", after: "After", notFinished: "NF" },
       confidenceLabels: ["Low"],
-      passwords: [{ title: "Mission", code: "A-B-22" }],
     } satisfies SummaryText);
     expect(text).toContain("Before: First (Low)");
-    expect(text).toContain("- Mission: A-B-22");
     expect(text).toContain("Review: Skill");
     expect(text).not.toMatch(/score/i);
   });

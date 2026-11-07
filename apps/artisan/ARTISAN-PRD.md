@@ -11,7 +11,7 @@ ARTISAN is an interactive website where learners practise understanding, evaluat
 
 The complete product covers the full AI literacy journey. It must be possible to build and release one module at a time, with each module providing a useful standalone experience and contributing to a coherent learning pathway.
 
-The pilot will test the learning experience with minimal tooling. It will have no accounts or database. Learners can note a mission password and use it later to restart at that mission. Most pilot interactions will use authored scenarios and feedback; a live AI connection is optional and is not required to launch.
+The pilot will test the learning experience with minimal tooling. It will have no accounts or database. The learner's browser remembers which missions they have finished, so the journey map can show their path on a later visit; nothing they chose or wrote is stored. Most pilot interactions will use authored scenarios and feedback; a live AI connection is optional and is not required to launch.
 
 ## 2. Audience and assumptions
 
@@ -44,7 +44,7 @@ Secondary users are facilitators who introduce ARTISAN to a group. The pilot sho
 - Can a learner start and complete a mission without facilitation?
 - Do learners investigate evidence and revise judgments for defensible reasons?
 - Can they apply verification and argument-evaluation skills in an unfamiliar case?
-- Can they understand and use a mission password on another visit or device?
+- Can they find their way back into the journey on a later visit, from the map?
 - Which interactions improve understanding, and which merely add effort?
 
 ### Outside pilot scope
@@ -88,13 +88,13 @@ The curriculum has four stages, followed by a capstone. The stages organize the 
 ### End-to-end learner flow
 
 1. **Arrive:** See the product promise, a concrete example activity, an approximate time commitment, and Start or Continue options.
-2. **Orient:** Answer a few low-stakes questions about AI judgment. Explain that these establish a starting point rather than a grade. Allow skipping.
+2. **Begin:** Start goes straight into the first mission; each mission opens with its own judgment before any explanation.
 3. **Choose:** Follow the recommended next mission or open any available module from the journey map.
 4. **Act:** Work through a short scenario, inspect evidence, make choices, and receive focused feedback.
 5. **Reflect:** Compare the initial and final judgment and identify a principle to use elsewhere.
 6. **Demonstrate:** Complete a short unfamiliar application with less guidance.
-7. **Continue or pause:** See the next mission and its password. A Pause option also provides a password to restart the current mission.
-8. **Return:** Enter a password, confirm the destination, and restart at that mission's opening brief.
+7. **Continue or leave:** The debrief shows this stage's stretch of the path and the next mission. Leaving for the map mid-mission keeps the place for the rest of the visit, and the map offers Resume.
+8. **Return:** On a later visit, the map shows the missions finished on this device and where the learner left off. An unfinished mission restarts at its opening brief.
 9. **Integrate:** Complete stage-level bridge challenges and eventually the capstone.
 
 **Proposed duration:** 8–15 minutes for a typical mission, with longer modules divided into multiple missions. These are design targets to validate in the pilot, not enforced timers.
@@ -113,7 +113,7 @@ Every module must contain:
 6. A revised answer or explanation.
 7. A transfer task using a different example.
 8. A debrief, practical takeaway, replay option, and next-step recommendation.
-9. A mission password and a clearly defined restart point.
+9. A place on the journey map and a clearly defined restart point (the opening brief).
 
 ### Rules for independent release
 
@@ -122,7 +122,7 @@ Every module must contain:
 - Shared controls, terminology, and feedback patterns stay consistent across releases.
 - The journey map shows only available modules as playable. Planned modules are clearly labeled and have no empty destinations.
 - Each released module has a complete opening, activity, assessment, and ending.
-- Existing mission passwords continue to resolve when new modules are added.
+- Retired routes keep working as redirects, so old links still lead somewhere useful.
 
 ### Integration across the journey
 
@@ -134,7 +134,7 @@ Every module must contain:
 
 **Bridge challenges:** A stage ends with a short case combining two or more earlier skills. Bridge challenges are added after the relevant modules exist.
 
-**No hidden continuity dependency:** Later missions must not depend on answers from an earlier visit. Passwords restore the destination, not a personal history. The capstone must remain usable with provided case materials.
+**No hidden continuity dependency:** Later missions must not depend on answers from an earlier visit. Saved progress records which missions are finished, never the answers given in them. The capstone must remain usable with provided case materials.
 
 ## 7. Module requirements
 
@@ -317,7 +317,7 @@ The main workspace should provide:
 - Contextual access to evidence or relevant controls.
 - A visible place to record the learner's judgment.
 - A clear primary action and a secondary way to ask for help.
-- Mission progress and a Pause option.
+- Mission progress, and a way back to the journey map that keeps the learner's place.
 
 On larger screens, the artifact and evidence can appear side by side. On smaller screens, use clearly labeled views that retain the learner's selection and place. Avoid nested scrolling or interactions that require hovering.
 
@@ -334,6 +334,9 @@ On larger screens, the artifact and evidence can appear side by side. On smaller
 | Adjustable simulation | Change an assumption and inspect the result | Learn through controlled comparison | M01/M07 |
 | Version tree | Compare alternative drafts and choices | Retain creative intent and accountability | M11 |
 | Workflow runner | Arrange steps and run reviewed test cases | Understand system behavior and failure | M12 |
+| Matching board | Pin each card to its partner, one to one, with a thread drawn between them | See what each check, source or contributor can and can't account for | M08/M11 |
+| Ranking | Order a few cards between two labelled ends; only the ends are judged | Weigh problems or actions by what a decision depends on | M07/B01 |
+| First move cards | Play an in-scenario first move from a hand of cards, then see it again when rethinking | Commit to a judgment before explanation, in the case's own terms | M01 onward |
 | Replay decision | Revisit one choice and see an alternative outcome | Explore consequences without repeating the whole mission | Selected missions |
 
 ### Quizzes and feedback
@@ -369,7 +372,7 @@ A later live AI version may respond more freely, but must preserve the same miss
 
 Use the craft metaphor through mission names, tools, and visible work. The interface should remain understandable without game terminology.
 
-**Journey map:** Show stages, available modules, recommended next steps, and planned content. Mark completion only for work known in the current session. Do not imply a permanent learner record.
+**Journey map:** Show the journey as one route: a sheet per stage, bridge challenges on the seams between stages, and the capstone at the end, whose seal fills one notch per finished stage. Mark each stop as finished, under way, next, or not started, by shape as well as colour. Selecting a stop shows what the mission is and practises, and the one action that opens it. Completion is kept on this device only, and the learner can clear it. It is not a credential or a learner record.
 
 **Skill recognition:** Mission debriefs can recognize specific demonstrated actions, such as tracing a claim to evidence or identifying an unsupported assumption. These are formative acknowledgments, not credentials.
 
@@ -379,7 +382,7 @@ Use the craft metaphor through mission names, tools, and visible work. The inter
 
 **Replay:** Let learners inspect another decision path after completing a mission. Keep the original and replayed outcomes distinguishable within the session.
 
-**Learning summary:** Present a short end-of-session summary with takeaways and mission passwords. Learners can copy or print it. A permanent portfolio can be considered after the pilot.
+**Learning summary:** Present a short end-of-session summary with takeaways and judgments from this tab. Learners can copy or print it, and can clear the progress this device remembers. A permanent portfolio can be considered after the pilot.
 
 ## 10. Pilot scope
 
@@ -387,12 +390,12 @@ Use the craft metaphor through mission names, tools, and visible work. The inter
 
 | Step | Pilot content | Proposed duration | Purpose |
 | --- | --- | --- | --- |
-| P0 | Welcome and optional starting questions | 3–5 minutes | Establish expectations and an initial judgment |
+| P0 | Welcome, with a one-question example | 1–2 minutes | Establish expectations; Start opens M01 directly |
 | P1 | M01: one foundations mission | 8–10 minutes | Establish a usable mental model |
 | P2 | M04: one evidence investigation | 12–15 minutes | Practise claim checking and source support |
 | P3 | M05: one argument roleplay | 12–15 minutes | Practise assumptions, objections, and revision |
 | P4 | T01: a new combined transfer case | 8–10 minutes | Apply verification and reasoning with fewer hints |
-| P5 | Debrief and continuation instructions | 3–5 minutes | Capture reflection and explain how to return |
+| P5 | Debrief and the next stop on the map | 3–5 minutes | Capture reflection and show the way on |
 
 The proposed total is approximately 45–60 minutes and can be split across visits. If pilot testing shows fatigue, reduce case length before removing the independent transfer task.
 
@@ -403,7 +406,7 @@ The proposed total is approximately 45–60 minutes and can be split across visi
 - Examples of supported, unsupported, misleading, and incorrect claims across those cases.
 - Reviewed answer explanations and a short rubric for open judgments.
 - An authored branching roleplay for M05 with meaningful choices and manageable branches.
-- A shared brief, evidence drawer, judgment control, debrief, and password interface.
+- A shared brief, evidence drawer, judgment control, debrief, and journey map.
 - Text, simple diagrams, and still assets. No media generation or uploads required.
 - Complete scripted operation without an AI service dependency.
 
@@ -416,8 +419,8 @@ The pilot is ready when:
 3. Every scored factual item has a reviewed answer and evidence-based explanation.
 4. Open judgments use transparent criteria rather than an unexplained right/wrong verdict.
 5. Each mission includes a deliberate learner action and a distinct transfer check.
-6. Password return works on a fresh browser or another device without prior browser data.
-7. No answer history or completion claim is inferred from a password.
+6. A learner returning in the same browser sees their finished missions on the map; a fresh browser shows an empty path with every mission still open.
+7. Saved progress holds only finished missions, how far an unfinished one got, and familiar activities; never answers.
 8. All essential activities work with keyboard, touch, reduced motion, and a narrow screen.
 9. A refresh does not produce a broken state; the learner can restart the mission clearly.
 10. The experience remains complete when no external AI service is configured.
@@ -426,42 +429,22 @@ The pilot is ready when:
 
 ### Product decision
 
-Use a **mission password** as a human-readable checkpoint code. It opens a published mission at its beginning. It is not an account password, a secret credential, proof of completion, or a container for personal answers.
-
-This deliberately supports returning to a mission boundary. Exact restoration of a conversation, partly completed investigation, or previous learning history is outside pilot scope.
+The browser remembers a learner's path, on this device only, under one key (`artisan_progress`). It holds three things: which missions are finished, the furthest step reached in an unfinished mission, and which kinds of activity are familiar (so their instructions can fold). It never holds a choice, a confidence rating, a note or any written text, and nothing is sent anywhere. Mission passwords and the intake questions were retired; their old pages redirect to the first mission and to the map.
 
 ### Learner experience
 
-**During a mission:** Pause shows the password for restarting the current mission and states that partial answers will not be restored.
+**During a visit:** Everything a learner does stays in memory for the tab. Leaving a mission for the map keeps its place, and the map offers Resume.
 
-**After a mission:** The debrief shows the recommended next mission, its password, and Copy and Print options. The learner can also obtain the current mission's password for replay.
+**After a mission:** The debrief shows this stage's stretch of the path with the mission stamped, the next mission and a Start action, and links back to the map, to replay, and to the summary.
 
-**On return:** Continue opens a single password field. After a valid entry, show the destination title and a Start mission action before navigating.
-
-Suggested copy:
-
-> Keep this mission password if you want to return later: **[mission password]**. Enter it on the ARTISAN welcome page to start **[mission title]**. It opens the mission from the beginning; your earlier answers are not saved.
-
-### Password behavior
-
-- Use a short, readable format with distinct words and digits. For example, `MAPLE-LANTERN-42` illustrates the format only; final codes must be unique within the published set.
-- Assign codes to published mission checkpoints. The application can look up their destinations without storing learner records.
-- Accept differences in letter case, surrounding spaces, and optional separators.
-- Avoid ambiguous characters and show a clear copy confirmation.
-- If copying is unavailable, keep the password selectable and provide plain instructions.
-- If invalid, preserve the entry and offer a neutral error plus access to the mission map.
-- A lost password does not lock the learner out. All released missions remain accessible through the map.
-- Shared passwords are acceptable because they provide navigation, not identity or authorization.
-- Maintain existing mappings as content grows. A replaced mission should resolve to a compatible successor or a clear explanation and destination choice.
-- Do not issue passwords for unpublished missions. At the end of the currently available journey, show completion of the available content and replay options.
+**On a later visit:** The welcome page offers to continue with the next or unfinished mission. The map shows finished stops, and for an unfinished one says how far the learner got and that it starts again from the brief, because its answers weren't kept.
 
 ### State and limitations
 
-Keep answers and current-session completion indicators only for the active visit. Normal navigation within that visit should preserve the current activity. A refresh, closed tab, or new device may restart the mission; explain this before a learner pauses.
-
-Returning by password must never rely on cookies or previously stored browser data. Optional browser convenience features can be considered later, but are not required for the pilot.
-
-Do not reconstruct earlier scores, notes, or completed modules from a password. A returning learner may choose any available mission. Reliable persistent personal progress would require a separate future product decision.
+- Restoring a step without its answers would break revisions, branches and epilogues, so an unfinished mission restarts from its brief on a new visit.
+- If storage is blocked or cleared, the app works as before; the map just shows no finished missions.
+- The summary page offers "Clear my progress on this device", which empties both the stored path and the tab's work.
+- Progress on one device does not follow the learner to another. Reliable portable progress would need a separate product decision.
 
 ## 12. Content and assessment standards
 
@@ -474,7 +457,7 @@ Do not reconstruct earlier scores, notes, or completed modules from a password. 
 - A rubric for any open response, with more than one acceptable example where appropriate.
 - A hint sequence that supports learning without immediately revealing the answer.
 - A transfer case that changes the context or surface details.
-- A debrief, practical takeaway, checkpoint destination, and restart password.
+- A debrief, practical takeaway, and next destination on the journey map.
 - A content version and a record of which sources need periodic review.
 
 ### Assessment approach
@@ -498,10 +481,10 @@ Next.js is the intended framework. The PRD specifies learner behavior and conten
 
 The pilot needs only:
 
-- A hosted website containing the journey map, missions, reviewed evidence, feedback, and password destinations.
+- A hosted website containing the journey map, missions, reviewed evidence, and feedback.
 - Interactive controls and simple visualizations within the website.
-- Temporary state for the active visit.
-- Copy and browser-print support for passwords and the learning summary.
+- Temporary state for the active visit, and a small record of finished missions in the browser.
+- Copy and browser-print support for the learning summary.
 
 Write and review mission content alongside the website rather than introducing a separate authoring platform. Prefer a few reusable interaction patterns over a unique engine for each module.
 
@@ -515,7 +498,7 @@ Development order differs from the curriculum order so that useful experiences c
 
 | Release | Scope | Integration outcome | Exit condition |
 | --- | --- | --- | --- |
-| R0 — Shared foundation | Welcome, map, mission shell, debrief, password return, reviewed content format | A reusable structure for all modules | A sample activity can be completed and restarted by password on another device |
+| R0 — Shared foundation | Welcome, map, mission shell, debrief, reviewed content format | A reusable structure for all modules | A sample activity can be completed, and the map shows it on return |
 | R1 — Foundations | M01 | First complete standalone module | Learners can explain the core limitation in a new example |
 | R2 — Verification | M04 and source interactions | M01 → M04 pathway | Learners can distinguish support from citation appearance |
 | R3 — Reasoning pilot | M05, T01, pilot learning summary | Complete pilot journey | All pilot acceptance criteria are met |
@@ -533,12 +516,12 @@ Avoid blocking an otherwise complete module on optional visual polish or a plann
 
 Use observed sessions, brief interviews, and optional learner-shared summaries. Aggregate findings manually. The website does not need to record participant activity centrally.
 
-**Proposed operational targets:** At least 80% of observed pilot participants should start the first mission and return to a specified mission by password without facilitator help. Treat these as provisional design targets, not research claims.
+**Proposed operational targets:** At least 80% of observed pilot participants should start the first mission and find their way back to a specified mission from the map without facilitator help. Treat these as provisional design targets, not research claims.
 
 | Question | Evidence to collect | Product response |
 | --- | --- | --- |
 | Can learners navigate independently? | Observation of starting, opening evidence, and continuing | Simplify labels and task structure where help is needed |
-| Does password return work? | Ask learners to return on a fresh browser or second device | Improve wording, format, and destination confirmation |
+| Does returning work? | Ask learners to come back on a later visit and continue | Improve the map's states and the welcome page's continue action |
 | Is verification more systematic? | Compare the starting judgment with the transfer case | Refine examples and feedback where misconceptions persist |
 | Does roleplay improve reasoning? | Review assumptions, objections, and revisions using a short rubric | Remove branches that add conversation without learning |
 | Is the workload appropriate? | Time observed, unfinished tasks, and learner comments | Shorten case materials or split missions |
@@ -556,8 +539,8 @@ Where learners voluntarily share a summary, make clear what it contains. Do not 
 | Roleplay feels like a quiz in disguise | Give characters distinct motivations and choices with meaningful consequences |
 | Scripted dialogue appears to understand arbitrary text | Label it clearly and keep free reflection separate from character responses |
 | Live AI gives incorrect feedback | Use reviewed evidence and rubrics; retain authored feedback and a fallback |
-| Passwords imply saved personal progress | Explain restart boundaries at Pause, debrief, and Continue |
-| A learner loses the password | Keep published missions available through the map |
+| Saved progress implies saved answers | Say on the map and the summary what is kept, and that an unfinished mission restarts from its brief |
+| A learner changes device or clears the browser | Keep every published mission open on the map; nothing is locked |
 | Later activities require forgotten earlier work | Include refreshers and prepared examples; avoid dependencies on prior-session answers |
 | Visual complexity obscures the concept | Start with small diagrams and add controls only when they serve the outcome |
 | Content becomes outdated | Prefer durable skills; version cases and review time-sensitive sources |
@@ -571,7 +554,7 @@ The following choices remain open for evidence from testing. They do not block t
 - Do learners prefer a visible workshop map or a simpler sequential mission list?
 - Which roleplay choices feel meaningful enough to justify expanding the dialogue?
 - Does live AI add learning value beyond reviewed scripted branches?
-- Are mission-level restart points sufficient, or do longer missions need chapter passwords?
+- Are mission-level restart points sufficient, or do longer missions need chapter-level restarts?
 - Do learners understand the difference between completing an activity and demonstrating independent transfer?
 
 ## 18. Curriculum references

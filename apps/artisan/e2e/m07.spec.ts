@@ -5,7 +5,7 @@ import { completeM07, cont, recordJudgment } from "./helpers";
 test("M07 is completable end to end and recommends the stage bridge", async ({ page }) => {
   await page.goto("/missions/m07-numbers");
   await completeM07(page);
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The Newsletter Desk/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The Newsletter Desk" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Repairing a misleading chart")).toBeVisible();
   await expect(shown.getByText("Correcting numbers in a new case, without hints")).toBeVisible();

@@ -2,9 +2,8 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { missions, getMission } from "@/content/missions";
-import { modules } from "@/content/journey";
-import { passwordForMission } from "@/lib/passwords";
-import { MissionRunner } from "@/components/mission-runner";
+import { findModuleForMission, modules } from "@/content/journey";
+import { MissionRunner, type PathEntry } from "@/components/mission-runner";
 import { t } from "@/lib/i18n/en";
 
 export function generateStaticParams() {
@@ -32,18 +31,16 @@ export default function MissionPage(props: PageProps<"/missions/[missionId]">) {
 async function Mission({ params }: { params: PageProps<"/missions/[missionId]">["params"] }) {
   const { missionId } = await params;
   const mission = getMission(missionId);
-  const password = mission && passwordForMission(mission.id);
-  if (!mission || !password) notFound();
+  const moduleEntry = findModuleForMission(missionId);
+  if (!mission || !moduleEntry) notFound();
 
-  // Next recommended available mission, if the debrief names one.
+  // The debrief's suggestion; the runner swaps it for the first unfinished mission if it's already done.
   const debrief = mission.steps.find((s) => s.kind === "debrief");
-  const nextId = debrief?.kind === "debrief" ? debrief.nextMissionId : null;
-  const nextMission = nextId ? getMission(nextId) : undefined;
-  const nextPassword = nextMission && passwordForMission(nextMission.id);
-  const next =
-    nextMission && nextPassword && modules.some((m) => m.status === "available" && m.missionIds.includes(nextMission.id))
-      ? { missionId: nextMission.id, title: nextMission.title, password: nextPassword }
-      : null;
+  const suggested = debrief?.kind === "debrief" ? debrief.nextMissionId : null;
+  // Titles for the path, so the runner can name any next mission without loading every mission's content.
+  const path: PathEntry[] = modules.flatMap((m) =>
+    m.status === "available" ? m.missionIds.map((id) => ({ missionId: id, title: getMission(id)?.title ?? m.title, moduleId: m.id })) : [],
+  );
 
-  return <MissionRunner mission={mission} password={password} next={next} />;
+  return <MissionRunner mission={mission} module={moduleEntry} suggested={suggested} path={path} />;
 }

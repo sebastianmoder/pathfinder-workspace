@@ -7,7 +7,7 @@ import { t } from "@/lib/i18n/en";
 import "./globals.css";
 import '@pathfinder/brand/styles.css';
 
-// Chosen for this brief: unambiguous letterforms suit learners and passwords, and the slab is workshop-stamped.
+// Chosen for this brief: unambiguous letterforms suit learners, and the slab is workshop-stamped.
 
 export const metadata: Metadata = {
   title: { default: "ARTISAN", template: "%s · ARTISAN" },
@@ -34,9 +34,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <nav aria-label={t.nav.label} className="flex flex-wrap justify-end gap-x-3 text-[0.9375rem] sm:gap-x-4 sm:text-base">
                 <Link href="/map" className="underline-offset-4 hover:underline">
                   {t.nav.map}
-                </Link>
-                <Link href="/continue" className="underline-offset-4 hover:underline">
-                  {t.nav.continue}
                 </Link>
                 <Link href="/summary" className="underline-offset-4 hover:underline">
                   {t.nav.summary}

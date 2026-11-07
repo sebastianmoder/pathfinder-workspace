@@ -5,7 +5,7 @@ import { completeM09, cont, recordJudgment, setThreshold } from "./helpers";
 test("M09 is completable end to end", async ({ page }) => {
   await page.goto("/missions/m09-fairness");
   await completeM09(page);
-  await expect(page.getByRole("heading", { name: /Recommended next mission: The Boundary Room/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The Boundary Room" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Tracing unfairness to the score, not the threshold")).toBeVisible();
   await expect(page.getByText(/PRIVATE-/)).toHaveCount(0);

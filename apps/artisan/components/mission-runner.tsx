@@ -3,14 +3,15 @@
 import { track } from '@pathfinder/analytics';
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import type { Mission, Step } from "@/content/types";
+import type { Mission, ModuleEntry, Step } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { ChoiceQuestion } from "./choice-question";
-import { PasswordCard } from "./password-card";
 import { DebriefSkills } from "./debrief-skills";
 import { SortActivity } from "./activities/sort-activity";
+import { MatchBoard } from "./activities/match-board";
+import { RankList } from "./activities/rank-list";
 import { SandboxActivity } from "./activities/sandbox";
 import { FaultTrace } from "./activities/fault-trace";
 import { ClaimAudit } from "./activities/claim-audit";
@@ -32,20 +33,31 @@ import { ArtefactFrame } from "./artefacts/frames";
 import { Dossier } from "./dossier";
 import { activityKey, ownScreen, phasesOf, PHASES } from "@/lib/phases";
 import { conditionHolds, inputFrom } from "@/lib/epilogue";
+import { stages } from "@/content/journey";
+import { NextOnPath } from "./next-on-path";
+
+/** One mission on the path, named so the debrief can point to it without loading its content. */
+export interface PathEntry {
+  missionId: string;
+  title: string;
+  moduleId: string;
+}
 
 interface Props {
   mission: Mission;
-  password: string;
-  next: { missionId: string; title: string; password: string } | null;
+  module: ModuleEntry;
+  /** The mission the debrief's content suggests next. */
+  suggested: string | null;
+  path: PathEntry[];
 }
 
-export function MissionRunner({ mission, password, next }: Props) {
+export function MissionRunner({ mission, module: moduleEntry, suggested, path }: Props) {
   const session = useSession();
-  const pauseRef = useRef<HTMLDialogElement>(null);
   const helpRef = useRef<HTMLDialogElement>(null);
   const helpTitleId = useId();
   const reminder = mission.steps.find((s) => s.kind === "refresher");
-  const pauseTitleId = useId();
+  const stageIndex = stages.findIndex((s) => s.id === moduleEntry.stage);
+  const stage = stages[stageIndex];
   const progressNow = session.progress(mission.id);
   const { stepIndex, answers } = progressNow;
   const step = mission.steps[stepIndex];
@@ -75,6 +87,7 @@ export function MissionRunner({ mission, password, next }: Props) {
     let next = stepIndex + 1;
     while (next < mission.steps.length - 1 && !screens[next]) next++;
     session.goTo(mission.id, next);
+    session.markReached(mission.id, screens.slice(0, next + 1).filter(Boolean).length, total);
     if (mission.steps[next]?.kind === "debrief") { if (!session.isCompleted(mission.id)) track('mission_complete', mission.id); session.complete(mission.id); }
     window.scrollTo({ top: 0 });
   };
@@ -82,17 +95,21 @@ export function MissionRunner({ mission, password, next }: Props) {
   const first = stepIndex === 0;
   const [aboutOpen, setAboutOpen] = useState(false);
   const aboutId = useId();
-  const tools = (
+  const tools = reminder ? (
     <div className="no-print flex shrink-0 gap-2">
-      {reminder && (
-        <button type="button" onClick={() => helpRef.current?.showModal()} className="btn btn-secondary btn-small">
-          {t.mission.remind}
-        </button>
-      )}
-      <button type="button" onClick={() => pauseRef.current?.showModal()} className="btn btn-secondary btn-small">
-        {t.mission.pause}
+      <button type="button" onClick={() => helpRef.current?.showModal()} className="btn btn-secondary btn-small">
+        {t.mission.remind}
       </button>
     </div>
+  ) : null;
+  // Leaving keeps this tab's place: the map offers Resume, so there is nothing to pause.
+  const crumbs = (
+    <nav aria-label={t.mission.breadcrumb} className="no-print mb-2 text-sm">
+      <ol className="crumbs">
+        <li><Link href="/map" className="underline underline-offset-4">{t.map.title}</Link></li>
+        <li>{stage.id === "capstone" ? t.map.capstone : t.map.stage(stageIndex + 1, stage.title)}</li>
+      </ol>
+    </nav>
   );
   const progress = (
     <div className="space-y-1.5">
@@ -112,6 +129,7 @@ export function MissionRunner({ mission, password, next }: Props) {
 
   return (
     <div>
+      {crumbs}
       {first ? (
         <>
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -166,8 +184,7 @@ export function MissionRunner({ mission, password, next }: Props) {
                 if (confidence !== undefined) session.setAnswer(mission.id, step.id, { confidence });
               }}
               onContinue={advance}
-              next={next}
-              replayPassword={password}
+              nextOnPath={<NextOnPath mission={mission} module={moduleEntry} suggested={suggested} path={path} />}
             />
           </FamiliarContext>
         </section>
@@ -187,20 +204,13 @@ export function MissionRunner({ mission, password, next }: Props) {
         </dialog>
       )}
 
-      <dialog
-        ref={pauseRef}
-        aria-labelledby={pauseTitleId}
-        className="m-auto w-[min(32rem,calc(100%-2rem))] border border-border bg-background p-5 text-foreground backdrop:bg-black/50"
-      >
-        <h2 id={pauseTitleId} className="text-2xl">{t.pause.title}</h2>
-        <p className="my-3 text-sm">{t.pause.body(password, mission.title)} {t.pause.refreshNote}</p>
-        <PasswordCard code={password} />
-        <form method="dialog" className="mt-4">
-          <button className="btn btn-primary">{t.pause.close}</button>
-        </form>
-      </dialog>
     </div>
   );
+}
+
+/** A first judgment that a revision re-asks as it was is a position, not a move. */
+function isPosition(mission: Mission, stepId: string, prompt: string) {
+  return mission.steps.some((s) => s.kind === "revision" && s.initialStepId === stepId && s.prompt.includes(prompt));
 }
 
 function StepView({
@@ -209,16 +219,14 @@ function StepView({
   answers,
   onAnswer,
   onContinue,
-  next,
-  replayPassword,
+  nextOnPath,
 }: {
   step: Step;
   mission: Mission;
   answers: ReturnType<ReturnType<typeof useSession>["progress"]>["answers"];
   onAnswer: (choiceId: string, confidence: number | undefined) => void;
   onContinue: () => void;
-  next: Props["next"];
-  replayPassword: string;
+  nextOnPath: React.ReactNode;
 }) {
   const session = useSession();
   const record = (item: string, result: EvidenceResult) => session.recordEvidence(mission.id, item, result);
@@ -264,6 +272,7 @@ function StepView({
             hints={step.hints}
             withConfidence={step.kind === "initialJudgment" && !!step.withConfidence}
             recordOnly={step.kind === "initialJudgment"}
+            variant={step.kind === "initialJudgment" && !isPosition(mission, step.id, step.prompt) ? "move" : undefined}
             onCommit={onAnswer}
             onEvidence={recordStep}
             onContinue={onContinue}
@@ -422,10 +431,20 @@ function StepView({
           <h2 className="text-2xl">{reAsk ? step.prompt : t.mission.revisitTitle}</h2>
           <HowTo steps={reAsk ? t.howTo.revision : t.howTo.revisionVariant} />
           {step.artefact && <ArtefactFrame artefact={step.artefact} className="mt-4" />}
-          <p className="mt-3 rounded border border-border bg-surface p-3 text-sm">
-            <strong>{reAsk ? t.mission.before : t.mission.firstMove}:</strong> {before?.label ?? "—"}
-            {first?.confidence !== undefined && <> ({label(first.confidence)})</>}
-          </p>
+          {reAsk ? (
+            <p className="mt-3 rounded border border-border bg-surface p-3 text-sm">
+              <strong>{t.mission.before}:</strong> {before?.label ?? "—"}
+              {first?.confidence !== undefined && <> ({label(first.confidence)})</>}
+            </p>
+          ) : (
+            <div className="played-card mt-3 text-sm">
+              <p className="font-bold">{t.mission.firstMove}</p>
+              <p className="mt-0.5">
+                {before?.label ?? "—"}
+                {first?.confidence !== undefined && <> ({label(first.confidence)})</>}
+              </p>
+            </div>
+          )}
           <ChoiceQuestion
             name={step.id}
             prompt={reAsk ? t.mission.after : step.prompt}
@@ -480,6 +499,24 @@ function StepView({
     case "sort":
       return <SortActivity step={step} onEvidence={record} onContinue={onContinue} />;
 
+    case "match":
+      return (
+        <>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.match} />
+          {step.artefact && <ArtefactFrame artefact={step.artefact} className="mb-5" />}
+          <MatchBoard stepId={step.id} spec={step} hints={step.hints} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
+    case "rank":
+      return (
+        <>
+          <StepIntro title={step.title} intro={step.intro} howTo={t.howTo.rank} />
+          {step.artefact && <ArtefactFrame artefact={step.artefact} className="mb-5" />}
+          <RankList stepId={step.id} spec={step} hints={step.hints} onEvidence={record} onContinue={onContinue} />
+        </>
+      );
+
     case "epilogue":
       return <Epilogue missionId={mission.id} step={step} onContinue={onContinue} />;
 
@@ -504,28 +541,7 @@ function StepView({
               <CasefileReplay key={s.id} title={s.title} spec={s.casefile} followed={session.progress(mission.id).facts[itemKey(s.id, "leads")]} />
             ) : null,
           )}
-          <div className="mt-6 space-y-4">
-            {next ? (
-              <div>
-                <h3 className="font-bold">{t.debrief.next}: {next.title}</h3>
-                <PasswordCard code={next.password} />
-                <Link href={`/missions/${next.missionId}`} prefetch={true} className="mt-3 inline-block btn btn-primary">{next.title}</Link>
-              </div>
-            ) : (
-              <p>{t.debrief.endOfContent}</p>
-            )}
-            <div>
-              <h3 className="font-bold">{t.debrief.thisMission}</h3>
-              <PasswordCard code={replayPassword} />
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <button type="button" onClick={() => session.restart(mission.id)} className="btn btn-secondary">
-                {t.debrief.replay}
-              </button>
-              <Link href="/map" className="underline">{t.map.title}</Link>
-              <Link href="/summary" className="underline">{t.debrief.summary}</Link>
-            </div>
-          </div>
+          {nextOnPath}
         </>
       );
   }

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { auditClaim, cont, firstRead, markAndCheck, narrow } from "./helpers";
+import { auditClaim, cont, firstRead, markAndCheck, narrow, openFromMap } from "./helpers";
 
 test("M04: first read, claim feedback, a learner-made briefing, and a decision with consequences", async ({ page }) => {
   await page.goto("/missions/m04-evidence");
@@ -123,8 +123,8 @@ test("selections survive switching views, and the audit survives leaving the pag
   await firstRead(page, "Not sure");
 
   await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", calc: "31", status: "Supported", action: "Retain" });
-  await page.getByRole("link", { name: "Mission map" }).click();
-  await page.getByRole("link", { name: /Open mission.*The Evidence Bureau/ }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Mission map", exact: true }).click();
+  await openFromMap(page, "The Evidence Bureau");
   await expect(page.getByText("Claims checked: 1 of 7")).toBeAttached();
   if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();
   await expect(page.getByText("Claims checked: 1 of 7")).toBeVisible();

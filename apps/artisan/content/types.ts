@@ -657,6 +657,8 @@ type StepUnion =
       categories: { id: string; label: string }[];
       items: { id: string; label: string; categoryId: string; explanation: string }[];
     }
+  | ({ kind: "match"; id: string; title: string; intro: string; artefact?: Artefact; hints?: Hint[] } & MatchSpec)
+  | ({ kind: "rank"; id: string; title: string; intro: string; artefact?: Artefact; hints?: Hint[] } & RankSpec)
   | {
       kind: "revision";
       id: string;
@@ -822,14 +824,38 @@ export interface ModuleEntry {
   missionIds: MissionId[];
   /** Advisory only; never gates access. */
   recommendedBefore: string[];
-}
-
-export interface PasswordEntry {
-  code: string;
-  missionId: MissionId;
-  /** If the mission was replaced, the compatible successor. */
-  supersededBy?: MissionId;
+  /** A stage's bridge challenge: drawn on the seam between this stage and the next. */
+  bridge?: true;
 }
 
 /** Target id for a link that bears on the proposal as a whole. */
 export const PROPOSAL = "proposal";
+
+/**
+ * Pair each item on the left with one on the right, like pinning a thread between two cards. Pairs are one to one;
+ * the right column may hold extra cards that fit nothing.
+ */
+export interface MatchSpec {
+  /** Column headings, such as "Check" and "What it can tell you". */
+  leftLabel: string;
+  rightLabel: string;
+  left: { id: string; label: string; matchId: string; explanation: string }[];
+  right: { id: string; label: string }[];
+  /** Shown once every pair is right, such as the credit line the pairs add up to. */
+  outcome?: string;
+}
+
+/**
+ * Put a handful of cards in order between two labelled ends. Only the ends are judged, since the middle is often a
+ * matter of judgment: which cards may sit at the top, and optionally which may sit at the bottom.
+ */
+export interface RankSpec {
+  /** The two ends, such as "Matters most to the decision" and "Matters least". */
+  top: string;
+  bottom: string;
+  items: { id: string; label: string; explanation: string }[];
+  first: string[];
+  last?: string[];
+  /** Why the ends are where they are, shown once the ranking is sound. */
+  takeaway?: string;
+}
