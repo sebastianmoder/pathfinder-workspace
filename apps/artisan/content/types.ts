@@ -1,6 +1,6 @@
 export type MissionId = string;
 
-/** Drawings that stand in for photos and images in a case. Each is labelled as a drawing wherever it appears. */
+/** Photos and images in a case: drawings, or AI-generated images. Each is labelled as what it is wherever it appears. */
 export type SceneId = "flood" | "library" | "readingParty" | "meadow" | "famousLibrary" | "groupParty" | "heart" | "thankYou";
 
 /**

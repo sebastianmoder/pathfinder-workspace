@@ -1,14 +1,25 @@
 import type { ReactNode } from "react";
+import Image, { type StaticImageData } from "next/image";
 import type { SceneId } from "@/content/types";
+import riversideBridgeFlood from "@/assets/scenes/riverside-bridge-flood.webp";
 
 /*
- * Drawings that stand in for the photos and images in a case. They keep their own fixed "print" palette in
- * both themes, because a photo looks the same whatever the page around it does. Each one is a labelled
- * drawing of something described in words, never presented as a real photo (PRD §4, simplifications visible).
+ * The photos and images in a case. Some are AI-generated, photorealistic images; the rest are drawings that
+ * keep their own fixed "print" palette in both themes, because a photo looks the same whatever the page around
+ * it does. Neither is ever presented as a real photo: each is labelled as a drawing or as AI-generated wherever
+ * it appears (PRD §4, simplifications visible).
  */
 
+/** Scenes shown as an AI-generated image. Static imports give the size, a blur placeholder and hashed URLs. */
+const IMAGES = { flood: riversideBridgeFlood } satisfies Partial<Record<SceneId, StaticImageData>>;
+type ImageScene = keyof typeof IMAGES;
+
+/** Whether a scene is an AI-generated image rather than a drawing, so its label can say so. */
+export function isGeneratedImage(id: SceneId): id is ImageScene {
+  return id in IMAGES;
+}
+
 const INK = "#1f2d28";
-const SKY = "#cddbe3";
 const PAPER = "#eef1ec";
 
 /** Figures from the chest up: a head on rounded shoulders. */
@@ -20,26 +31,8 @@ const people = (xs: number[], y: number, colours: string[]) =>
     </g>
   ));
 
-const SCENES: Record<SceneId, ReactNode> = {
-  // Brown floodwater over the road at a bridge, a car stranded halfway, railings just above the water.
-  flood: (
-    <>
-      <rect width="320" height="180" fill={SKY} />
-      <path d="M0 70 q40 -18 80 -6 t90 -4 t80 2 t70 -8 v20 H0z" fill="#8ea793" />
-      <rect x="0" y="78" width="320" height="6" fill="#6d6f66" />
-      {Array.from({ length: 17 }, (_, i) => (
-        <rect key={i} x={6 + i * 19} y="60" width="3" height="22" fill={INK} />
-      ))}
-      <rect x="0" y="58" width="320" height="4" fill={INK} />
-      <rect x="0" y="84" width="320" height="96" fill="#8a6a3e" />
-      {[100, 122, 146, 168].map((y, i) => (
-        <path key={y} d={`M${i % 2 ? -10 : 0} ${y} q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0`} fill="none" stroke="#b08d5c" strokeWidth="2" />
-      ))}
-      <path d="M128 104 l10 -20 h52 l12 20 z" fill="#b8402f" stroke={INK} strokeWidth="2" />
-      <path d="M142 100 l6 -12 h16 v12 z M170 100 v-12 h14 l6 12 z" fill="#c9dbe6" stroke={INK} strokeWidth="1.5" />
-      <path d="M118 106 h96" stroke="#b08d5c" strokeWidth="3" />
-    </>
-  ),
+/** Every scene without an image has a drawing, and none has both. */
+const SCENES: Record<Exclude<SceneId, ImageScene>, ReactNode> = {
   // A crowded, brightly lit library: shelves behind, people of all ages at tables of books.
   library: (
     <>
@@ -141,8 +134,14 @@ const SCENES: Record<SceneId, ReactNode> = {
   ),
 };
 
-/** A drawing for a scene, with its description as the accessible name. */
+/**
+ * The image or drawing for a scene, with its description as the accessible name. Images load lazily at the
+ * width of the sheet they lie on (at most 44rem), with a blurred preview while they arrive.
+ */
 export function Scene({ id, alt }: { id: SceneId; alt: string }) {
+  if (isGeneratedImage(id)) {
+    return <Image src={IMAGES[id]} alt={alt} placeholder="blur" sizes="(max-width: 44rem) 100vw, 44rem" className="scene block h-auto w-full" />;
+  }
   return (
     <svg viewBox="0 0 320 180" role="img" aria-label={alt} className="scene block h-auto w-full" focusable="false">
       {SCENES[id]}

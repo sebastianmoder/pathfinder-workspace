@@ -5,7 +5,7 @@ import type { Choice, Mission } from "../../types";
  * All people, accounts, outlets and records are fictional. Media are described in text (PRD M08: start with text and still images).
  */
 
-const FLOOD = "Brown floodwater over the road at Riverside Bridge, a car stranded halfway across, the bridge railings just visible above the water.";
+const FLOOD = "Brown floodwater pouring over the road at Riverside Bridge on a grey, rainy day, a red car stranded halfway across, the railings on both sides just visible above the water.";
 
 const firstMove = "Rosa drops this on your desk: “Looks real to me. Can we run it?” You have a few minutes before you start checking. What is your first move?";
 const firstChoices: Choice[] = [
@@ -65,7 +65,7 @@ export const m08: Mission = {
         artifact: {
           label: "Viral post",
           title: "Flooding at Riverside Bridge RIGHT NOW. Council hasn't warned anyone!! #RiversideFlood",
-          body: "[Photo: brown floodwater over the road at Riverside Bridge, a car stranded halfway across, the bridge railings just visible above the water.]",
+          body: `[Photo: ${FLOOD}]`,
           meta: "Posted at 08:12 today by @river_watcher_22 · shared about 4,000 times",
         },
         artefact: {

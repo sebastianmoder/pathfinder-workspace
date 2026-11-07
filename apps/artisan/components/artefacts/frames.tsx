@@ -3,7 +3,7 @@ import type { Artefact, ComposeFrame, ComposeSpec, MarkFrame } from "@/content/t
 import { partOf, sceneOf, type Choices } from "@/lib/compose";
 import { t } from "@/lib/i18n/en";
 import { CastBadge } from "./cast-badge";
-import { Scene } from "./scenes";
+import { Scene, isGeneratedImage } from "./scenes";
 
 /*
  * Case artefacts shown as the things they are, lying on the cutting mat: a chat, an email, a post, a slide.
@@ -71,7 +71,7 @@ function Drawing({ scene, alt }: { scene: NonNullable<Extract<Artefact, { kind: 
   return (
     <div className="drawing">
       <Scene id={scene} alt={alt} />
-      <p className="drawing-note">{t.artefact.drawing}: {alt}</p>
+      <p className="drawing-note">{isGeneratedImage(scene) ? t.artefact.generatedImage : t.artefact.drawing}: {alt}</p>
     </div>
   );
 }
@@ -176,7 +176,7 @@ export function ArtefactFrame({ artefact, className }: { artefact: Artefact; cla
       );
     case "photo":
       return (
-        <Specimen tag={t.artefact.tag.photo} className={className}>
+        <Specimen tag={isGeneratedImage(artefact.scene) ? t.artefact.tag.generatedPhoto : t.artefact.tag.photo} className={className}>
           <div className="sheet p-2">
             <Drawing scene={artefact.scene} alt={artefact.alt} />
             <p className="mt-2 px-1 text-sm">{artefact.caption}</p>
