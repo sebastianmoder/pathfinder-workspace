@@ -239,6 +239,12 @@ export const m08: Mission = {
       initialStepId: "initial",
       prompt:
         "An hour later, the café owner sends a photo of the bridge this morning: dry road, open traffic, today's newspaper held up in the shot. What does that photo add?",
+      artefact: {
+        kind: "photo",
+        scene: "bridgeToday",
+        alt: "A phone photo from beside the café this morning: the road over Riverside Bridge wet but clear, two cars crossing, the river within its banks, a hand holding up a folded newspaper in the foreground.",
+        caption: "Sent by the owner of Bridge Street Café: “The bridge this morning, with today's paper.”",
+      },
       choices: [
         { id: "a", label: "It settles it: a dated newspaper proves the day.", verdict: "weaker", explanation: "It's good evidence, but a newspaper can be held up on any day. It counts because it fits the river gauge and comes from a named witness, not because of what it shows." },
         { id: "b", label: "It backs up the gauge, from a named person on the scene.", verdict: "correct", explanation: "It is independent, from someone on the scene, and it agrees with the records. Together they outweigh how real any single image looks." },

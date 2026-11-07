@@ -1,7 +1,7 @@
 export type MissionId = string;
 
 /** Photos and images in a case, all stand-ins made with AI. Each is labelled as such wherever it appears. */
-export type SceneId = "flood" | "library" | "readingParty" | "meadow" | "famousLibrary" | "groupParty" | "heart" | "thankYou";
+export type SceneId = "flood" | "bridgeToday" | "library" | "readingParty" | "meadow" | "famousLibrary" | "groupParty" | "heart" | "thankYou";
 
 /**
  * Something from the case, shown as what it is (a chat, an email, a post) rather than as a paragraph about it.

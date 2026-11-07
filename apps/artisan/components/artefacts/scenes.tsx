@@ -6,6 +6,7 @@ import crowdedLibrary from "@/assets/scenes/crowded-library-stock-photo.webp";
 import handDrawnHeart from "@/assets/scenes/hand-drawn-heart-ai-illustration.webp";
 import historicLibrary from "@/assets/scenes/historic-library-reading-room.webp";
 import riversideBridgeFlood from "@/assets/scenes/riverside-bridge-flood.webp";
+import riversideBridgeThisMorning from "@/assets/scenes/riverside-bridge-this-morning.webp";
 import thankYouCard from "@/assets/scenes/thank-you-card-stock-photo.webp";
 import volunteersParty from "@/assets/scenes/volunteers-thank-you-party.webp";
 
@@ -17,6 +18,7 @@ import volunteersParty from "@/assets/scenes/volunteers-thank-you-party.webp";
  */
 const IMAGES: Record<SceneId, StaticImageData> = {
   flood: riversideBridgeFlood,
+  bridgeToday: riversideBridgeThisMorning,
   library: crowdedLibrary,
   readingParty: commonsReadingParty,
   meadow: childrenReadingMeadow,
