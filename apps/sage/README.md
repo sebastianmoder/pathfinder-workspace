@@ -164,7 +164,7 @@ quality gate.
 - Sitemap and robots URLs use the canonical production URL from
   `packages/brand/products.ts`, including in deploy previews. No `SITE_URL`
   environment variable is needed.
-- Theme, navbar, sidebar behavior, analytics, banner text, and footer wiring live
+- Theme, navbar, sidebar behavior, banner text, and footer wiring live
   in `app/layout.jsx`.
 - The footer includes the Erasmus+ project link and EU funding declaration.
 - `netlify.toml` redirects the older Netlify URL to the canonical domain.

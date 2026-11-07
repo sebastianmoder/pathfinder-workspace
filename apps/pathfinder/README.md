@@ -97,7 +97,7 @@ metadata routes, ready for Netlify's existing `.next` publish directory.
 ```text
 app/
   page.tsx          Homepage
-  layout.tsx        Root layout, metadata, analytics, navigation, footer
+  layout.tsx        Root layout, metadata, navigation, footer
   sitemap.ts       Sitemap generated during the build
   robots.ts        Crawler rules and sitemap URL
 
