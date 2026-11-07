@@ -24,6 +24,8 @@ body { font-family:var(--font-atkinson),system-ui,sans-serif; }
 .pf-footer p { font-size:.875rem; max-width:85ch; margin:.75rem 0; line-height:1.6; }
 .pf-footer a { text-decoration:underline; color:var(--pf-blue); font-size:.875rem; }
 .pf-footer img { display:block; margin-top:1rem; height:auto; }
+.pf-footer .pf-source { display:flex; width:fit-content; align-items:center; gap:.4rem; margin-top:.5rem; }
+.pf-footer .pf-source svg { flex-shrink:0; }
 .pf-compact .pf-bar { padding-block:.4rem; }
 .pf-header a:focus-visible,.pf-footer a:focus-visible { outline:3px solid var(--pf-blue); outline-offset:3px; }
 @media print { .pf-header,.pf-footer { display:none; } }
