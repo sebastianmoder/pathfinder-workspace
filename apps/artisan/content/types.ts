@@ -293,8 +293,10 @@ export interface ComposeOption {
   /** The part of the authored output this option produces. Empty adds nothing. */
   output: string;
   by?: Contributor;
-  /** A drawing shown for this option in a framed output, such as an image on a poster. */
+  /** A drawing or image shown for this option in a framed output, such as an image on a poster. */
   scene?: SceneId;
+  /** What that drawing or image shows. Defaults to the label without its bracketed note. */
+  alt?: string;
 }
 
 export interface ComposeElement {

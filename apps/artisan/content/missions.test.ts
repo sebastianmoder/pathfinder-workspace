@@ -263,6 +263,9 @@ describe.each(missions)("mission $id", (mission) => {
         if (s.casefile.artefact) artefacts.push(s.casefile.artefact);
         for (const l of s.casefile.leads) if (l.artefact) artefacts.push(l.artefact);
       }
+      if ("compose" in s) {
+        for (const e of s.compose.elements) for (const o of e.options) if (o.scene) expect(o.alt?.trim(), `${s.id}: ${o.id} image`).toBeTruthy();
+      }
       if ("compose" in s && s.compose.frame) {
         const ids = s.compose.elements.map((e) => e.id);
         const f = s.compose.frame;

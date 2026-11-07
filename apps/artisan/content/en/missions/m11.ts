@@ -71,9 +71,9 @@ export const m11: Mission = {
             label: "Image",
             help: "Check the policy on photos and images.",
             options: [
-              { id: "ai-meadow", label: "AI-generated illustration of children reading in a meadow", output: "\n[Image: an AI-generated illustration of children reading in a meadow]", by: "ai", scene: "meadow" },
-              { id: "party", label: "Photo of last year's reading party (every person in it signed a consent form)", output: "\n[Image: last year's reading party at the Commons]", by: "supplied", scene: "readingParty" },
-              { id: "web", label: "Photo of a famous library, found on a website", output: "\n[Image: a famous library, from a website]", by: "supplied", scene: "famousLibrary" },
+              { id: "ai-meadow", label: "AI-generated illustration of children reading in a meadow", output: "\n[Image: an AI-generated illustration of children reading in a meadow]", by: "ai", scene: "meadow", alt: "AI-generated illustration of children reading in a sunny meadow under a large tree" },
+              { id: "party", label: "Photo of last year's reading party (every person in it signed a consent form)", output: "\n[Image: last year's reading party at the Commons]", by: "supplied", scene: "readingParty", alt: "Children and adults holding open books under paper bunting at last summer's reading party at the Commons" },
+              { id: "web", label: "Photo of a famous library, found on a website", output: "\n[Image: a famous library, from a website]", by: "supplied", scene: "famousLibrary", alt: "A grand historic library reading room with galleries, tall wooden shelves and a vaulted ceiling" },
             ],
           },
           {
@@ -210,9 +210,9 @@ export const m11: Mission = {
             label: "Image",
             help: "",
             options: [
-              { id: "group", label: "Group photo from the volunteers' party (one person in it hasn't signed a consent form)", output: "\n[Image: group photo from the volunteers' party]", by: "supplied", scene: "groupParty" },
-              { id: "ai-heart", label: "AI-generated illustration of a hand-drawn heart", output: "\n[Image: an AI-generated illustration of a heart]", by: "ai", scene: "heart" },
-              { id: "licensed", label: "Stock photo of a thank-you card (the Commons holds a licence)", output: "\n[Image: licensed stock photo of a thank-you card]", by: "supplied", scene: "thankYou" },
+              { id: "group", label: "Group photo from the volunteers' party (one person in it hasn't signed a consent form)", output: "\n[Image: group photo from the volunteers' party]", by: "supplied", scene: "groupParty", alt: "Twelve volunteers smiling in two rows under a hand-painted “Thank you, volunteers” banner at the Commons" },
+              { id: "ai-heart", label: "AI-generated illustration of a hand-drawn heart", output: "\n[Image: an AI-generated illustration of a heart]", by: "ai", scene: "heart", alt: "AI-generated illustration of a red watercolour heart with a few sketched sparkles" },
+              { id: "licensed", label: "Stock photo of a thank-you card (the Commons holds a licence)", output: "\n[Image: licensed stock photo of a thank-you card]", by: "supplied", scene: "thankYou", alt: "A handwritten “Thank you” card standing on a wooden table beside a vase of flowers and a mug" },
             ],
           },
           {

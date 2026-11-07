@@ -67,10 +67,10 @@ export function MarkShell({ frame, children }: { frame?: MarkFrame; children: Re
 
 const paragraphs = (body: string[]) => body.map((p, i) => <p key={i} className="mt-2 first:mt-0">{p}</p>);
 
-function Drawing({ scene, alt }: { scene: NonNullable<Extract<Artefact, { kind: "photo" }>["scene"]>; alt: string }) {
+function Drawing({ scene, alt, sizes }: { scene: NonNullable<Extract<Artefact, { kind: "photo" }>["scene"]>; alt: string; sizes?: string }) {
   return (
     <div className="drawing">
-      <Scene id={scene} alt={alt} />
+      <Scene id={scene} alt={alt} sizes={sizes} />
       <p className="drawing-note">{isGeneratedImage(scene) ? t.artefact.generatedImage : t.artefact.drawing}: {alt}</p>
     </div>
   );
@@ -243,7 +243,8 @@ export function ComposeOutput({
     );
   }
   const image = frame.image ? sceneOf(spec, choices, frame.image) : undefined;
-  const imageLabel = frame.image ? partOf(spec, choices, frame.image)?.label : undefined;
+  const imagePart = frame.image ? partOf(spec, choices, frame.image) : undefined;
+  const imageLabel = imagePart && (imagePart.alt ?? imagePart.label.replace(/\s*\([^)]*\)$/, ""));
   const footer = frame.footer ? partOf(spec, choices, frame.footer)?.output.trim() : undefined;
   const headline = frame.kind === "poster" ? partOf(spec, choices, frame.headline)?.output.trim() : undefined;
   // An image without a drawing stays in the text, so nothing the learner chose goes missing.
@@ -258,7 +259,7 @@ export function ComposeOutput({
       <div className={`sheet ${frame.kind === "poster" ? "poster" : "card"}`}>
         {headline && <p className="poster-headline">{headline}</p>}
         {frame.kind === "card" && body.map((p, i) => <p key={i} className="card-message">{p}</p>)}
-        {image && imageLabel && <div className="mt-3"><Drawing scene={image} alt={imageLabel.replace(/\s*\([^)]*\)$/, "")} /></div>}
+        {image && imageLabel && <div className="mt-3"><Drawing scene={image} alt={imageLabel} sizes="(max-width: 24rem) 100vw, 24rem" /></div>}
         {frame.kind === "poster" && body.map((p, i) => <p key={i} className="mt-3">{p}</p>)}
         {footer && <p className="poster-footer">{footer}</p>}
       </div>

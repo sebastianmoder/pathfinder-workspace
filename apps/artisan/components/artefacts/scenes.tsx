@@ -1,20 +1,31 @@
 import type { ReactNode } from "react";
 import Image, { type StaticImageData } from "next/image";
 import type { SceneId } from "@/content/types";
+import crowdedLibrary from "@/assets/scenes/crowded-library-stock-photo.webp";
+import handDrawnHeart from "@/assets/scenes/hand-drawn-heart-ai-illustration.webp";
 import riversideBridgeFlood from "@/assets/scenes/riverside-bridge-flood.webp";
+import thankYouCard from "@/assets/scenes/thank-you-card-stock-photo.webp";
+import volunteersParty from "@/assets/scenes/volunteers-thank-you-party.webp";
 
 /*
- * The photos and images in a case. Some are AI-generated, photorealistic images; the rest are drawings that
- * keep their own fixed "print" palette in both themes, because a photo looks the same whatever the page around
- * it does. Neither is ever presented as a real photo: each is labelled as a drawing or as AI-generated wherever
- * it appears (PRD §4, simplifications visible).
+ * The photos and images in a case. Some are stand-in images made with AI for the course; the rest are drawings
+ * that keep their own fixed "print" palette in both themes, because a photo looks the same whatever the page
+ * around it does. Neither is ever presented as a real photo: each is labelled as a drawing or as a stand-in made
+ * with AI wherever it appears (PRD §4, simplifications visible). What an image is in the story (a stock photo,
+ * an AI illustration) is said by its caption or option label, not by this label.
  */
 
-/** Scenes shown as an AI-generated image. Static imports give the size, a blur placeholder and hashed URLs. */
-const IMAGES = { flood: riversideBridgeFlood } satisfies Partial<Record<SceneId, StaticImageData>>;
+/** Scenes shown as an image made with AI. Static imports give the size, a blur placeholder and hashed URLs. */
+const IMAGES = {
+  flood: riversideBridgeFlood,
+  library: crowdedLibrary,
+  groupParty: volunteersParty,
+  heart: handDrawnHeart,
+  thankYou: thankYouCard,
+} satisfies Partial<Record<SceneId, StaticImageData>>;
 type ImageScene = keyof typeof IMAGES;
 
-/** Whether a scene is an AI-generated image rather than a drawing, so its label can say so. */
+/** Whether a scene is an image made with AI rather than a drawing, so its label can say so. */
 export function isGeneratedImage(id: SceneId): id is ImageScene {
   return id in IMAGES;
 }
@@ -33,28 +44,6 @@ const people = (xs: number[], y: number, colours: string[]) =>
 
 /** Every scene without an image has a drawing, and none has both. */
 const SCENES: Record<Exclude<SceneId, ImageScene>, ReactNode> = {
-  // A crowded, brightly lit library: shelves behind, people of all ages at tables of books.
-  library: (
-    <>
-      <rect width="320" height="180" fill="#e9dfc9" />
-      {[16, 52, 88].map((y) => (
-        <g key={y}>
-          <rect x="0" y={y + 30} width="320" height="4" fill="#7a5a3a" />
-          {Array.from({ length: 40 }, (_, i) => (
-            <rect key={i} x={2 + i * 8} y={y + 8 + ((i * 7) % 6)} width="6" height={22 - ((i * 7) % 6)} fill={["#5b7f6e", "#b8402f", "#d9b44a", "#3f5f87", "#7a5a3a"][i % 5]} />
-          ))}
-        </g>
-      ))}
-      {[60, 160, 260].map((x) => (
-        <circle key={x} cx={x} cy="10" r="8" fill="#f7e8a3" stroke={INK} strokeWidth="1.5" />
-      ))}
-      {people([40, 72, 104, 136, 184, 216, 248, 280], 128, ["#3f5f87", "#b8402f", "#5b7f6e", "#d9b44a"])}
-      <rect x="20" y="150" width="280" height="10" fill="#7a5a3a" />
-      {[60, 120, 200, 260].map((x) => (
-        <rect key={x} x={x} y="143" width="16" height="7" fill="#ffffff" stroke={INK} strokeWidth="1" />
-      ))}
-    </>
-  ),
   // Last year's reading party at the Commons: bunting, people with open books.
   readingParty: (
     <>
@@ -105,42 +94,16 @@ const SCENES: Record<Exclude<SceneId, ImageScene>, ReactNode> = {
       <ellipse cx="160" cy="150" rx="60" ry="8" fill="#7a5a3a" />
     </>
   ),
-  // A group photo from the volunteers' party.
-  groupParty: (
-    <>
-      <rect width="320" height="180" fill="#f1e6d6" />
-      <rect x="60" y="14" width="200" height="26" fill="#b8402f" />
-      <text x="160" y="32" textAnchor="middle" fontSize="14" fontFamily="Georgia, serif" fill="#ffffff">Thank you, volunteers</text>
-      {people([40, 76, 112, 148, 184, 220, 256, 290], 92, ["#3f5f87", "#5b7f6e", "#d9b44a", "#b8402f"])}
-      {people([58, 130, 202, 274], 126, ["#d9b44a", "#3f5f87", "#5b7f6e", "#b8402f"])}
-    </>
-  ),
-  // An AI-generated illustration of a hand-drawn heart.
-  heart: (
-    <>
-      <rect width="320" height="180" fill="#fff3f5" />
-      <path d="M160 150 C 60 90, 90 20, 160 62 C 230 20, 260 90, 160 150 z" fill="#ff6f91" stroke="#b8402f" strokeWidth="3" strokeLinejoin="round" />
-      <path d="M118 66 q10 -12 24 -6" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
-    </>
-  ),
-  // A licensed stock photo of a thank-you card on a table.
-  thankYou: (
-    <>
-      <rect width="320" height="180" fill="#c9b79a" />
-      <path d="M70 40 l180 -8 l8 118 l-180 8 z" fill="#fbfaf6" stroke={INK} strokeWidth="1.5" />
-      <text x="164" y="102" textAnchor="middle" fontSize="28" fontStyle="italic" fontFamily="Georgia, serif" fill="#3f5f87" transform="rotate(-3 164 102)">Thank you</text>
-      <circle cx="268" cy="150" r="16" fill="#5b7f6e" opacity="0.8" />
-    </>
-  ),
 };
 
 /**
- * The image or drawing for a scene, with its description as the accessible name. Images load lazily at the
- * width of the sheet they lie on (at most 44rem), with a blurred preview while they arrive.
+ * The image or drawing for a scene, with its description as the accessible name. Images load lazily with a
+ * blurred preview; `sizes` is the widest they are shown (a sheet is at most 44rem, a poster or card 24rem), so
+ * phones and narrow frames download a smaller file.
  */
-export function Scene({ id, alt }: { id: SceneId; alt: string }) {
+export function Scene({ id, alt, sizes = "(max-width: 44rem) 100vw, 44rem" }: { id: SceneId; alt: string; sizes?: string }) {
   if (isGeneratedImage(id)) {
-    return <Image src={IMAGES[id]} alt={alt} placeholder="blur" sizes="(max-width: 44rem) 100vw, 44rem" className="scene block h-auto w-full" />;
+    return <Image src={IMAGES[id]} alt={alt} placeholder="blur" sizes={sizes} className="scene block h-auto w-full" />;
   }
   return (
     <svg viewBox="0 0 320 180" role="img" aria-label={alt} className="scene block h-auto w-full" focusable="false">

@@ -5,6 +5,8 @@ import type { Choice, Mission } from "../../types";
  * and M11 (disclosure) in one case, with support faded. All people, records and the policy are fictional.
  */
 
+const LIBRARY = "A crowded, brightly lit library in the evening, people of all ages smiling and reading at long tables of books, dark windows behind them.";
+
 const firstMove =
   "Joanna wants the annual report at the printers by Friday. The AI drafted most of it, and it reads beautifully. Where do you spend your checking time?";
 const firstChoices: Choice[] = [
@@ -82,13 +84,13 @@ export const b03: Mission = {
         artifact: {
           label: "Suggested cover photo",
           title: "“Packed library on our opening night, March 2026”",
-          body: "[Photo: a crowded, brightly lit library, people of all ages at tables of books.]",
+          body: `[Photo: ${LIBRARY}]`,
           meta: "Suggested by a volunteer, Tomasz, who found it in the shared photo folder.",
         },
         artefact: {
           kind: "photo",
           scene: "library",
-          alt: "A crowded, brightly lit library, people of all ages at tables of books.",
+          alt: LIBRARY,
           caption: "“Packed library on our opening night, March 2026.” Suggested for the cover by Tomasz, a volunteer, who found it in the shared photo folder.",
         },
         budget: { leads: 2, note: "The designer needs it today." },
