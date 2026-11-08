@@ -40,6 +40,30 @@
   }
 }
 
+/* Footer: a calmer, slightly deeper tone than the page so it is offset without glaring. */
+:root {
+  --footer-bg: #e3e9e0;
+  --footer-ink: #14241e;
+  --footer-link: #17594a;
+  --footer-border: #bcc8bf;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --footer-bg: #0a1b16;
+    --footer-ink: #cfdad2;
+    --footer-link: #9fd9c3;
+    --footer-border: #25423a;
+  }
+}
+body .pf-footer {
+  background: var(--footer-bg);
+  color: var(--footer-ink);
+  border-top-color: var(--footer-border);
+}
+body .pf-footer a {
+  color: var(--footer-link);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
