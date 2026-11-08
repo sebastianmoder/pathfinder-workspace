@@ -87,7 +87,7 @@ export const m06Gym: Mission = {
           numeric: {
             label: "Average speed for the whole trip",
             unit: "km/h",
-            min: 13.2,
+            min: 12.95, // also accepts a lazily rounded "13" (13.33 rounded to a whole number)
             max: 13.4,
             explanation: "Out takes 0.5 hours, back takes 1 hour. 20 km in 1.5 hours is about 13.3 km/h. Halfway between the speeds, 15 km/h, would only be right if you spent the same time at each.",
           },
