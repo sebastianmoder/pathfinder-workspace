@@ -121,7 +121,7 @@ export function MissionRunner({ mission, module: moduleEntry, suggested, path }:
       </div>
       <ol className="phases" aria-label={t.mission.phaseLabel}>
         {present.map((p) => (
-          <li key={p} aria-current={p === phases[stepIndex] ? "step" : undefined}>{t.mission.phases[p]}</li>
+          <li key={p} aria-current={p === phases[stepIndex] ? "step" : undefined}><span>{t.mission.phases[p]}</span></li>
         ))}
       </ol>
     </div>

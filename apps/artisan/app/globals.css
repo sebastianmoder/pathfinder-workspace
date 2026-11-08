@@ -747,6 +747,8 @@
   .phases [aria-current] {
     color: var(--foreground);
     font-weight: 700;
+  }
+  .phases [aria-current] span {
     text-decoration: underline;
     text-decoration-color: var(--highlighter);
     text-decoration-thickness: 3px;
