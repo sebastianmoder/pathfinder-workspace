@@ -47,7 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </main>
           </SessionProvider>
         </div>
-        <ProjectFooter compact darkLogoSrc="/brand/funded-by-eu-white.png" />
+        <ProjectFooter compact darkLogoSrc="/brand/EN_Co-fundedbytheEU_RGB_NEG.png" />
       <Analytics product="artisan" measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} production={process.env.CONTEXT === "production"} />
       </body>
     </html>
