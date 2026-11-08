@@ -709,35 +709,7 @@ type StepUnion =
       /** Label for moving on once the conversation ends. Defaults to the M05 wording. */
       continueLabel?: string;
     }
-  | {
-      kind: "argumentMap";
-      id: string;
-      title: string;
-      prompt: string;
-      proposal: string;
-      hints?: Hint[];
-      /** Where the learner's position and the conversation's outcome come from. */
-      initialStepId: string;
-      dialogueStepId: string;
-      slots: { id: string; label: string; help: string }[];
-      cards: {
-        id: string;
-        text: string;
-        slotId: string;
-        defensibleSlotIds?: string[];
-        explanation: string;
-        /** The discovery this card records, marked when the learner uncovered it. */
-        discovery?: string;
-      }[];
-      /** What each card bears on. A target is a card id or PROPOSAL. */
-      links: {
-        cardId: string;
-        kind: "supports" | "attacks" | "restsOn";
-        targetId: string;
-        defensibleTargetIds?: string[];
-        explanation: string;
-      }[];
-    }
+  | ({ kind: "argumentMap"; id: string; title: string; intro: string } & ArgumentMapSpec)
   | {
       kind: "epilogue";
       id: string;
@@ -830,8 +802,48 @@ export interface ModuleEntry {
   bridge?: true;
 }
 
-/** Target id for a link that bears on the proposal as a whole. */
-export const PROPOSAL = "proposal";
+/** Where on an argument map a question points: a reason's evidence, or a step the argument takes. */
+export type MapTarget =
+  /** The evidence slot under a reason. */
+  | "evidence"
+  /** The step from a reason's evidence up to the reason. */
+  | "evidenceLink"
+  /** The step from a reason up to the conclusion. */
+  | "reasonLink";
+
+/** What a box on the map holds once its question is answered: the reviewed answer, whatever was picked. */
+export type MapStatus = "holds" | "fails" | "unsettled" | "unchecked";
+
+export interface MapQuestion {
+  id: string;
+  /** "back": which passage backs a reason. "assume": what a step takes for granted. "check": what the pack says about it. */
+  stage: "back" | "assume" | "check";
+  /** Who asks it, from the map's cast. */
+  speakerId: string;
+  target: { reason: string; at: MapTarget };
+  prompt: string;
+  choices: Choice[];
+  /** The reviewed answer, shown on the map once the question is answered, so later questions start from sound ground. */
+  fills: { text: string; status?: MapStatus };
+}
+
+/**
+ * An argument taken apart one question at a time (PRD M05). The conclusion and its reasons are given; the learner
+ * finds what backs each reason, what each step takes for granted, and whether that holds. Each answer fills the
+ * map with the reviewed answer, so a mistake is explained but never carried into the next question.
+ */
+export interface ArgumentMapSpec {
+  /** The written argument being taken apart. */
+  artefact: Artefact;
+  sources: Source[];
+  cast: { id: string; name: string; role: string }[];
+  conclusion: string;
+  reasons: { id: string; text: string }[];
+  /** In the order asked. A "check" follows the "assume" question on the same step. */
+  questions: MapQuestion[];
+  /** What the finished map shows, in three lines. */
+  summary: { stands: string; weaker: string; open: string };
+}
 
 /**
  * Pair each item on the left with one on the right, like pinning a thread between two cards. Pairs are one to one;

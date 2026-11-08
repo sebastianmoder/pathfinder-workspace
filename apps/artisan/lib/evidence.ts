@@ -120,10 +120,7 @@ export function evidenceItems(step: Step): string[] {
     case "rank":
       return rankItems(step.id, step);
     case "argumentMap":
-      return [
-        ...step.cards.map((c) => itemKey(step.id, c.id)),
-        ...step.links.map((l) => itemKey(step.id, "link", l.cardId)),
-      ];
+      return step.questions.map((q) => itemKey(step.id, q.id));
     case "dialogue":
       return [
         ...step.dialogue.discoveries.map((d) => itemKey(step.id, d.id)),

@@ -1,10 +1,14 @@
-import { PROPOSAL, type Choice, type DialogueChoice, type DialogueStrategy, type Mission, type Source } from "../../types";
+import type { Choice, DialogueChoice, DialogueStrategy, MapQuestion, Mission, Source } from "../../types";
 
 /**
  * M05 — The Argument Forge.
  * All organisations, documents, people and figures are fictional.
  * Arithmetic to re-check on review: 61→74 is +13 points; 59→63 is +4 points; €6,000 is half of €12,000;
  * 7 of 50 answers wrong leaves 43 right. Rafael's "40% more homework" is deliberately false: it borrows the brochure's figure.
+ *
+ * Shape (rebuilt 2026-11-08): take the proposal memo apart one question at a time (map), then defend your own
+ * position against three objections (forge), then revise and write the case. Each character has one job:
+ * Nadia checks evidence, Imani asks what an argument takes for granted, Rafael objects.
  */
 
 const positionQuestion =
@@ -37,7 +41,8 @@ const sources: Source[] = [
     description: "Sales material from the company that sells the tutor.",
     date: "2026",
     passages: [
-      { id: "brochure-claim", text: "Students finish homework 40% faster with Brightpath Tutor. Available 24 hours a day." },
+      { id: "brochure-claim", text: "Students finish homework 40% faster with Brightpath Tutor." },
+      { id: "brochure-hours", text: "Available 24 hours a day, on any device." },
       { id: "brochure-price", text: "A licence for one site costs €6,000 per year." },
     ],
   },
@@ -80,6 +85,118 @@ const sources: Source[] = [
   },
 ];
 
+/**
+ * The map: two reasons, then the three steps the memo takes. Every "assume" question has the same three kinds of
+ * wrong answer, which the how-to names: something already stated, something not needed, or the reason or
+ * conclusion said again.
+ */
+const questions: MapQuestion[] = [
+  {
+    id: "back-r1",
+    stage: "back",
+    speakerId: "nadia",
+    target: { reason: "r1", at: "evidence" },
+    prompt: "The first reason is that the drop-in can't carry on as it is after December. Which passage backs that?",
+    choices: [
+      { id: "numbers", label: "Drop-in log: 18 learners a session, six volunteers, three leaving in December.", verdict: "correct", explanation: "This is the recorded fact behind the reason. Half the volunteers are going, and the learners aren't." },
+      { id: "budget", label: "Trust letter: the Trust will give €12,000 towards the homework programme for 2026–27.", verdict: "weaker", explanation: "This says the money is there. If anything it suggests the programme could carry on in some form, so it doesn't back the reason." },
+      { id: "purpose", label: "Drop-in log: about a third of visits are for forms or English.", verdict: "weaker", explanation: "This is about what learners come for, not about whether the drop-in can keep running." },
+    ],
+    fills: { text: "Drop-in log: three of six volunteers leave in December, with 18 learners a session." },
+  },
+  {
+    id: "back-r2",
+    stage: "back",
+    speakerId: "nadia",
+    target: { reason: "r2", at: "evidence" },
+    prompt: "The second reason says the tutor helps learners get their homework done, and that “the evidence is clear”. Which passage is real evidence for it?",
+    choices: [
+      { id: "trial", label: "Eastfield trial: completion rose from 61% to 74% among tutor users, and 59% to 63% among others.", verdict: "correct", explanation: "This is a measured result from a named trial, and it bears directly on the reason. Whether it shows what the memo needs is the next question." },
+      { id: "brochure", label: "Brochure: students finish homework 40% faster with Brightpath Tutor.", verdict: "weaker", explanation: "This is the seller's own claim, and it names no study. You can note it as what the vendor says, but it can't carry the reason." },
+      { id: "check", label: "Eastfield trial: in a spot check, 7 of 50 maths answers were wrong, with no sign of doubt.", verdict: "weaker", explanation: "This is about accuracy, and it counts against the tutor. It doesn't show that the tutor helps learners finish." },
+    ],
+    fills: { text: "Eastfield trial: completion up 13 points among tutor users, and 4 among others." },
+  },
+  {
+    id: "assume-trial",
+    stage: "assume",
+    speakerId: "imani",
+    target: { reason: "r2", at: "evidenceLink" },
+    prompt: "The Eastfield figures only back the second reason if something else is true, and the memo never says it. What is it?",
+    choices: [
+      { id: "cause", label: "The rise came from the tutor, not from which learners chose to use it.", verdict: "correct", explanation: "The reason needs the tutor to be the cause. The memo never says so, and if it were false the figures wouldn't back the reason." },
+      { id: "ages", label: "The Eastfield trial ran for eight weeks with 40 learners aged 11 to 14.", verdict: "weaker", explanation: "The report says this openly, so it isn't hidden. And the step from the figures to the reason doesn't depend on how long the trial ran or who was in it." },
+      { id: "restated", label: "The tutor helps learners get their homework done.", verdict: "weaker", explanation: "That is the reason itself. A hidden assumption is what connects the evidence to it." },
+    ],
+    fills: { text: "Takes for granted: the tutor caused the rise, not who chose to use it." },
+  },
+  {
+    id: "check-trial",
+    stage: "check",
+    speakerId: "nadia",
+    target: { reason: "r2", at: "evidenceLink" },
+    prompt: "Does the source pack show that the tutor caused the rise?",
+    choices: [
+      { id: "unsettled", label: "Not settled: learners chose for themselves whether to use it.", verdict: "correct", explanation: "Keen learners may have picked the tutor and improved anyway. That doesn't show the tutor did nothing. It means you can't credit the whole gain to it." },
+      { id: "holds", label: "Yes: tutor users gained 13 points and other learners only 4, a clear gap.", verdict: "weaker", explanation: "That gap is exactly what needs explaining. If keener learners chose the tutor, they might have gained more anyway." },
+      { id: "fails", label: "No: the spot check found 7 wrong answers in 50.", verdict: "weaker", explanation: "That is about whether the answers were right, which is a separate question. It says nothing about what caused the rise in completion." },
+    ],
+    fills: { text: "Not settled: learners chose for themselves.", status: "unsettled" },
+  },
+  {
+    id: "assume-purpose",
+    stage: "assume",
+    speakerId: "imani",
+    target: { reason: "r2", at: "reasonLink" },
+    prompt: "Suppose the tutor does help with homework. For that to justify replacing the whole drop-in, what else has to be true?",
+    choices: [
+      { id: "homework", label: "Homework is what learners come to the drop-in for.", verdict: "correct", explanation: "A homework tutor can only replace the drop-in if homework is what the drop-in does. The memo never says so." },
+      { id: "hours", label: "The tutor can be used at any hour, 24 hours a day.", verdict: "weaker", explanation: "The brochure says so openly. It counts in the tutor's favour, but it doesn't connect homework help to replacing the drop-in." },
+      { id: "volunteers", label: "Three of the six volunteers leave in December.", verdict: "weaker", explanation: "That is stated, and it belongs to the other reason. It doesn't bridge this step." },
+    ],
+    fills: { text: "Takes for granted: homework is what learners come for." },
+  },
+  {
+    id: "check-purpose",
+    stage: "check",
+    speakerId: "nadia",
+    target: { reason: "r2", at: "reasonLink" },
+    prompt: "Does the source pack show that homework is what learners come for?",
+    choices: [
+      { id: "partly", label: "Only partly: about a third of visits are for forms or English.", verdict: "correct", explanation: "The log records what people actually come for. A homework tutor would leave a third of visits with nowhere to go." },
+      { id: "name", label: "Yes: it is a homework drop-in, so homework is what it's for.", verdict: "weaker", explanation: "The name says what it was set up for. The log records what people actually come for, and a third of visits are something else." },
+      { id: "silent", label: "The pack doesn't say what visits are for.", verdict: "weaker", explanation: "The drop-in log does: about a third of visits are for help with forms or with English." },
+    ],
+    fills: { text: "Only partly: a third of visits are for forms or English.", status: "fails" },
+  },
+  {
+    id: "assume-only",
+    stage: "assume",
+    speakerId: "imani",
+    target: { reason: "r1", at: "reasonLink" },
+    prompt: "The drop-in can't carry on as it is. Why should that lead to the tutor in particular? What does the memo take for granted here?",
+    choices: [
+      { id: "only", label: "That nothing else could keep the drop-in going.", verdict: "correct", explanation: "The memo goes straight from “it can't carry on” to “replace it with the tutor”. That only follows if there is no other way, and it never says so." },
+      { id: "rest", label: "That the other three volunteers will leave as well.", verdict: "weaker", explanation: "The argument doesn't need this. Losing three of six is already the problem it describes." },
+      { id: "conclusion", label: "That the Commons should replace the drop-in with the tutor.", verdict: "weaker", explanation: "That is the conclusion. The hidden assumption is what gets you from the reason to it." },
+    ],
+    fills: { text: "Takes for granted: nothing else could keep the drop-in going." },
+  },
+  {
+    id: "check-only",
+    stage: "check",
+    speakerId: "nadia",
+    target: { reason: "r1", at: "reasonLink" },
+    prompt: "Does the source pack show that nothing else could keep the drop-in going?",
+    choices: [
+      { id: "unchecked", label: "Nobody has checked: the pack says nothing about other options.", verdict: "correct", explanation: "There is nothing on recruiting volunteers, sharing staff or changing the sessions. The memo assumes the question is closed when nobody has asked it." },
+      { id: "holds", label: "Yes: three of the six volunteers are leaving in December.", verdict: "weaker", explanation: "That shows there is a problem. It doesn't show the tutor is the only answer to it." },
+      { id: "fails", label: "No: the Trust's €12,000 could pay for staff instead.", verdict: "weaker", explanation: "The Trust letter gives the amount, but not whether it could pay staff. That goes beyond what the pack says." },
+    ],
+    fills: { text: "Not checked: nothing in the pack on recruiting or other options.", status: "unchecked" },
+  },
+];
+
 const move = (id: string, strategy: DialogueStrategy, label: string, note: string, next: string): DialogueChoice => ({
   id,
   strategy,
@@ -87,26 +204,62 @@ const move = (id: string, strategy: DialogueStrategy, label: string, note: strin
   note,
   next,
 });
+const scored = (choice: DialogueChoice, item: string, right: boolean): DialogueChoice => ({ ...choice, scored: { item, right } });
 
-/** Every opening offers the same four ways of responding; only Rafael's challenge differs. */
-const openingMoves: DialogueChoice[] = [
-  move("ask", "evidence", "What evidence do we have about the tutor itself?", "You moved the conversation from opinion to something that can be checked.", "evidence-trial"),
-  move("assume", "assumption", "What is this proposal assuming about the drop-in?", "You looked underneath the argument instead of answering it head on.", "assumption-drop-in"),
-  move("concede", "concede", "You have a point, and it counts against my view.", "Conceding a fair point costs you nothing and keeps the discussion honest.", "concede"),
-  move("restate", "restate", "I've made up my mind, and that is my position.", "This adds no new reason, so Rafael has nothing to respond to except your certainty.", "pushback"),
-];
+// Round 1: each opening's replies answer that opening. The objection holds in every case.
+const checkAnswers = scored(
+  move("check", "concede", "That holds. A volunteer would have to spot-check its answers, so I'll make that a condition.", "His point was true, so you conceded it and turned it into a condition. That makes your position stronger, not weaker.", "misquote"),
+  "answer-objection",
+  true,
+);
+const stillRose = scored(
+  move("completion", "restate", "Completion still went up, so a few wrong answers don't matter much.", "Finishing homework and getting it right are different things. The objection still stands, and you haven't answered it.", "misquote"),
+  "answer-objection",
+  false,
+);
+const recruitPlan = scored(
+  move("plan", "concede", "That's a real cost. I'd recruit volunteers and narrow the sessions until we have them.", "You accepted the cost of your own position and said how you would meet it. That is what answering an objection looks like.", "misquote"),
+  "answer-objection",
+  true,
+);
+const notMine = scored(
+  move("notmine", "restate", "The tutor's risks are bigger, so that isn't my problem.", "Saying no still leaves 18 learners with fewer helpers. Brushing that cost aside leaves the objection unanswered.", "misquote"),
+  "answer-objection",
+  false,
+);
+
+const acceptMisquote = scored(
+  move("accept", "concede", "Then the brochure's figure holds up.", "You took his word for it. The Eastfield report gives 61% to 74% against 59% to 63%. The 40% comes only from the brochure, which names no study.", "cost"),
+  "misquote",
+  false,
+);
+const misquoteCite = {
+  responses: [
+    {
+      passageIds: ["eastfield-result"],
+      note: "You showed the passage he named. It gives 61% to 74% against 59% to 63%. The 40% comes from the brochure, so he has no answer.",
+      next: "cost",
+      scored: { item: "misquote", right: true },
+    },
+  ],
+  otherwise: {
+    note: "That passage doesn't settle it. He named the Eastfield report, and its result passage gives 61% to 74% against 59% to 63%. The 40% is only in the brochure.",
+    next: "cost",
+    scored: { item: "misquote", right: false },
+  },
+};
 
 export const m05: Mission = {
   id: "m05-argument",
   title: "The Argument Forge",
   outcome: "Identify assumptions, test objections, consider alternatives, and revise a position for evidence-based reasons.",
   scenario:
-    "You are advising the Riverside Learning Commons, a community learning centre, on a proposal to replace a volunteer homework drop-in with an AI tutor. You will take a position, test it in a conversation, and then decide whether it still stands.",
-  approxMinutes: 18,
+    "You are advising the Riverside Learning Commons, a community learning centre, on a proposal to replace a volunteer homework drop-in with an AI tutor. You will take the proposal apart, defend your own position against objections, and then decide whether it still stands.",
+  approxMinutes: 16,
   meta: {
-    version: "1.2",
-    reviewedOn: "2026-11-02",
-    reviewedBy: "Claude (author self-review against PRD §7 and §12; no independent subject-matter review yet)",
+    version: "2.0",
+    reviewedOn: "2026-11-08",
+    reviewedBy: "Claude (rebuilt after the author's play-through found the five-bin map ambiguous; checked against PRD §7 M05; no independent subject-matter review yet)",
     sourcesToReview: ["All sources are fictional and authored for this case, so none depend on outside facts.", "Case dates are set around autumn 2026; refresh them if they start to look stale."],
   },
   steps: [
@@ -114,299 +267,203 @@ export const m05: Mission = {
       kind: "brief",
       id: "brief",
       title: "Your task",
-      body: "Take a position, talk it through with three characters, and map the argument. You do not have to change your mind. You do have to be able to say why your position still holds, or why it no longer does.",
+      body: "The Commons board meets on Thursday to decide on a proposal: replace the Wednesday homework drop-in with an AI tutor. You will do three things. First, take the proposal apart: find what backs it and what it takes for granted. Second, defend your own position against Rafael's objections. Third, write the case you would put to the board. You don't have to change your mind, but you do have to say why your position holds.",
     },
     {
       kind: "refresher",
       id: "refresher",
-      title: "A quick refresher",
-      body: "A claim is a statement that could be checked. Evidence is a specific passage that bears on it, and a citation is only a place to look. An assumption is something an argument needs to be true but does not say. The source pack in this mission is complete, so you do not need anything from an earlier mission.",
+      title: "Four words you will need",
+      body: "A reason says why someone should accept a conclusion. Evidence is a specific passage that backs a reason. A hidden assumption is something an argument needs but never says: if it were false, the step would fail. An objection is a point against a position, and it can hold up or be overstated. The source pack in this mission is complete, so you don't need anything from an earlier mission.",
     },
     { kind: "initialJudgment", id: "initial", prompt: positionQuestion, choices: positionChoices, withConfidence: true },
     {
+      kind: "argumentMap",
+      id: "map",
+      title: "Take the proposal apart",
+      intro: "Before you defend your own view, look at the proposal itself. Nadia and Imani will ask you about one part of it at a time. The map fills in as you go.",
+      motifs: ["selfSelectedSample"],
+      artefact: {
+        kind: "document",
+        title: "Proposal to the board: the Wednesday homework drop-in",
+        meta: "From Dana Okafor, programmes lead · 3 November 2026",
+        body: [
+          "I propose that we replace the Wednesday homework drop-in with Brightpath Tutor from January.",
+          "First, the drop-in can't carry on as it is after December.",
+          "Second, the tutor helps learners get their homework done. The evidence is clear.",
+          "I recommend we sign the licence before the volunteers leave.",
+        ],
+      },
+      sources,
+      cast: [
+        { id: "nadia", name: "Nadia", role: "Evidence critic" },
+        { id: "imani", name: "Imani", role: "Socratic coach" },
+      ],
+      conclusion: "Replace the Wednesday homework drop-in with Brightpath Tutor from January.",
+      reasons: [
+        { id: "r1", text: "The drop-in can't carry on as it is after December." },
+        { id: "r2", text: "The tutor helps learners get their homework done." },
+      ],
+      questions,
+      summary: {
+        stands: "The first reason stands: three of the six volunteers really are leaving.",
+        weaker: "The second reason is weaker than it looks. The trial can't credit the tutor, and homework is only about two-thirds of what the drop-in does.",
+        open: "Nobody has asked whether anything other than the tutor could keep the drop-in going.",
+      },
+    },
+    {
       kind: "dialogue",
       id: "forge",
-      title: "Test your position",
-      intro: "You have four questions before the board meets, so choose them with care. There is no winning move, but different moves uncover different things, and not everyone here is always right.",
+      title: "Defend your position",
+      intro: "Rafael argues against whichever position you took. He will raise three points. For each one, decide whether it holds. If it does, concede it and say what changes. If it doesn't, show the passage that answers it.",
       initialStepId: "initial",
       sources,
-      reflectionPrompt: "What is on your mind about this so far?",
+      reflectionPrompt: "What would you say to the board right now?",
+      continueLabel: "Continue to your final position",
       dialogue: {
         characters: [
-          { id: "imani", name: "Imani", role: "Socratic coach", knows: "How to question an argument, but not the answer here.", wants: "You to say why you think what you think." },
-          { id: "rafael", name: "Rafael", role: "Opposing advocate", knows: "The case against whichever position you took. He sometimes overstates it, and he is sometimes right.", wants: "To find the weakest part of your argument." },
-          { id: "nadia", name: "Nadia", role: "Evidence critic", knows: "Only what is in the source pack.", wants: "Claims to match what the sources actually say." },
-        ],
-        budget: {
-          questions: 4,
-          moveOn: move("board-time", "alternative", "The board is about to start. Let's go in.", "You have used your questions. What you didn't ask, you don't know yet, unless you read it in the source pack.", "rafael-misquote"),
-        },
-        boardQuestions: [
-          { question: "“How good is the evidence that the tutor made the difference at Eastfield?”", discoveryId: "selection", ifFound: "Learners chose for themselves, so the whole gain can't be credited to the tutor.", ifMissed: "The trial report says learners chose for themselves, so the gain may not all be the tutor's." },
-          { question: "“What happens when it gets an answer wrong?”", discoveryId: "errors", ifFound: "7 of 50 checked answers were wrong, with no sign of doubt, so somebody has to check.", ifMissed: "The trial report's spot check found 7 of 50 wrong, with no sign of doubt." },
-          { question: "“Does this cover everyone who comes on Wednesdays?”", discoveryId: "purpose", ifFound: "About a third of visits are for forms or English, which a homework tutor wouldn't cover.", ifMissed: "The drop-in log says about a third of visits are not about homework." },
-          { question: "“Who sees what the children type?”", discoveryId: "privacy", ifFound: "Standard terms keep messages for 12 months, and many learners are under 16, so consent and new terms are needed.", ifMissed: "The privacy officer's note covers this: 12 months' retention, and many learners under 16." },
+          { id: "rafael", name: "Rafael", role: "Opposing advocate", knows: "The case against whichever position you took. He is sometimes right, and he sometimes overstates it.", wants: "To find the weakest part of your argument." },
+          { id: "imani", name: "Imani", role: "Socratic coach", knows: "What the map turned up, but not the answer here.", wants: "You to say what would have to be true for your plan to work." },
         ],
         start: "open-pilot",
         starts: { adopt: "open-against", pilot: "open-pilot", reject: "open-for" },
-        discoveries: [
-          { id: "selection", label: "Learners in the Eastfield trial chose for themselves whether to use the tutor.", lookIn: "Eastfield Library trial report" },
-          { id: "errors", label: "The tutor gave 7 wrong maths answers out of 50, with no sign of uncertainty.", lookIn: "Eastfield Library trial report" },
-          { id: "purpose", label: "About a third of drop-in visits are not about homework at all.", lookIn: "Wednesday drop-in log" },
-          { id: "privacy", label: "Standard terms keep learners' messages for 12 months, and many learners are under 16.", lookIn: "Privacy officer's note" },
-        ],
+        discoveries: [],
         nodes: [
           {
             id: "open-against",
             speakerId: "rafael",
-            text: "You'd put this in front of children? A spot check found 7 wrong maths answers out of 50, and the tutor sounded just as sure about those. Who catches them when the volunteers have gone?",
-            reveals: ["errors"],
-            choices: openingMoves,
+            text: "You'd put this in front of children? Eastfield's spot check found 7 wrong maths answers out of 50, and the tutor sounded just as sure about those. Who catches them once the volunteers have gone?",
+            choices: [checkAnswers, stillRose, move("source", "evidence", "Where does that figure come from?", "Asking for the source is a fair move before you concede anything.", "against-source")],
+          },
+          {
+            id: "against-source",
+            speakerId: "rafael",
+            text: "Eastfield's own trial report. It's in your source pack: 7 wrong out of 50, and none of them flagged as uncertain. So, who catches them?",
+            choices: [checkAnswers, stillRose],
           },
           {
             id: "open-for",
             speakerId: "rafael",
-            text: "Three of six volunteers leave in December. If you turn the tutor down, the session may shrink or close, and that has a cost for 18 learners too. Saying no is also a decision. What is your plan for them?",
-            choices: openingMoves,
+            text: "Three of six volunteers leave in December. If you turn the tutor down, the session may shrink or close, and 18 learners lose out too. Saying no is also a decision. What's your plan for them?",
+            choices: [recruitPlan, notMine, move("source", "evidence", "How do you know it's 18 learners?", "Checking his numbers before you answer is fair.", "for-source")],
+          },
+          {
+            id: "for-source",
+            speakerId: "rafael",
+            text: "The drop-in log: 18 learners a session on average, six volunteers, three leaving in December. So what's your plan?",
+            choices: [recruitPlan, notMine],
           },
           {
             id: "open-pilot",
             speakerId: "rafael",
-            text: "A trial sounds careful, but it can be a way of avoiding the decision. The volunteers leave in December either way. What exactly would you test, and what result would make you stop?",
-            choices: openingMoves,
+            text: "A trial sounds careful, but it can be a way of putting off the decision. The volunteers leave in December either way. What result would make you stop?",
+            choices: [
+              scored(move("stop", "alternative", "Fair point. I'd set the stop rule now: if checked answers are still wrong as often as 7 in 50, we stop.", "You answered his question with something that could turn out to be wrong. A trial with a stop rule is a decision, not a delay.", "misquote"), "answer-objection", true),
+              scored(move("see", "restate", "We'll see how it goes and decide at the end.", "That is what he warned about. A trial with no stop rule only puts the decision off.", "misquote"), "answer-objection", false),
+              scored(move("careful", "restate", "Trying something first is always the careful choice.", "That restates your view without answering him. He asked what would make you stop, and you still haven't said.", "misquote"), "answer-objection", false),
+            ],
           },
           {
-            id: "concede",
+            id: "misquote",
             speakerId: "rafael",
-            text: "Fair enough. Conceding isn't losing, but it should change something. What does it change for you?",
+            text: "Before you go in, you should know Eastfield backs the brochure. Learners using the tutor finished 40% more homework. It's in their report.",
             choices: [
-              move("look", "evidence", "I should look at the evidence before holding this view any more firmly.", "You treated the concession as a reason to check, not as the end of the matter.", "evidence-trial"),
-              move("condition", "alternative", "My position needs a condition attached to it.", "You turned a concession into a change to your position.", "rafael-misquote"),
+              acceptMisquote,
+              scored(move("doubt", "restate", "That sounds too high to me.", "Your doubt is well placed, but doubt alone doesn't answer him. The report was in the source pack: 61% to 74% against 59% to 63%.", "cost"), "misquote", false),
+              move("where", "evidence", "Where in the report does it say that?", "Asking where a figure comes from is the right instinct. Now check it.", "misquote-where"),
             ],
+            cite: misquoteCite,
           },
           {
-            id: "pushback",
+            id: "misquote-where",
             speakerId: "rafael",
-            text: "You've told me what you think, but not why. I can't argue with that, and neither can the board. Give me something that could turn out to be wrong.",
+            text: "In the results. Look it up if you don't believe me.",
             choices: [
-              move("ask", "evidence", "All right. What does the evidence on the tutor say?", "Asking now gets you what the restated position could not: something to test.", "evidence-trial"),
-              move("assume", "assumption", "All right. What does the proposal take for granted about the drop-in?", "You moved from defending your view to examining the proposal.", "assumption-drop-in"),
+              { ...acceptMisquote, label: "Fine, I'll take your word for it." },
+              scored(move("doubt", "restate", "I still think it sounds too high.", "He told you where to look, and the passage was in the source pack: 61% to 74% against 59% to 63%. Doubt without the passage leaves him unanswered.", "cost"), "misquote", false),
             ],
+            cite: misquoteCite,
           },
           {
-            id: "evidence-trial",
-            speakerId: "nadia",
-            text: "The best evidence is Eastfield Library's eight-week trial. Homework completion rose from 61% to 74% among tutor users, and from 59% to 63% among others. The brochure says “40% faster”, but it names no study.",
-            choices: [
-              move("groups", "assumption", "How were the two groups formed?", "A comparison only means something if the groups were comparable, so this was the right thing to ask.", "trial-selfselect"),
-              move("settled", "restate", "Thirteen points against four. That settles it.", "The gap is real, but you treated it as proof before asking what could explain it.", "trial-accept"),
-              move("correct", "evidence", "Were the tutor's answers actually right?", "Completing homework and getting it right are different things, and you noticed.", "trial-errors"),
-            ],
-          },
-          {
-            id: "trial-selfselect",
-            speakerId: "nadia",
-            text: "The report says learners chose for themselves. Keen learners might have improved anyway. That doesn't show the tutor did nothing. It means you can't credit the whole gain to the tutor.",
-            reveals: ["selection"],
-            choices: [
-              move("correct", "evidence", "Were its answers right, though?", "You kept going rather than stopping at the first problem.", "trial-errors"),
-              move("purpose", "assumption", "Do our learners even come for homework?", "You asked whether a trial elsewhere fits the situation here.", "drop-in-log"),
-            ],
-          },
-          {
-            id: "trial-accept",
-            speakerId: "nadia",
-            text: "It might point that way. But the report counts completed homework, not correct homework, and it doesn't say the two groups were alike to begin with.",
-            choices: [
-              move("groups", "assumption", "Then how were the groups formed?", "You went back and tested what you had taken for granted. That is a useful revision.", "trial-selfselect"),
-              move("correct", "evidence", "Then were the answers correct?", "You went back and asked what the number actually measured.", "trial-errors"),
-            ],
-          },
-          {
-            id: "trial-errors",
-            speakerId: "nadia",
-            text: "In a spot check of 50 maths answers, 43 were right and 7 were wrong. None of the wrong ones showed any sign of doubt. So it is often right, and its wording gives a learner no signal when it isn't.",
-            reveals: ["errors"],
-            choices: [
-              move("data", "evidence", "Who sees what learners type into it?", "You widened the question from whether it works to what else it does.", "privacy-check"),
-              move("safe", "alternative", "What would make this safe enough to use?", "You turned a problem into a condition that could be met or missed.", "rafael-misquote"),
-            ],
-          },
-          {
-            id: "assumption-drop-in",
-            speakerId: "imani",
-            text: "That's a good place to look. The proposal treats the drop-in as homework help. Is that what it is? What could you check?",
-            choices: [
-              move("log", "evidence", "Check the log for what people actually come for.", "You tested the assumption instead of arguing about it.", "drop-in-log"),
-              move("skip", "restate", "Let's assume it's homework and look at the tutor.", "You moved on, but the assumption is still untested. You can see in the source pack what the log says.", "evidence-trial"),
-            ],
-          },
-          {
-            id: "drop-in-log",
-            speakerId: "nadia",
-            text: "The log says about a third of visits are for help with forms or with English. A homework tutor wouldn't replace those. So what is really being replaced?",
-            reveals: ["purpose"],
-            choices: [
-              move("correct", "evidence", "Is the tutor at least reliable for the homework part?", "You checked the part of the proposal that still stands.", "trial-errors"),
-              move("data", "evidence", "What happens to what learners type into it?", "You kept checking what the proposal leaves unsaid.", "privacy-check"),
-              move("conditions", "alternative", "Then we need to say which needs a tutor could meet.", "You narrowed the proposal to what the evidence fits.", "rafael-misquote"),
-            ],
-          },
-          {
-            id: "privacy-check",
-            speakerId: "nadia",
-            text: "The privacy officer's note says the standard terms keep messages for 12 months and allow them to be used to improve the product. Many drop-in learners are under 16, so parental consent would be needed.",
-            reveals: ["privacy"],
-            choices: [
-              move("terms", "alternative", "Then different terms and consent become conditions.", "You turned a finding into something the Commons could require.", "rafael-misquote"),
-              move("ignore", "restate", "That isn't our concern if the tutor works.", "The Commons is responsible for learners' data whether or not the tutor works, so this leaves a problem unanswered.", "rafael-misquote"),
-            ],
-          },
-          {
-            id: "rafael-misquote",
+            id: "cost",
             speakerId: "rafael",
-            text: "Before you go in, you should know Eastfield backs up the brochure. Learners using the tutor finished 40% more homework. It's in their report.",
+            text: "Here's a number nobody has mentioned. A licence costs €6,000 a year. That's half of what the Trust gives the whole homework programme this year.",
             choices: [
-              { ...move("accept", "concede", "Then the brochure's figure holds up.", "You took his word for it. The Eastfield report gives 61% to 74% against 59% to 63%. The 40% appears only in the brochure, which names no study.", "rafael-right"), scored: { item: "misquote", right: false } },
-              { ...move("dispute", "restate", "That sounds too high to me.", "You doubted it, which is a start, but doubt alone doesn't answer him. The Eastfield report gives 61% to 74% against 59% to 63%. The 40% appears only in the brochure.", "rafael-right"), scored: { item: "misquote", right: false } },
-            ],
-            cite: {
-              responses: [
-                {
-                  passageIds: ["eastfield-result"],
-                  note: "You checked the report he named and showed it. It says 61% to 74% against 59% to 63%. The 40% appears only in the brochure, so he has no answer.",
-                  next: "rafael-right",
-                  scored: { item: "misquote", right: true },
-                },
-              ],
-              otherwise: {
-                note: "That passage doesn't settle it. He named the Eastfield report, and its result passage says 61% to 74% against 59% to 63%. The 40% appears only in the brochure.",
-                next: "rafael-right",
-                scored: { item: "misquote", right: false },
-              },
-            },
-          },
-          {
-            id: "rafael-right",
-            speakerId: "rafael",
-            text: "Here's a number nobody has mentioned. A licence costs €6,000 a year, which is half of what the Trust gives the homework programme this year.",
-            choices: [
-              { ...move("accept-cost", "concede", "That's right, and my argument has to account for it.", "He is right: the brochure gives €6,000 and the Trust letter €12,000. Conceding what holds up is part of arguing well.", "conditions"), scored: { item: "concede", right: true } },
-              { ...move("reject-cost", "restate", "He would say that. I don't accept the figure.", "The figure comes from the sources: €6,000 in the brochure, €12,000 in the Trust letter. Being on the other side doesn't make someone wrong.", "conditions"), scored: { item: "concede", right: false } },
+              scored(move("accept-cost", "concede", "That's right, and my case has to account for it.", "He is right: the brochure gives €6,000 and the Trust letter €12,000. Conceding what holds up is part of arguing well.", "alternatives"), "concede", true),
+              scored(move("reject-cost", "restate", "You would say that. I don't accept the figure.", "The figure comes from the sources: €6,000 in the brochure, €12,000 in the Trust letter. Being on the other side doesn't make someone wrong.", "alternatives"), "concede", false),
             ],
             cite: {
               responses: [
                 {
                   passageIds: ["brochure-price", "budget-amount"],
                   note: "You checked it, and it holds. Going to the source and then accepting what you find is the same habit as catching a misquote.",
-                  next: "conditions",
+                  next: "alternatives",
                   scored: { item: "concede", right: true },
                 },
               ],
               otherwise: {
                 note: "That passage doesn't bear on the cost. The brochure gives €6,000 and the Trust letter €12,000, so his figure holds.",
-                next: "conditions",
+                next: "alternatives",
                 scored: { item: "concede", right: false },
               },
             },
           },
           {
-            id: "conditions",
+            id: "alternatives",
             speakerId: "imani",
-            text: "Whatever you decide, name what would have to be true. Which of these comes closest to what you would put to the board?",
+            text: "The map showed the memo takes for granted that it's the tutor or nothing. Nadia has also flagged the data terms: messages kept for 12 months, and many learners under 16. So what will you put to the board?",
             choices: [
-              move("alongside", "alternative", "Keep the remaining volunteers and add the tutor under supervision, with answer checks and new data terms.", "This keeps people in the loop, but three volunteers would be doing more. Your argument should say how.", "closing"),
-              move("recruit", "alternative", "Recruit volunteers and narrow the drop-in for now, with no tutor.", "This avoids the risks of the tutor, but it needs a realistic recruitment plan and an answer for learners in the meantime.", "closing"),
-              move("review", "alternative", "Replace the drop-in as proposed, and review it after one term.", "This acts on the December deadline, but a review only helps if you decide now what you would measure and what would stop it.", "closing"),
+              move("alongside", "alternative", "Keep the remaining volunteers and add the tutor under supervision, with answer checks and new data terms.", "This keeps people in the loop and covers the forms and English visits, but three volunteers would be doing more. Your case should say how.", "closing"),
+              move("recruit", "alternative", "Recruit volunteers and narrow the drop-in for now, with no tutor.", "This avoids the tutor's risks and its €6,000, but it needs a realistic recruitment plan and an answer for learners in the meantime.", "closing"),
+              move("review", "alternative", "Replace the drop-in as proposed, and review it after one term.", "This acts before December, but the data terms and the third of visits that aren't homework are still unanswered. A review only helps if you decide now what would stop it.", "closing"),
             ],
           },
           {
             id: "closing",
             speakerId: "imani",
-            text: "That gives you something to work with. Next, lay the argument out and see how it holds together.",
+            text: "Good. You've heard the strongest points against you, and you know what the proposal takes for granted. Now answer the first question again.",
             choices: [],
           },
         ],
       },
     },
     {
-      kind: "argumentMap",
-      id: "map",
-      title: "Map the argument",
-      prompt: "Select a card, then choose where it belongs. The map is about the proposal, whatever your own position is.",
-      proposal: "The Commons should replace its Wednesday drop-in with an AI tutor.",
-      initialStepId: "initial",
-      dialogueStepId: "forge",
-      hints: [
-        { text: "Ask of each card: is it a recorded finding, or a reason someone would give?" },
-        { text: "If a card must be true for the proposal to work, but the proposal never says so, it is an assumption." },
-        { text: "Check who wrote the source behind a card, and whether it names any study." },
-      ],
-      slots: [
-        { id: "reason", label: "Reasons for", help: "Why someone would support the proposal." },
-        { id: "evidence", label: "Evidence", help: "A specific finding that a reason can rest on." },
-        { id: "objection", label: "Objections", help: "Findings or points that count against the proposal." },
-        { id: "assumption", label: "Unstated assumptions", help: "What the proposal needs to be true but does not say." },
-        { id: "aside", label: "Set aside", help: "Not reliable enough to carry weight here." },
-      ],
-      cards: [
-        { id: "shrink", text: "Without another option, the session may shrink when the volunteers leave.", slotId: "reason", explanation: "This is the main reason behind the proposal. The log gives it its factual footing." },
-        { id: "completion", text: "A tutor could help learners finish more of their homework.", slotId: "reason", explanation: "This is the benefit the trial is usually cited for. It needs the trial to mean what it seems to mean." },
-        { id: "hours", text: "A tutor could help at any hour, not only on Wednesdays.", slotId: "reason", explanation: "This is a reason someone could give for the tutor. It rests on availability, and it says nothing about accuracy." },
-        { id: "trial", text: "Homework completion rose from 61% to 74% among tutor users, and from 59% to 63% among others.", slotId: "evidence", explanation: "This is the strongest finding in favour, though learners chose for themselves which group to be in." },
-        { id: "numbers", text: "The drop-in averages 18 learners, and three of its six volunteers leave in December.", slotId: "evidence", explanation: "This is a recorded fact that supports the reason about the session shrinking." },
-        { id: "wrong", text: "In a spot check, 7 of 50 maths answers were wrong, with no sign of uncertainty.", slotId: "objection", defensibleSlotIds: ["evidence"], discovery: "errors", explanation: "This counts against the proposal. Filing it as evidence is also defensible, since it is a specific finding, but its role here is to object." },
-        { id: "terms", text: "The vendor's standard terms keep learners' messages for 12 months.", slotId: "objection", defensibleSlotIds: ["evidence"], discovery: "privacy", explanation: "This is a cost the proposal does not mention, particularly with learners under 16." },
-        { id: "credit", text: "The rise in completion was caused by the tutor, not by which learners chose to use it.", slotId: "assumption", discovery: "selection", explanation: "The argument needs this to be true, but the trial does not establish it." },
-        { id: "homework", text: "Drop-in visits are about homework.", slotId: "assumption", discovery: "purpose", explanation: "Replacing the drop-in with a homework tutor assumes this. The log says about a third of visits are not." },
-        { id: "faster", text: "Students finish homework 40% faster with the tutor.", slotId: "aside", defensibleSlotIds: ["evidence"], explanation: "This comes from a sales brochure that names no study. It can be noted as the vendor's claim, but it should not carry weight." },
-      ],
-      links: [
-        { cardId: "trial", kind: "supports", targetId: "completion", explanation: "Completion is what the trial measured." },
-        { cardId: "numbers", kind: "supports", targetId: "shrink", explanation: "The log's numbers are why the session might shrink." },
-        { cardId: "wrong", kind: "attacks", targetId: "completion", defensibleTargetIds: [PROPOSAL], explanation: "Finishing homework helps less if the answers are wrong. It also counts against the proposal more widely." },
-        { cardId: "terms", kind: "attacks", targetId: PROPOSAL, explanation: "The data terms apply however well the tutor works, so this bears on the whole proposal." },
-        { cardId: "credit", kind: "restsOn", targetId: "completion", explanation: "If keen learners would have improved anyway, the trial no longer supports this reason." },
-        { cardId: "homework", kind: "restsOn", targetId: PROPOSAL, defensibleTargetIds: ["shrink"], explanation: "A homework tutor can only replace the drop-in if the drop-in is about homework." },
-      ],
-    },
-    {
       kind: "revision",
       id: "revision",
       initialStepId: "initial",
-      prompt: `You have tested your position. Answer the first question again. Keeping your answer is fine if your reasons hold. ${positionQuestion}`,
+      prompt: `You have taken the proposal apart and tested your position. Answer the first question again. Keeping your answer is fine if your reasons hold. ${positionQuestion}`,
       choices: positionChoices,
       withConfidence: true,
     },
     {
-      kind: "quiz",
-      id: "weigh",
-      prompt: "Which finding did the most work in deciding your position just now, or in testing it?",
-      choices: [
-        { id: "selection", label: "Learners in the Eastfield trial chose for themselves.", verdict: "defensible", explanation: "This limits how much of the gain can be credited to the tutor. It weakens the main evidence in favour without showing that the tutor doesn't work." },
-        { id: "errors", label: "7 of 50 checked answers were wrong, with no sign of doubt.", verdict: "defensible", explanation: "This is about accuracy and how a learner could tell. It makes a case for supervision more than a case against any use." },
-        { id: "purpose", label: "About a third of visits are not about homework.", verdict: "defensible", explanation: "This shows that the proposal replaces more than a tutor can do, whichever way the evidence on the tutor falls." },
-        { id: "privacy", label: "Standard terms keep messages for 12 months, and many learners are under 16.", verdict: "defensible", explanation: "This applies however well the tutor works, so it sets conditions rather than deciding the matter." },
-      ],
-    },
-    {
       kind: "openResponse",
       id: "argument",
-      prompt: "Write your revised argument for the board in three or four sentences: your position, your strongest evidence, and how you answer the strongest objection.",
+      prompt: "Write the case you would put to the board, one part in each box.",
+      format: "structured",
+      fields: [
+        { id: "position", label: "Your position" },
+        { id: "evidence", label: "The strongest evidence for it" },
+        { id: "objection", label: "The strongest objection, and your answer to it" },
+        { id: "change", label: "What would change your mind" },
+      ],
       rubric: {
         samples: [
-          { id: "thin", text: "We should try the tutor, because AI is the future and something has to be done before December.", met: ["position"], note: "It takes a position, but it rests on opinion and answers no objection." },
-          { id: "full", text: "Trial it for a term with a volunteer checking answers. Eastfield's completion rose from 61% to 74%, though learners chose for themselves. The 7 wrong answers out of 50 are why a person checks. We would stop if errors stay at that level.", met: ["position", "evidence", "objection", "limits"], note: "It takes a position, rests on findings, answers the error objection and says when it would stop." },
+          { id: "thin", text: "We should try the tutor, because AI is the future and something has to be done before December.", met: ["position"], note: "It takes a position, but it rests on opinion, answers no objection and says nothing that could change it." },
+          {
+            id: "full",
+            text: "Trial the tutor for one term, with a volunteer checking answers. Eastfield's completion rose from 61% to 74%, though learners chose for themselves. The 7 wrong answers in 50 are why a person checks. If checked errors stay at that level, we stop.",
+            met: ["position", "evidence", "objection", "change"],
+            note: "It takes a position, rests on a finding and admits its limit, answers the error objection, and says what result would stop it.",
+          },
         ],
         criteria: [
           { id: "position", text: "States a clear position." },
-          { id: "evidence", text: "Rests on a specific finding from the source pack, not only on opinion." },
-          { id: "objection", text: "Answers a real objection rather than ignoring it." },
-          { id: "limits", text: "Says what is still uncertain, or under what conditions the position holds." },
+          { id: "evidence", text: "Rests on a specific finding from the source pack, and doesn't claim more than it shows." },
+          { id: "objection", text: "Answers a real objection instead of ignoring it." },
+          { id: "change", text: "Names a result or finding that would change the position." },
         ],
         examples: [
-          "Trial the tutor for one term alongside the remaining volunteers. Completion rose more among tutor users at Eastfield, but learners chose for themselves and 7 of 50 checked answers were wrong, so a volunteer should spot-check answers. We should require new data terms and parental consent, and stop if checked errors stay at that level.",
-          "Do not replace the drop-in. A third of visits are for forms or English, which a homework tutor would not cover, and the licence would take half of this year's €12,000. The cost is real, since three volunteers are leaving, so we should narrow the sessions and recruit. We don't yet know whether recruitment will work, and we should review that in January.",
+          "Trial the tutor for one term alongside the remaining volunteers. Completion rose more among tutor users at Eastfield, though learners chose for themselves. The strongest objection is the 7 wrong answers in 50, so a volunteer spot-checks answers, and we need new data terms and parental consent. If checked errors stay at that level, we stop.",
+          "Don't replace the drop-in. A third of visits are for forms or English, which a homework tutor wouldn't cover, and the licence would take half of this year's €12,000. The strongest objection is that three volunteers are leaving, so we narrow the sessions and recruit. If recruitment brings in nobody by January, I'd look at the tutor again.",
         ],
       },
     },
@@ -414,7 +471,7 @@ export const m05: Mission = {
       kind: "transfer",
       id: "transfer",
       title: "A new case, with no hints",
-      prompt: "A town's transport office argues for replacing its bus information desk. Mark the words where the argument claims more than its reason shows.",
+      prompt: "A town's transport office argues for replacing its bus information desk. Mark the words where the argument takes more for granted than its reason shows.",
       mark: [
         [
           "“",
@@ -470,47 +527,77 @@ export const m05: Mission = {
       },
     },
     {
+      kind: "epilogue",
+      id: "board",
+      title: "Thursday's board meeting",
+      when: "Thursday evening, and the term after",
+      lines: [
+        {
+          id: "decision",
+          beats: [
+            { tone: "cost", when: { choice: { step: "revision", ids: ["adopt"] } }, text: "The board adopted the tutor from January. Learners used it most in the evenings, when the Commons is closed. The forms and English help had nowhere to go until two volunteers started a Saturday slot in March." },
+            { tone: "gain", when: { choice: { step: "revision", ids: ["pilot"] } }, text: "The board agreed a one-term trial, with a volunteer checking answers and a stop rule written into the minutes. The forms and English help stayed with the remaining volunteers." },
+            { tone: "gain", text: "The board kept the drop-in and narrowed it to two rooms. A recruitment drive found two new volunteers by February. The third gap took until spring to fill." },
+          ],
+        },
+        {
+          id: "misquote",
+          beats: [
+            { who: "Nadia, evidence critic", tone: "gain", when: { evidence: { item: "forge/misquote", right: true } }, text: "“When a trustee repeated the 40% figure, you had the Eastfield passage ready. It never made it into the minutes.”" },
+            { who: "Nadia, evidence critic", tone: "harm", text: "“The 40% figure went into the minutes as Eastfield's finding. I had to send a correction a week later, and two trustees had already quoted it.”" },
+          ],
+        },
+        {
+          id: "cost",
+          beats: [
+            { tone: "gain", when: { evidence: { item: "forge/concede", right: true } }, text: "The treasurer asked about the €6,000 licence. Your case had already counted it against the Trust's €12,000." },
+            { tone: "cost", text: "The treasurer raised the €6,000 licence, half of this year's grant. Your case hadn't mentioned it, and the vote was put off for a week." },
+          ],
+        },
+      ],
+    },
+    {
       kind: "debrief",
       id: "debrief",
-      takeaway: "A position is only as strong as what it assumes and what it can answer. Ask what would have to be true, and what would change your mind.",
+      takeaway: "An argument is only as strong as what it takes for granted. Find the step it never states, check it against the evidence, and concede what holds.",
       skills: [
         {
-          id: "question-the-case",
-          label: "Uncovering what a case leaves out by questioning it",
+          id: "back-reasons",
+          label: "Matching each reason to the evidence that actually backs it",
           kind: "action",
-          items: ["selection", "errors", "purpose", "privacy"].map((id) => `forge/${id}`),
+          items: ["back-r1", "back-r2"].map((id) => `map/${id}`),
         },
         {
-          id: "under-pressure",
-          label: "Checking a claim under pressure, and conceding when it holds",
+          id: "hidden-assumptions",
+          label: "Finding what an argument takes for granted",
           kind: "action",
-          items: ["forge/misquote", "forge/concede"],
-          practice: {
-            prompt: "In a meeting, a colleague says, “The survey shows that most members want later opening.” You have the survey, and it says 41 of 90 respondents do. What is the most useful reply?",
-            choices: [
-              { id: "a", label: "“The survey says 41 of 90, which is just under half.”", verdict: "correct", explanation: "Bringing the passage into the conversation answers the claim, and doesn't turn it into a contest of opinions." },
-              { id: "b", label: "“I don't think that's right, and I doubt most members want that.”", verdict: "weaker", explanation: "The doubt is well placed, but it gives your colleague nothing to respond to. You have the figure, so use it." },
-              { id: "c", label: "“OK, if that's what the survey shows.”", verdict: "weaker", explanation: "Letting it go means the meeting decides on a figure that you know is wrong." },
-            ],
-          },
-        },
-        {
-          id: "connect-argument",
-          label: "Connecting evidence and objections to what they bear on",
-          kind: "action",
-          items: ["trial", "numbers", "wrong", "terms", "credit", "homework"].map((id) => `map/link/${id}`),
-        },
-        {
-          id: "argument-parts",
-          label: "Separating reasons, evidence, objections and assumptions",
-          kind: "action",
-          items: ["shrink", "completion", "hours", "trial", "numbers", "wrong", "terms", "credit", "homework", "faster"].map((id) => `map/${id}`),
+          items: ["assume-trial", "assume-purpose", "assume-only"].map((id) => `map/${id}`),
           practice: {
             prompt: "Someone argues: “The new timetable will cut queues, because the pilot branch's queues fell by a third.” Which of these is an unstated assumption of that argument?",
             choices: [
               { id: "a", label: "That the pilot branch's queues fell by a third.", verdict: "weaker", explanation: "The argument states this openly. It is the evidence, so it isn't unstated." },
               { id: "b", label: "That other branches would respond as the pilot did.", verdict: "correct", explanation: "The argument needs this to get from one branch to all of them, and it never says so." },
               { id: "c", label: "That the new timetable will cut queues everywhere.", verdict: "weaker", explanation: "This is the conclusion. The assumption is what connects the evidence to it." },
+            ],
+          },
+        },
+        {
+          id: "test-assumptions",
+          label: "Checking an assumption against the sources, without claiming more than they say",
+          kind: "action",
+          items: ["check-trial", "check-purpose", "check-only"].map((id) => `map/${id}`),
+        },
+        {
+          id: "under-pressure",
+          label: "Answering objections: conceding what holds and checking what doesn't",
+          kind: "action",
+          items: ["forge/answer-objection", "forge/misquote", "forge/concede"],
+          practice: {
+            prompt: "In a meeting, a colleague says, “The survey shows that most members want later opening.” You have the survey, and it says 41 of 90 respondents do. What is the most useful reply?",
+            choices: [
+              { id: "a", label: "“The survey says 41 of 90, which is just under half.”", verdict: "correct", explanation: "Bringing the passage into the conversation answers the claim, and doesn't turn it into a contest of opinions." },
+              { id: "b", label: "“I don't think that's right, and I doubt most members want that.”", verdict: "weaker", explanation: "The doubt is well placed, but it gives your colleague nothing to respond to. You have the figure, so use it." },
+              { id: "c", label: "“OK, if that's what the survey shows.”", verdict: "weaker", explanation: "Letting it go means the meeting decides on a figure that you know is wrong." },
             ],
           },
         },

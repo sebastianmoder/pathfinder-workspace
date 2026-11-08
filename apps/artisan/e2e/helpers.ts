@@ -147,12 +147,6 @@ export async function showPassage(page: Page, passage: string) {
   await page.locator(`[data-passage="${passage}"]`).click();
 }
 
-/** Takes Rafael's two closing claims at face value. */
-export async function passRafael(page: Page) {
-  await choose(page, /brochure's figure holds up/);
-  await choose(page, /my argument has to account for it/);
-}
-
 /** Trains the machine on the board as it stands, then predicts and asks. */
 export async function trainAndAsk(page: Page, expected: string, opts: { train?: boolean } = {}) {
   if (opts.train !== false) await page.getByRole("button", { name: "Train the machine" }).click();
@@ -268,74 +262,50 @@ export async function completeNorthgate(page: Page) {
 
 export const choose = (page: Page, label: RegExp) => page.getByRole("button", { name: label }).click();
 
-export const MAP_PLACEMENT: [RegExp, string][] = [
-  [/Without another option/, "Reasons for"],
-  [/finish more of their homework/, "Reasons for"],
-  [/at any hour/, "Reasons for"],
-  [/rose from 61%/, "Evidence"],
-  [/averages 18 learners/, "Evidence"],
-  [/7 of 50 maths answers/, "Objections"],
-  [/standard terms keep/, "Objections"],
-  [/caused by the tutor/, "Unstated assumptions"],
-  [/visits are about homework/, "Unstated assumptions"],
-  [/40% faster/, "Set aside"],
+/** The sound answer to each of the map's questions in M05, in order. */
+export const M05_MAP: RegExp[] = [
+  /^Drop-in log: 18 learners a session/,
+  /^Eastfield trial: completion rose/,
+  /^The rise came from the tutor/,
+  /^Not settled: learners chose/,
+  /^Homework is what learners come/,
+  /^Only partly: about a third/,
+  /^That nothing else could keep/,
+  /^Nobody has checked/,
 ];
 
-export async function placeCards(page: Page) {
-  for (const [card, slot] of MAP_PLACEMENT) {
-    await page.getByRole("button", { name: card }).click();
-    await page.getByRole("button", { name: new RegExp(`Place here.*${slot}`) }).click();
+/** Answers the map's questions one at a time, then reads what it shows and moves on. */
+export async function answerMap(page: Page) {
+  for (const [i, answer] of M05_MAP.entries()) {
+    await page.getByLabel(answer).check();
+    await check(page);
+    await page.getByRole("button", { name: i === M05_MAP.length - 1 ? "See what the map shows" : "Next question" }).click();
   }
-}
-
-export const CONNECTIONS: [RegExp, RegExp][] = [
-  [/rose from 61%/, /finish more of their homework/],
-  [/averages 18 learners/, /Without another option/],
-  [/7 of 50 maths answers/, /finish more of their homework/],
-  [/standard terms keep/, /The proposal as a whole/],
-  [/caused by the tutor/, /finish more of their homework/],
-  [/visits are about homework/, /The proposal as a whole/],
-];
-
-export async function connectAndTest(page: Page) {
-  await page.getByRole("button", { name: "Connect the cards" }).click();
-  for (const [card, target] of CONNECTIONS) {
-    const select = page.getByLabel(card);
-    const value = await select.locator("option").filter({ hasText: target }).getAttribute("value");
-    await select.selectOption(value!);
-  }
-  await page.getByRole("button", { name: "Check my connections" }).click();
-  await page.getByRole("button", { name: "Test the argument" }).click();
-  await page.getByRole("checkbox", { name: /Suppose this is false.*caused by the tutor/ }).check();
-  await page.getByRole("checkbox", { name: /Suppose this is false.*visits are about homework/ }).check();
+  await expect(page.getByRole("heading", { name: "What the map shows" })).toBeFocused();
   await cont(page);
 }
 
 export async function completeM05(page: Page) {
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Try it for a limited time/, "Fairly");
-  await choose(page, /What evidence do we have/);
-  await choose(page, /How were the two groups formed/);
-  await choose(page, /Were its answers right/);
-  await choose(page, /Who sees what learners type/);
-  await choose(page, /The board is about to start/);
+  await answerMap(page);
+  await choose(page, /set the stop rule now/);
   await showPassage(page, "eastfield-result");
-  await choose(page, /my argument has to account for it/);
+  await choose(page, /my case has to account for it/);
   await choose(page, /Keep the remaining volunteers/);
-  await page.getByRole("button", { name: "Continue to the argument map" }).click();
-  await placeCards(page);
-  await page.getByRole("button", { name: "Check my map" }).click();
-  await connectAndTest(page);
+  await page.getByRole("button", { name: "Continue to your final position" }).click();
   await revise(page, /Try it for a limited time/, "Somewhat");
-  await page.getByLabel(/About a third of visits/).check();
-  await check(page);
-  await cont(page);
-  await skipPractice(page);
-  await page.getByLabel("Your answer").fill("PRIVATE-M05-ANSWER");
-  await page.getByRole("button", { name: "Compare with the criteria" }).click();
-  await cont(page);
+  await writeNote(page, [
+    [/^Your position/, "PRIVATE-M05-ANSWER"],
+    [/^The strongest evidence/, "Eastfield"],
+    [/^The strongest objection/, "Errors"],
+    [/^What would change your mind/, "Errors stay at 7 in 50"],
+  ]);
   await markAndCheck(page, [/have a smartphone/, /will serve everyone/]);
   await pickAndImprove(page, /answers at any hour and on every route/, "PRIVATE-M05-STEELMAN");
+  await expect(page.getByRole("heading", { name: "Thursday's board meeting" })).toBeVisible();
+  await expect(page.getByText(/you had the Eastfield passage ready/)).toBeVisible();
+  await cont(page);
   await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 

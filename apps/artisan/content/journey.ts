@@ -58,7 +58,7 @@ export const modules: ModuleEntry[] = [
   {
     id: "M05",
     title: "The Argument Forge",
-    summary: "Take a position, test it in a scripted conversation, and map the argument.",
+    summary: "Take a proposal apart, then defend your own position against objections.",
     stage: 2,
     status: "available",
     missionIds: ["m05-argument"],
