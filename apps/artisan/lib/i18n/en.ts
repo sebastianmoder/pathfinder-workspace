@@ -138,6 +138,11 @@ export const en = {
       "Choose where it goes with the buttons at the bottom. The next item is then selected for you.",
       "When everything is placed, check. Select any item to move it.",
     ],
+    sortDrag: [
+      "Drag an item into the box where it belongs.",
+      "Or select it and choose a box with the buttons at the bottom. The next item is then selected for you.",
+      "When everything is placed, check. Drag or select any item to move it.",
+    ],
     sortToggles: ["For each action, choose one setting.", "When every action has one, check your answers."],
     match: [
       "Select a card on the left.",
@@ -777,6 +782,7 @@ export const en = {
     fixSome: "You can move the items marked ✖ and check again, or carry on.",
     tray: (n: number) => (n ? `To place: ${n}` : "To place"),
     allPlaced: "Everything is placed. Select an item to move it.",
+    allPlacedDrag: "Everything is placed. Drag or select an item to move it.",
     empty: "Nothing here yet.",
     choosePlace: (item: string) => `Where does “${item}” go?`,
     placeIn: "Place in",

@@ -633,7 +633,8 @@
     color: #ffffff;
   }
 
-  /* Sorting: an item is a chip; selecting one marks it like a highlighter, and bins show where things are. */
+  /* Sorting: an item is a chip; selecting one marks it like a highlighter, and bins show where things are.
+     With a mouse, chips can also be dragged; the bin under the pointer turns solid to show where it lands. */
   .chip {
     display: inline-flex;
     max-width: 100%;
@@ -655,11 +656,32 @@
     color: var(--highlighter-ink);
     font-weight: 700;
   }
+  .chip[draggable="true"] {
+    cursor: grab;
+  }
+  .chip-dragging {
+    opacity: 0.5;
+  }
+  .tray {
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
   .bin {
     min-height: 6rem;
     border: 2px dashed var(--border);
     border-radius: 0.5rem;
     padding: 0.75rem;
+  }
+  /* Mid-drag, the sticky action bar steps aside so the bins beneath it can be seen and dropped on. */
+  .sort-dragging .action-bar {
+    opacity: 0.2;
+    pointer-events: none;
+  }
+  .tray.drop-over,
+  .bin.drop-over {
+    border-style: solid;
+    border-color: var(--foreground);
+    background: color-mix(in srgb, var(--highlighter) 22%, var(--surface));
   }
   /* A permission screen: one row per action, its setting chosen from a segmented control. */
   .permission-list > li {

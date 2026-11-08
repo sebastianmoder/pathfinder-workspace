@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, useSyncExternalStore, type DragEvent } from "react";
 import type { Step } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
@@ -9,10 +9,21 @@ import { ActionBar, HowTo, useReveal } from "../step-ui";
 
 type SortStep = Extract<Step, { kind: "sort" }>;
 
+/** Mouse and trackpad only: native drag on touch screens fights page scrolling and needs a long press. */
+const FINE_POINTER = "(hover: hover) and (pointer: fine)";
+const subscribePointer = (onChange: () => void) => {
+  const query = window.matchMedia(FINE_POINTER);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+const useFinePointer = () =>
+  useSyncExternalStore(subscribePointer, () => window.matchMedia(FINE_POINTER).matches, () => false);
+
 /**
- * Select-and-place, with no dragging (PRD §8). In "bins", the learner selects an item, then places it with a
- * button in the action bar, which stays in view on a narrow screen; the bins show what is where. "toggles"
- * gives every item a row of choices, like an app's permission screen.
+ * Select-and-place everywhere, with dragging as a shortcut (PRD §8). In "bins", the learner selects an item,
+ * then places it with a button in the action bar, which stays in view on a narrow screen; the bins show what
+ * is where. With a mouse or trackpad, an item can also be dragged into a bin or back to the tray. Touch
+ * screens get the buttons only. "toggles" gives every item a row of choices, like an app's permission screen.
  */
 export function SortActivity({
   step,
@@ -29,6 +40,9 @@ export function SortActivity({
   const [announcement, setAnnouncement] = useState("");
   const [checked, setChecked] = useState(false);
   const ladder = useHintLadder(step.hints ?? []);
+  const canDrag = useFinePointer() && step.display !== "toggles";
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [over, setOver] = useState<string | null>(null); // "tray" or a category id
 
   const allPlaced = step.items.every((i) => placed[i.id]);
   const allRight = step.items.every((i) => placed[i.id] === i.categoryId);
@@ -49,6 +63,31 @@ export function SortActivity({
     setSelected(step.items.find((i) => !next[i.id] && i.id !== itemId)?.id ?? null);
   };
 
+  // Drop zones accept only a chip dragged from this board, never stray text or files.
+  const TRAY = "tray";
+  const dropZone = (zone: string) =>
+    canDrag
+      ? {
+          onDragOver: (e: DragEvent) => {
+            if (!dragging) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            if (over !== zone) setOver(zone);
+          },
+          onDragLeave: (e: DragEvent) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver((o) => (o === zone ? null : o));
+          },
+          onDrop: (e: DragEvent) => {
+            if (!dragging) return;
+            e.preventDefault();
+            const target = zone === TRAY ? null : zone;
+            if ((placed[dragging] ?? null) !== target) place(dragging, target);
+            setDragging(null);
+            setOver(null);
+          },
+        }
+      : {};
+
   const feedback = (itemId: string) => {
     if (!checked) return null;
     const item = step.items.find((i) => i.id === itemId)!;
@@ -68,7 +107,26 @@ export function SortActivity({
         type="button"
         aria-pressed={selected === itemId}
         onClick={() => setSelected(selected === itemId ? null : itemId)}
-        className="chip"
+        draggable={canDrag || undefined}
+        onDragStart={
+          canDrag
+            ? (e) => {
+                e.dataTransfer.setData("text/plain", label(itemId)); // Firefox starts a drag only with data set
+                e.dataTransfer.effectAllowed = "move";
+                setDragging(itemId);
+                setSelected(itemId);
+              }
+            : undefined
+        }
+        onDragEnd={
+          canDrag
+            ? () => {
+                setDragging(null);
+                setOver(null);
+              }
+            : undefined
+        }
+        className={`chip${dragging === itemId ? " chip-dragging" : ""}`}
       >
         {checked && <span aria-hidden="true" className={right ? "mark-yes" : "mark-no"}>{right ? "✔ " : "✖ "}</span>}
         {label(itemId)}
@@ -77,9 +135,9 @@ export function SortActivity({
   };
 
   return (
-    <div>
+    <div className={dragging ? "sort-dragging" : undefined}>
       <h2 className="text-2xl">{step.prompt}</h2>
-      <HowTo steps={step.display === "toggles" ? t.howTo.sortToggles : t.howTo.sort} />
+      <HowTo steps={step.display === "toggles" ? t.howTo.sortToggles : canDrag ? t.howTo.sortDrag : t.howTo.sort} />
 
       <div ref={boardRef} className="reveal mt-4">
         {step.display === "toggles" ? (
@@ -111,21 +169,30 @@ export function SortActivity({
           </ul>
         ) : (
           <>
-            <section aria-labelledby={`${uid}-tray`} className="rounded-lg border border-border bg-surface p-3">
+            <section
+              aria-labelledby={`${uid}-tray`}
+              className={`tray rounded-lg p-3${over === TRAY ? " drop-over" : ""}`}
+              {...dropZone(TRAY)}
+            >
               <h3 id={`${uid}-tray`} className="font-bold">{t.sort.tray(left.length)}</h3>
               {left.length ? (
                 <ul className="mt-2 flex flex-wrap gap-2">
                   {left.map((i) => <li key={i.id}>{chip(i.id)}</li>)}
                 </ul>
               ) : (
-                <p className="mt-1 text-sm text-muted">{t.sort.allPlaced}</p>
+                <p className="mt-1 text-sm text-muted">{canDrag ? t.sort.allPlacedDrag : t.sort.allPlaced}</p>
               )}
             </section>
             <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${step.categories.length > 3 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
               {step.categories.map((c) => {
                 const here = step.items.filter((i) => placed[i.id] === c.id);
                 return (
-                  <section key={c.id} aria-labelledby={`${uid}-${c.id}`} className="bin">
+                  <section
+                    key={c.id}
+                    aria-labelledby={`${uid}-${c.id}`}
+                    className={`bin${over === c.id ? " drop-over" : ""}`}
+                    {...dropZone(c.id)}
+                  >
                     <h3 id={`${uid}-${c.id}`} className="font-bold">{c.label}</h3>
                     {here.length ? (
                       <ul className="mt-2 space-y-2">

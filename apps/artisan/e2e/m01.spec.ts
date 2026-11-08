@@ -85,7 +85,26 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await expect(page.getByRole("button", { name: "A phone unlocks when it sees your face" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Place in Recognise (images, speech)", exact: true }).click();
   await expect(page.getByRole("button", { name: "A chatbot drafts an email for you" })).toHaveAttribute("aria-pressed", "true");
-  await sortInto(page, Object.entries(place).slice(1));
+  // With a mouse, an item can also be dragged into a bin; touch screens keep the buttons only.
+  const chatbot = page.getByRole("button", { name: "A chatbot drafts an email for you" });
+  const generate = page.getByRole("region", { name: "Generate (text, images)" });
+  if (test.info().project.name === "desktop") {
+    // Stepped moves, as a hand would: a single jump never starts a native drag. Aim at the bin's top edge,
+    // which stays clear of the sticky action bar.
+    const from = (await chatbot.boundingBox())!;
+    const to = (await generate.boundingBox())!;
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 5 });
+    await page.mouse.move(to.x + 24, to.y + 16, { steps: 10 });
+    await page.mouse.up();
+    await expect(generate.getByRole("button", { name: "A chatbot drafts an email for you" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "A streaming service suggests your next show" })).toHaveAttribute("aria-pressed", "true");
+  } else {
+    await expect(chatbot).not.toHaveAttribute("draggable", "true");
+    await sortInto(page, [["A chatbot drafts an email for you", "Generate (text, images)"]]);
+  }
+  await sortInto(page, Object.entries(place).slice(2));
   await expect(page.getByText("Everything is placed.", { exact: false })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await check(page);
