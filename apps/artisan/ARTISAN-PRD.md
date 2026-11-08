@@ -79,7 +79,7 @@ The curriculum has four stages, followed by a capstone. The stages organize the 
 
 | Stage | Learner question | Modules | Stage outcome |
 | --- | --- | --- | --- |
-| 1. Understand and choose | What is AI, and how should I work with it? | M01–M03 | Explain basic capabilities and limits, select an appropriate use, and prepare a useful brief. |
+| 1. Understand and choose | What is AI, and how should I work with it? | M01–M03 | Explain basic capabilities and limits, select an appropriate use, and prepare a useful prompt. |
 | 2. Investigate and think | How do I evaluate outputs and improve my thinking? | M04–M07 | Check claims, challenge arguments, learn with assistance, and evaluate numbers. |
 | 3. Create and act responsibly | How do I work with AI in a way I can justify? | M08–M11 | Evaluate media, examine fairness, protect information, and make responsible creative choices. |
 | 4. Design and participate | How do AI systems affect people beyond one conversation? | M12–M13 | Design a supervised workflow and evaluate wider consequences. |
@@ -162,15 +162,15 @@ Every module must contain:
 
 **Integration:** Supplies task-selection habits for prompting and workflow design. M01 recommended; a short refresher is included. **Pilot:** Later release.
 
-### M03 — The Briefing Studio
+### M03 — The Prompt Studio
 
 **Outcome:** Communicate an objective, relevant context, constraints, and criteria for a useful response.
 
-**Core mission:** Improve an ambiguous brief. Change one element at a time, compare outputs, and decide whether the next step is a better prompt, more evidence, or a clarifying question.
+**Core mission:** Improve an ambiguous prompt. Change one element at a time, compare outputs, and decide whether the next step is a better prompt, more evidence, or a clarifying question.
 
 **Interactive design:** A prompt workspace, a comparison view, and an editable checklist. Initial versions can show authored outputs for predefined changes.
 
-**Evidence of learning:** The learner creates a usable brief for a new task and evaluates the response against stated criteria.
+**Evidence of learning:** The learner creates a usable prompt for a new task and evaluates the response against stated criteria.
 
 **Integration:** Introduces explicit criteria reused in creative work and system evaluation. M02 recommended. **Pilot:** Later release.
 
@@ -502,7 +502,7 @@ Development order differs from the curriculum order so that useful experiences c
 | R1 — Foundations | M01 | First complete standalone module | Learners can explain the core limitation in a new example |
 | R2 — Verification | M04 and source interactions | M01 → M04 pathway | Learners can distinguish support from citation appearance |
 | R3 — Reasoning pilot | M05, T01, pilot learning summary | Complete pilot journey | All pilot acceptance criteria are met |
-| R4 — Effective collaboration | M02 and M03, one at a time | Complete Stage 1; connect task choice to briefing | Each module works alone and within the guided sequence |
+| R4 — Effective collaboration | M02 and M03, one at a time | Complete Stage 1; connect task choice to prompting | Each module works alone and within the guided sequence |
 | R5 — Learning and numbers | M06 and M07, one at a time | Complete Stage 2 and its bridge challenge | Independent transfer and numerical checks are reviewed |
 | R6 — Responsible practice | M08, M09, M10, and M11, one at a time | Complete Stage 3 and its bridge challenge | Each new module reuses shared habits and adds its specialist interactions |
 | R7 — Systems and society | M12, then M13 | Complete Stage 4 | Workflow and stakeholder decisions have transparent feedback |

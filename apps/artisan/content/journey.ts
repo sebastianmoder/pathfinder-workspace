@@ -29,8 +29,8 @@ export const modules: ModuleEntry[] = [
   },
   {
     id: "M03",
-    title: "The Briefing Studio",
-    summary: "Fix a vague brief one element at a time, and check the response against clear criteria.",
+    title: "The Prompt Studio",
+    summary: "Fix a vague prompt one element at a time, and check the response against clear criteria.",
     stage: 1,
     status: "available",
     missionIds: ["m03-briefing"],
@@ -39,7 +39,7 @@ export const modules: ModuleEntry[] = [
   {
     id: "B01",
     title: "The FAQ Project",
-    summary: "Stage 1 bridge: split a project between you and AI, brief it, and check what it writes, with no hints.",
+    summary: "Stage 1 bridge: split a project between you and AI, prompt it, and check what it writes, with no hints.",
     stage: 1,
     status: "available",
     missionIds: ["b01-faq"],

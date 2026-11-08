@@ -7,8 +7,8 @@ test("M03 is completable end to end and recommends the next mission", async ({ p
   await completeM03(page);
   await expect(page.getByRole("link", { name: "Start The FAQ Project" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
-  await expect(shown.getByText("Improving a brief one element at a time")).toBeVisible();
-  await expect(shown.getByText("Building a brief for a new task without guidance")).toBeVisible();
+  await expect(shown.getByText("Improving a prompt one element at a time")).toBeVisible();
+  await expect(shown.getByText("Building a prompt for a new task without guidance")).toBeVisible();
   await expect(page.getByText(/PRIVATE-/)).toHaveCount(0);
 });
 
@@ -16,7 +16,7 @@ test("the studio isolates one change per run, compares versions, and lets the le
   await page.goto("/missions/m03-briefing");
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Yes\. Some tools are much better/);
-  await expect(page.getByText(/Priya's brief: “Write something about volunteering\.”/)).toBeVisible();
+  await expect(page.getByText(/Priya's prompt: “Write something about volunteering\.”/)).toBeVisible();
   await traceBrief(page);
 
   await expect(page.getByText(/written in advance for each option/)).toBeVisible();
@@ -56,5 +56,5 @@ test("the studio isolates one change per run, compares versions, and lets the le
   }
   await expect(page.getByText(/This version meets every criterion. Judge it/)).toBeVisible();
   await judgeChecklist(page, M03_CRITERIA);
-  await expect(page.getByRole("heading", { name: /A better brief isn't always the answer/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /A better prompt isn't always the answer/ })).toBeVisible();
 });

@@ -19,7 +19,7 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
   await completeM01(page);
   await page.getByRole("link", { name: "Start The Delegation Desk", exact: true }).click();
   await completeM02(page);
-  await page.getByRole("link", { name: "Start The Briefing Studio", exact: true }).click();
+  await page.getByRole("link", { name: "Start The Prompt Studio", exact: true }).click();
   await completeM03(page);
   await page.getByRole("link", { name: "Start The FAQ Project", exact: true }).click();
   await completeB01(page);

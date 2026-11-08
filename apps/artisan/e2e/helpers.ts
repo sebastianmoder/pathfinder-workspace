@@ -403,7 +403,7 @@ export async function judgeChecklist(page: Page, criteria: RegExp[], next = "Con
   await page.getByRole("button", { name: next, exact: true }).click();
 }
 
-/** Traces each problem in Priya's first response to the part of the brief it came from. */
+/** Traces each problem in Priya's first response to the part of the prompt it came from. */
 export async function traceBrief(page: Page) {
   for (const [problem, part] of [
     [/volunteering in general/, "Objective"],
@@ -436,9 +436,9 @@ export async function completeM03(page: Page) {
   await judgeChecklist(page, M03_CRITERIA);
   const place: [RegExp, string][] = [
     [/exact deadline/, "Find evidence"],
-    [/600-word essay/, "Improve the brief"],
+    [/600-word essay/, "Improve the prompt"],
     [/quick note to parents/, "Ask a clarifying question"],
-    [/wrong opening hours/, "Improve the brief"],
+    [/wrong opening hours/, "Improve the prompt"],
     [/80% of costs/, "Find evidence"],
     [/aimed at teenagers/, "Ask a clarifying question"],
   ];

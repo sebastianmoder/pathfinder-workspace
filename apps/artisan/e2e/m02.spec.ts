@@ -5,7 +5,7 @@ import { assignRoles, check, completeM02, cont, M02_DESK, M02_TRANSFER, recordJu
 test("M02 is completable end to end and recommends the next mission", async ({ page }) => {
   await page.goto("/missions/m02-delegation");
   await completeM02(page);
-  await expect(page.getByRole("link", { name: "Start The Briefing Studio" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start The Prompt Studio" })).toBeVisible();
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Recognising when not to use AI")).toBeVisible();
 

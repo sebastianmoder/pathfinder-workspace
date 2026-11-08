@@ -2,21 +2,21 @@ import type { Choice, Mission } from "../../types";
 
 /**
  * B01 — Stage 1 bridge: The FAQ Project. Combines M01 (fluent isn't correct), M02 (delegation) and
- * M03 (briefing) in one case, with support faded. All people and details are fictional.
+ * M03 (prompting) in one case, with support faded. All people and details are fictional.
  */
 
 const firstMove =
   "Joanna forwards you the job: “Use the AI tool to get an FAQ page up by Friday.” Before you open the tool, what do you do first?";
 const firstChoices: Choice[] = [
   { id: "a", label: "Ask it for the whole FAQ in one go, then tidy it up.", verdict: "weaker", explanation: "One request for everything hides decisions, like the refund policy, that a person has to make, and leaves every fact unchecked." },
-  { id: "b", label: "Split the job into what AI drafts and what a person decides.", verdict: "correct", explanation: "The project is several tasks with different stakes. Deciding roles and checks first shapes every brief you write." },
+  { id: "b", label: "Split the job into what AI drafts and what a person decides.", verdict: "correct", explanation: "The project is several tasks with different stakes. Deciding roles and checks first shapes every prompt you write." },
   { id: "c", label: "Collect the Commons' facts, so the AI can't get any wrong.", verdict: "weaker", explanation: "Supplying facts helps a great deal, but it can't stop every error, and it doesn't settle who decides the policy wording." },
 ];
 
 export const b01: Mission = {
   id: "b01-faq",
   title: "The FAQ Project",
-  outcome: "Bring together delegation, briefing and checking AI output in one small project.",
+  outcome: "Bring together delegation, prompting and checking AI output in one small project.",
   scenario:
     "The Riverside Learning Commons, a community learning centre, gets the same questions at its front desk every day. You've been asked to produce a new FAQ page, with the AI tool's help.",
   approxMinutes: 10,
@@ -31,13 +31,13 @@ export const b01: Mission = {
       kind: "brief",
       id: "brief",
       title: "Your task",
-      body: "Decide how the project is split between you and the AI, brief the AI for one answer, and check its draft before anything is published. This is a bridge challenge: there are no hints.",
+      body: "Decide how the project is split between you and the AI, prompt the AI for one answer, and check its draft before anything is published. This is a bridge challenge: there are no hints.",
     },
     {
       kind: "refresher",
       id: "refresher",
       title: "A quick refresher",
-      body: "AI output is fluent whether or not it is right (Inside the Machine). Choose a role for AI by what a mistake would cost and who would catch it (the Delegation Desk). Give it the objective, context, criteria and constraints, and the facts it needs (the Briefing Studio).",
+      body: "AI output is fluent whether or not it is right (Inside the Machine). Choose a role for AI by what a mistake would cost and who would catch it (the Delegation Desk). Give it the objective, context, criteria and constraints, and the facts it needs (the Prompt Studio).",
     },
     { kind: "initialJudgment", id: "initial", prompt: firstMove, choices: firstChoices },
     {
@@ -120,10 +120,10 @@ export const b01: Mission = {
     {
       kind: "transfer",
       id: "brief-it",
-      title: "Brief one answer",
-      prompt: "Priya has written the brief for the opening-hours answer: what it's for, what it must include and how long it can be. What's missing is the facts. Choose what to give the AI, and run it.",
+      title: "Prompt for one answer",
+      prompt: "Priya has written the prompt for the opening-hours answer: what it's for, what it must include and how long it can be. What's missing is the facts. Choose what to give the AI, and run it.",
       compose: {
-        workspaceLabel: "The brief",
+        workspaceLabel: "The prompt",
         outputLabel: "The AI's draft",
         support: "independent",
         start: { facts: "none" },
@@ -158,7 +158,7 @@ export const b01: Mission = {
       kind: "mark",
       id: "check",
       title: "Check another draft",
-      prompt: "Here is the AI's draft for another FAQ answer, written from a brief that gave no facts. Mark every statement that must be checked against a record before it's published.",
+      prompt: "Here is the AI's draft for another FAQ answer, written from a prompt that gave no facts. Mark every statement that must be checked against a record before it's published.",
       mark: [
         [
           "Can I bring my children? ",
@@ -177,7 +177,7 @@ export const b01: Mission = {
     {
       kind: "quiz",
       id: "parking",
-      prompt: "Your first opening-hours draft mentioned “our ground-floor café”, though your brief never mentioned a café. What is the best next step?",
+      prompt: "Your first opening-hours draft mentioned “our ground-floor café”, though your prompt never mentioned a café. What is the best next step?",
       choices: [
         { id: "a", label: "Keep it, since a detail that specific is probably true.", verdict: "weaker", explanation: "Specific details are exactly what a model fills gaps with. Specific isn't the same as checked." },
         { id: "b", label: "Remove it, or check it with the facilities manager.", verdict: "correct", explanation: "The model supplied a typical detail you didn't give it. Check it, or leave it out." },
@@ -202,7 +202,7 @@ export const b01: Mission = {
       takeaway: "In a real project, the stage 1 habits work together: decide AI's role, give it the facts and criteria, and check every claim in what it produces.",
       skills: [
         { id: "roles", label: "Choosing roles for AI across a project", kind: "transfer", items: ["roles/themes", "roles/answers", "roles/policy"] },
-        { id: "brief", label: "Briefing AI with the facts it needs", kind: "transfer", items: ["brief-it/hours", "brief-it/hours/checklist"] },
+        { id: "brief", label: "Prompting AI with the facts it needs", kind: "transfer", items: ["brief-it/hours", "brief-it/hours/checklist"] },
         { id: "check", label: "Finding the claims in fluent output that need checking", kind: "transfer", items: ["check/age", "check/room", "check/welcome", "check/free", "parking"] },
       ],
       nextMissionId: "m04-evidence",

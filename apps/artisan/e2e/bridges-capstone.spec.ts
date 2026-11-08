@@ -27,7 +27,7 @@ test("B01 branches: drafts that went out unchecked come back as a complaint to p
   await rankInto(page, [/false café line/, /Check every other answer/, /Reply to Marta/, /may contain mistakes/, /Tell Marta the AI wrote/]);
   await expect(page.getByText("Both ends hold up.")).toBeVisible();
   await cont(page);
-  await expect(page.getByRole("heading", { name: "Brief one answer" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Prompt for one answer" })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
