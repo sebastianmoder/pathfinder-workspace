@@ -7,6 +7,10 @@ updates:
     groups:
       framework:
         patterns: ["next", "react", "react-dom", "eslint-config-next", "nextra", "nextra-theme-docs"]
+    ignore:
+      # Keep @types/node on the runtime major (.nvmrc / engines). Bump it with Node itself.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
