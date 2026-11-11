@@ -134,7 +134,7 @@ export function HelpGym({
               {solved ? t.gym.right : t.gym.notYet}
             </strong>
             {solved && explanation && <> {explanation}</>}
-            {!solved && unaided && <> {t.gym.checkWorking}</>}
+            {!solved && <> {unaided ? t.gym.checkWorking : t.gym.chooseHelp}</>}
           </p>
         )}
       </div>
