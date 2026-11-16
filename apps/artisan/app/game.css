@@ -80,7 +80,7 @@
   color: var(--mat-ink);
 }
 /* Tall enough that the first line sits just above the controls; each new line then pushes the earlier ones up. */
-.chat {
+.chat-room {
   display: flex;
   flex-direction: column;
   max-width: 40rem;
@@ -237,6 +237,18 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1.25rem;
+}
+/* Answers sit on the right, where the player's own bubble will appear, and away from "Next" on the left, so
+   clicking through the conversation can't pick one by accident. */
+.chat-options {
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+.chat-options .btn {
+  max-width: 100%;
+  text-align: right;
 }
 .chat-bar {
   position: sticky;

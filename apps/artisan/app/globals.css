@@ -646,6 +646,16 @@ body .pf-footer a {
     height: 1.9rem;
     font-size: 0.75rem;
   }
+  .cast-badge-photo {
+    overflow: hidden;
+    background: var(--manila);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .cast-badge-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
   .badge-mat {
     background: #17594a;
     color: #ffffff;

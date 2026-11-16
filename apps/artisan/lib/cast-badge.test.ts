@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { initialsOf, toneOf } from "@/components/artefacts/cast-badge";
+import { castOf, initialsOf, toneOf } from "@/components/artefacts/cast-badge";
 import { missions } from "@/content/missions";
 
 describe("cast badges", () => {
@@ -16,5 +16,14 @@ describe("cast badges", () => {
           const names = s.dialogue.characters.map((c) => c.name);
           if (names.length <= 4) expect(new Set(names.map(toneOf)).size, `${m.id}: ${names.join(", ")}`).toBe(names.length);
         }
+  });
+
+  it("shows the story cast by their portrait, matching the name before the role and nothing else", () => {
+    expect(castOf("Sam, front desk")).toBe("sam");
+    expect(castOf("Councillor Hughes")).toBe("hughes");
+    expect(castOf("Rosa, editor")).toBe("rosa");
+    expect(castOf("Desk staff representative")).toBeNull();
+    expect(castOf("Samantha")).toBeNull();
+    expect(castOf("@river_watcher_22")).toBeNull();
   });
 });

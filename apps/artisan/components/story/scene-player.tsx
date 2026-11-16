@@ -64,7 +64,7 @@ export function ScenePlayer({ heading, scenes, state, doneLabel, onDone }: { hea
 
   return (
     <section className="chat-stage full-bleed" aria-label={t.story.label}>
-      <div className="chat">
+      <div className="chat-room">
         <header className="chat-head">
           <h1 className="chat-title">{heading}</h1>
           <p className="chat-note">{t.story.note}</p>
