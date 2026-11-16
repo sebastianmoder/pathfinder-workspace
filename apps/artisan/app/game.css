@@ -1,0 +1,599 @@
+/*
+ * The game's own screens: the title, story scenes, the town map, the Riverside file and what a case adds to
+ * it. Tokens and the shared controls live in globals.css. Motion here only ever answers something the player
+ * did, and is switched off under reduced motion by the rule at the end of globals.css.
+ */
+
+/* ---------- Title screen: the folder on the desk ---------- */
+.title-screen {
+  padding: 2.5rem 0 4rem;
+}
+.title-inner {
+  display: grid;
+  gap: 2.5rem;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+@media (min-width: 1024px) {
+  .title-inner {
+    grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+    align-items: center;
+  }
+}
+.folder {
+  max-width: 34rem;
+}
+.folder-tab {
+  display: inline-block;
+  margin-left: 1.25rem;
+  padding: 0.35rem 1.1rem 0.2rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--manila);
+  color: var(--manila-ink);
+  font-family: var(--font-zilla), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+/* Manila is light in both themes, so everything on it uses the light theme's inks. */
+.folder-body {
+  --foreground: var(--manila-ink);
+  --muted: #4d4226;
+  --border: var(--manila-deep);
+  --accent: #17594a;
+  --accent-foreground: #ffffff;
+  --focus: #1d4ed8;
+  padding: 2rem 1.5rem 1.25rem;
+  border-radius: 0.1875rem;
+  background: var(--manila);
+  color: var(--manila-ink);
+  box-shadow: 6px 6px 0 var(--sheet-shadow);
+}
+@media (min-width: 640px) {
+  .folder {
+    rotate: -1.2deg;
+  }
+  .folder-body {
+    padding: 2.5rem 2.25rem 1.5rem;
+  }
+}
+.title-name {
+  font-size: clamp(2.75rem, 11vw, 4.75rem);
+  line-height: 0.95;
+}
+.title-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  box-shadow: 6px 6px 0 var(--sheet-shadow);
+}
+
+/* ---------- Story scenes ---------- */
+.scene-stage {
+  background: var(--mat-deep);
+  color: var(--mat-ink);
+  padding: 1rem 0 2.5rem;
+}
+.scene-frame {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+.scene-set {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: var(--mat);
+  background-image: repeating-linear-gradient(135deg, var(--mat-line) 0 1px, transparent 1px 0.75rem);
+}
+@media (min-width: 640px) {
+  .scene-set {
+    aspect-ratio: 16 / 9;
+  }
+}
+.backdrop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.backdrop-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* No picture yet: the place is given on a slip from the file. */
+.backdrop-slip {
+  max-width: 70%;
+  padding: 0.6rem 1rem;
+  rotate: -2deg;
+  background: var(--manila);
+  color: var(--manila-ink);
+  font-family: var(--font-zilla), Georgia, serif;
+  font-size: clamp(1.125rem, 4vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  box-shadow: 3px 3px 0 var(--sheet-shadow);
+}
+.scene-where {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.3rem 0.6rem;
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+.scene-place {
+  display: block;
+  font-weight: 700;
+}
+.scene-when {
+  display: block;
+  color: var(--muted);
+}
+.scene-title {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 2rem;
+  max-width: 62%;
+  padding: 0.4rem 0.8rem;
+  background: var(--highlighter);
+  color: var(--highlighter-ink);
+  font-size: clamp(1.25rem, 4.5vw, 2.25rem);
+  text-align: right;
+}
+.portrait {
+  display: block;
+  overflow: hidden;
+  background: var(--surface);
+}
+.portrait[data-size="lg"] {
+  position: absolute;
+  left: 1rem;
+  bottom: 0;
+  width: clamp(5.5rem, 22%, 10rem);
+  aspect-ratio: 4 / 5;
+  border: 3px solid var(--surface);
+  border-bottom: 0;
+}
+.portrait-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.portrait-card {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-zilla), Georgia, serif;
+  font-size: clamp(1.75rem, 7vw, 3rem);
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .portrait[data-size="lg"] {
+    animation: scene-in 0.18s ease-out;
+  }
+  .scene-line {
+    animation: scene-in 0.16s ease-out;
+  }
+}
+@keyframes scene-in {
+  from {
+    opacity: 0;
+    translate: 0 0.25rem;
+  }
+}
+
+/* What is said, on a slip of paper under the picture. Speech carries the speaker's name on a folder tab;
+   narration has none and is set in the slab, like something typed into the file. */
+.scene-slip {
+  position: relative;
+  margin-top: 1.75rem;
+  padding: 1.1rem 1.1rem 0.9rem;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 3px 3px 0 var(--sheet-shadow);
+}
+.scene-speaker {
+  position: absolute;
+  left: 1rem;
+  bottom: 100%;
+  padding: 0.2rem 0.75rem 0.1rem;
+  border-radius: 0.375rem 0.375rem 0 0;
+  background: var(--manila);
+  color: var(--manila-ink);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.scene-role {
+  font-weight: 400;
+}
+.scene-line {
+  min-height: 4.65em;
+  max-width: 44rem;
+  font-size: 1.1875rem;
+  line-height: 1.55;
+}
+.scene-slip[data-voice="narration"] .scene-line {
+  font-family: var(--font-zilla), Georgia, serif;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.scene-actions,
+.scene-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.9rem;
+}
+.scene-skip {
+  font-size: 0.9375rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.scene-log {
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.6rem;
+  font-size: 0.9375rem;
+}
+.scene-log summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.scene-log ol {
+  margin-top: 0.4rem;
+}
+.scene-log li + li {
+  margin-top: 0.35rem;
+}
+.scene-note {
+  margin-top: 0.6rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Town map ---------- */
+.view-tabs {
+  display: inline-flex;
+  border: 2px solid var(--foreground);
+}
+.view-tabs button {
+  padding: 0.4rem 0.9rem;
+}
+.view-tabs button[aria-pressed="true"] {
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 700;
+}
+.view-tabs button:focus-visible {
+  outline-offset: -5px;
+  outline-color: var(--highlighter);
+  box-shadow: inset 0 0 0 2px var(--focus);
+}
+
+.town-map {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  background: var(--surface);
+  box-shadow: 3px 3px 0 var(--sheet-shadow);
+  border: 1px solid var(--border);
+}
+@media (min-width: 1024px) {
+  .town-map {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+.town-drawing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.town-river {
+  fill: color-mix(in srgb, var(--mat) 28%, var(--surface));
+}
+.town-road {
+  fill: none;
+  stroke: color-mix(in srgb, var(--border) 55%, var(--surface));
+  stroke-width: 3;
+}
+.town-bridge {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 0.5;
+}
+.town-commons {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 1.1;
+}
+.town-room {
+  fill: var(--background);
+  stroke: var(--foreground);
+  stroke-width: 0.35;
+}
+.town-room[data-current] {
+  fill: color-mix(in srgb, var(--highlighter) 38%, var(--surface));
+}
+.town-door {
+  stroke: var(--surface);
+  stroke-width: 1.6;
+}
+.town-label,
+.town-name,
+.town-water,
+.town-away {
+  position: absolute;
+  pointer-events: none;
+  line-height: 1.15;
+}
+.town-label {
+  padding: 0.3rem 0.4rem 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.town-name {
+  left: 6%;
+  translate: 0 -50%;
+  font-family: var(--font-zilla), Georgia, serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.town-water,
+.town-away {
+  translate: 0 -50%;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.town-water {
+  left: 8%;
+}
+.town-away {
+  left: 76%;
+}
+.town-pin {
+  position: absolute;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--foreground);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.town-pin[data-state="done"] {
+  background: var(--foreground);
+  color: var(--background);
+}
+.town-pin[data-state="active"],
+.town-pin[data-state="reached"] {
+  background: linear-gradient(to top, var(--highlighter) 50%, var(--surface) 50%);
+  color: var(--highlighter-ink);
+}
+.town-pin[data-state="next"] {
+  background: var(--highlighter);
+  color: var(--highlighter-ink);
+}
+.town-pin[data-selected] {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--thread);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .town-pin[data-arrive] {
+    animation: pin-stamp 0.5s ease-out;
+  }
+}
+@keyframes pin-stamp {
+  0% {
+    scale: 1.9;
+    opacity: 0.2;
+  }
+  60% {
+    scale: 0.92;
+    opacity: 1;
+  }
+}
+
+.case-list {
+  margin-top: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .case-list {
+    margin-top: 0;
+  }
+}
+.case-list section + section {
+  margin-top: 1.25rem;
+}
+.case-list-chapter {
+  font-size: 1.25rem;
+}
+.case-list-question {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+.case-list ol {
+  margin-top: 0.4rem;
+  border-top: 1px solid var(--border);
+}
+.case-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid transparent;
+  padding: 0.5rem 0.5rem 0.5rem 0.4rem;
+  text-align: left;
+  cursor: pointer;
+}
+.case-row:hover {
+  background: var(--surface);
+}
+.case-row[aria-pressed="true"] {
+  border-left-color: var(--thread);
+  background: var(--surface);
+  font-weight: 700;
+}
+.case-row-number {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.case-row-title {
+  flex: 1;
+  min-width: 0;
+}
+.case-row-state {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+/* ---------- The Riverside file: cards pinned along one thread ---------- */
+.case-file {
+  padding: 1.25rem 1rem 1.5rem;
+}
+@media (min-width: 640px) {
+  .case-file {
+    padding: 2rem;
+  }
+}
+.thread {
+  position: relative;
+  margin-top: 1rem;
+  padding-left: 2rem;
+}
+.thread::before {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: 0.6rem;
+  width: 2px;
+  background: var(--thread);
+}
+.thread-item {
+  position: relative;
+  max-width: 38rem;
+}
+.thread-item + .thread-item {
+  margin-top: 1.1rem;
+}
+/* The pin: solid where a card hangs, a ring where one is still to come. */
+.thread-item::before {
+  content: "";
+  position: absolute;
+  top: 0.9rem;
+  left: -1.8rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid var(--manila);
+  border-radius: 999px;
+  background: var(--mat);
+}
+.thread-item[data-found="true"]::before {
+  background: var(--manila);
+}
+.clue {
+  padding: 0.9rem 1.1rem 1rem;
+}
+@media (min-width: 640px) {
+  .thread-item[data-tilt="0"] .clue {
+    rotate: -0.5deg;
+  }
+  .thread-item[data-tilt="1"] .clue {
+    rotate: 0.4deg;
+  }
+}
+.clue-title {
+  font-family: var(--font-zilla), Georgia, serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.clue-from {
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.clue-ties {
+  margin-top: 0.6rem;
+  font-size: 0.9375rem;
+}
+.clue-ties li {
+  border-left: 3px solid var(--thread);
+  padding-left: 0.6rem;
+}
+.clue-ties li + li {
+  margin-top: 0.4rem;
+}
+.clue-missing {
+  border: 1px dashed color-mix(in srgb, var(--mat-ink) 45%, transparent);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.9375rem;
+}
+.case-file-more {
+  margin-top: 1.25rem;
+  max-width: 38rem;
+  font-size: 0.9375rem;
+}
+
+/* In a debrief: what this case put in the file. */
+.filed {
+  max-width: 44rem;
+  border-left: 6px solid var(--thread);
+  padding: 0.9rem 1.1rem 1rem;
+}
+.filed-stamp {
+  display: inline-block;
+  rotate: -1.5deg;
+  border: 2px solid var(--mark-no);
+  padding: 0.05rem 0.5rem;
+  color: var(--mark-no);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* On a case's own screen: its number, on a folder tab. */
+.case-tab {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  padding: 0.1rem 0.7rem;
+  border-radius: 0.375rem 0.375rem 0 0;
+  border-bottom: 2px solid var(--manila-deep);
+  background: var(--manila);
+  color: var(--manila-ink);
+  font-family: var(--font-atkinson), system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.case-tab-inline {
+  margin: 0 0.35rem 0 0;
+  vertical-align: 0.2em;
+}

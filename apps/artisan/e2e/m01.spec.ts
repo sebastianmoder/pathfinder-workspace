@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { cont, check, markAndCheck, nextTask, setBoard, sortInto, trainAndAsk, traceFaults } from "./helpers";
 
-test("M01 is completable end to end, keyboard-reachable, and refresh restarts cleanly", async ({ page }) => {
+test("M01 is completable end to end, keyboard-reachable, and a refresh keeps the place", async ({ page }) => {
   await page.goto("/missions/m01-foundations");
   // The refresher is folded into the brief's screen, one select away, and isn't counted as a step.
   await expect(page.getByText("Step 1 of 11")).toBeVisible();
@@ -165,8 +165,9 @@ test("M01 is completable end to end, keyboard-reachable, and refresh restarts cl
   await expect(shown.getByText("Tracing a failure to where it came in")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your own assessment" }).locator("..").getByText("you pointed to a sentence for 1 of 3 criteria")).toBeVisible();
 
+  // A reload keeps the place: the save holds the finished case.
   await page.reload();
-  await expect(page.getByText("Step 1 of 11")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 });
 
 test("a learner who skips and guesses can finish, and is not credited with what they did not show", async ({ page }) => {

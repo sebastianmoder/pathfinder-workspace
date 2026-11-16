@@ -2,9 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { mergeEvidence, type EvidenceLedger, type EvidenceResult } from "@/lib/evidence";
-import { clearStored, mergeProgress, readStored, writeStored, type StoredProgress } from "./stored-progress";
+import { clearStored, emptyStory, mergeProgress, readStored, writeStored, type StoredProgress, type StoredStory } from "./stored-progress";
 
-/** In-memory only. Answers are never written to storage (PRD §11); only `StoredProgress` is. */
+/** One answer in a case. Saved on this device with the rest of the game (PRD §11), and sent nowhere. */
 export interface Answer {
   choiceId?: string;
   confidence?: number; // 0..4
@@ -14,7 +14,7 @@ export interface Answer {
 interface MissionProgress {
   stepIndex: number;
   answers: Record<string, Answer>;
-  /** Working state of longer activities, kept for the visit like everything else here. */
+  /** Working state of longer activities. Plain JSON, so it can be saved. */
   stepState: Record<string, unknown>;
   /** What the learner did, for the debrief. A restart clears it along with everything else. */
   evidence: EvidenceLedger;
@@ -34,7 +34,21 @@ interface SessionState {
   reached: StoredProgress["reached"];
   /** A mission just finished, so the map can show the route moving on. Never stored. */
   arrival: string | null;
+  /** Fixes the order of answer options. Saved, so a reload doesn't reshuffle them. */
+  orderSeed: number | null;
+  story: StoredStory;
 }
+
+const saveOf = (s: SessionState): StoredProgress => ({
+  completed: s.completed,
+  reached: s.reached,
+  seen: s.seen,
+  orderSeed: s.orderSeed,
+  missions: s.missions,
+  story: s.story,
+});
+const blank = (): SessionState => ({ missions: {}, completed: [], seen: [], reached: {}, arrival: null, orderSeed: null, story: emptyStory() });
+const newSeed = () => Math.floor(Math.random() * 2 ** 31);
 
 interface SessionApi {
   progress(missionId: string): MissionProgress;
@@ -61,32 +75,43 @@ interface SessionApi {
   setArrival(missionId: string | null): void;
   /** Forgets everything on this device and in this tab. */
   resetProgress(): void;
+  /** What the story remembers of the player's decisions, by flag id. */
+  flags: Record<string, string>;
+  setFlags(patch: Record<string, string>): void;
+  sceneSeen(sceneId: string): boolean;
+  markScenes(sceneIds: string[]): void;
+  /** Cases are played without story scenes. */
+  quiet: boolean;
+  setQuiet(quiet: boolean): void;
+  /** The whole game as it stands, for a save file. */
+  snapshot(): StoredProgress;
+  /** Replaces the game with a loaded save. */
+  load(save: StoredProgress): void;
 }
 
 const empty: MissionProgress = { stepIndex: 0, answers: {}, stepState: {}, evidence: {}, facts: {} };
 const SessionContext = createContext<SessionApi | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<SessionState>({ missions: {}, completed: [], seen: [], reached: {}, arrival: null });
-  const [orderSeed, setOrderSeed] = useState(0);
+  const [state, setState] = useState<SessionState>(blank);
   const [hydrated, setHydrated] = useState(false);
-  // Saved progress can only be read in the browser, after the prerendered page has hydrated.
+  // The save can only be read in the browser, after the prerendered page has hydrated. The order of answer
+  // options is fixed here too: options only appear after a first step, so nobody sees them settle.
   useEffect(() => {
     const stored = readStored();
     /* eslint-disable react-hooks/set-state-in-effect -- storage can't be read during render */
-    setState((s) => ({ ...s, ...mergeProgress(stored, { completed: s.completed, reached: s.reached, seen: s.seen }) }));
+    setState((s) => {
+      const merged = mergeProgress(stored, saveOf(s));
+      return { ...s, ...merged, orderSeed: merged.orderSeed ?? newSeed() };
+    });
     setHydrated(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
+  const save = useMemo(() => saveOf(state), [state]);
   useEffect(() => {
-    if (hydrated) writeStored({ completed: state.completed, reached: state.reached, seen: state.seen });
-  }, [hydrated, state.completed, state.reached, state.seen]);
-  // Pages are prerendered, so this has to wait until the browser. Answer options only appear after a
-  // learner has moved past a mission's first step, so nobody sees them reorder.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- a one-time random value can't be read during render
-    setOrderSeed(Math.floor(Math.random() * 2 ** 31));
-  }, []);
+    if (hydrated) writeStored(save);
+  }, [hydrated, save]);
+  const orderSeed = state.orderSeed ?? 0;
 
   const update = useCallback((missionId: string, fn: (p: MissionProgress) => MissionProgress) => {
     setState((s) => ({
@@ -144,10 +169,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setArrival: (id) => setState((s) => (s.arrival === id ? s : { ...s, arrival: id })),
       resetProgress: () => {
         clearStored();
-        setState({ missions: {}, completed: [], seen: [], reached: {}, arrival: null });
+        setState({ ...blank(), orderSeed: newSeed() });
       },
+      flags: state.story.flags,
+      setFlags: (patch) =>
+        setState((s) => {
+          if (Object.entries(patch).every(([id, value]) => s.story.flags[id] === value)) return s;
+          return { ...s, story: { ...s.story, flags: { ...s.story.flags, ...patch } } };
+        }),
+      sceneSeen: (id) => state.story.scenes.includes(id),
+      markScenes: (ids) =>
+        setState((s) => {
+          const fresh = ids.filter((id) => !s.story.scenes.includes(id));
+          return fresh.length === 0 ? s : { ...s, story: { ...s.story, scenes: [...s.story.scenes, ...fresh] } };
+        }),
+      quiet: state.story.quiet,
+      setQuiet: (quiet) => setState((s) => (s.story.quiet === quiet ? s : { ...s, story: { ...s.story, quiet } })),
+      snapshot: () => save,
+      load: (loaded) => setState({ ...blank(), ...loaded, orderSeed: loaded.orderSeed ?? newSeed() }),
     }),
-    [state, update, orderSeed, hydrated],
+    [state, update, orderSeed, hydrated, save],
   );
 
   return <SessionContext value={api}>{children}</SessionContext>;

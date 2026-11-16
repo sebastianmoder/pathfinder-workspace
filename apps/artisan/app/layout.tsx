@@ -5,9 +5,10 @@ import Link from "next/link";
 import { SessionProvider } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import "./globals.css";
+import "./game.css";
 import '@pathfinder/brand/styles.css';
 
-// Chosen for this brief: unambiguous letterforms suit learners, and the slab is workshop-stamped.
+// Chosen for this brief: unambiguous letterforms suit learners, and the slab reads as typed on a case file.
 
 export const metadata: Metadata = {
   title: { default: "ARTISAN", template: "%s · ARTISAN" },

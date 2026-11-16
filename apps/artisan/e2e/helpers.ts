@@ -2,6 +2,13 @@ import { expect, type Page } from "@playwright/test";
 
 export const narrow = (page: Page) => (page.viewportSize()?.width ?? 1280) < 1024;
 export const cont = (page: Page) => page.getByRole("button", { name: "Continue", exact: true }).click();
+/** Clears the work in the case that is open and returns to its brief. A reload no longer does this: the save keeps the place. */
+export async function restartCase(page: Page) {
+  await page.getByRole("button", { name: "About this case" }).click();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Restart this case" }).click();
+  await expect(page.getByText(/^Step 1 of/)).toBeVisible();
+}
 export const check = (page: Page) => page.getByRole("button", { name: "Check my answer" }).click();
 
 export async function recordJudgment(page: Page, answer: RegExp | string, confidence?: string) {
@@ -197,7 +204,8 @@ export async function traceFaults(page: Page) {
   await cont(page);
 }
 
-export async function completeM01(page: Page) {
+/** With story scenes on, a closing scene comes before the debrief, so the caller checks for that instead. */
+export async function completeM01(page: Page, toDebrief = true) {
   await cont(page); // brief, with the refresher folded in
   await recordJudgment(page, /Use it\. It is specific/, "Very");
   await runMachine(page);
@@ -225,7 +233,7 @@ export async function completeM01(page: Page) {
   await page.getByLabel("Your answer").fill("PRIVATE-M01-ANSWER");
   await page.getByRole("button", { name: "Compare with the criteria" }).click();
   await cont(page);
-  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
+  if (toDebrief) await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 }
 
 export async function completeM04(page: Page) {
@@ -945,6 +953,6 @@ export async function sortLeoApp(page: Page) {
 
 /** Opens a mission from the map: select its stop, then use the card's main action. */
 export async function openFromMap(page: Page, title: string) {
-  await page.locator(".route-stops, .seam-stop").getByRole("button", { name: new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) }).click();
-  await page.getByRole("complementary", { name: "Selected mission" }).getByRole("link", { name: new RegExp(`: ${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) }).click();
+  await page.locator(".case-list").getByRole("button", { name: new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) }).click();
+  await page.getByRole("complementary", { name: "Selected case" }).getByRole("link", { name: new RegExp(`: ${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) }).click();
 }

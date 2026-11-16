@@ -6,6 +6,7 @@ const ROUTES = ["/", "/map", "/missions/m01-foundations", "/missions/m02-delegat
 for (const route of ROUTES) {
   test(`no axe violations on ${route}`, async ({ page }) => {
     await page.goto(route);
+    await expect(page.getByText("Opening the case…")).toHaveCount(0); // the save has been read
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
   });
@@ -20,7 +21,7 @@ test("the retired intake and password pages lead somewhere useful", async ({ pag
 
 test("Start on the welcome page goes straight into the first mission", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Start the first mission" }).click();
+  await page.getByRole("link", { name: "New game" }).click();
   await expect(page).toHaveURL(/\/missions\/m01-foundations$/);
   await expect(page.getByText("Step 1 of 11")).toBeVisible();
 });

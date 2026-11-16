@@ -100,6 +100,7 @@ test("the desk reveals nothing before sending, then shows outcomes, responsibili
   const shown = page.getByRole("heading", { name: "What you showed" }).locator("..");
   await expect(shown.getByText("Recognising when not to use AI")).toBeVisible();
 
+  // A reload keeps the place: the save holds the finished case.
   await page.reload();
-  await expect(page.getByText(/^Step 1 of/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Debrief" })).toBeVisible();
 });

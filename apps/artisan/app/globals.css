@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Workshop palette: a cutting mat, paper on it, a highlighter and a red pencil. */
+/* An investigator's desk: slate desk top, paper on it, a manila folder, a highlighter, a red pencil and red thread. */
 :root {
   --background: #f4f6f2; /* paper */
   --foreground: #14241e; /* ink */
@@ -14,11 +14,15 @@
   --mark-yes: #17594a;
   --mark-no: #a82a1e; /* red pencil */
   --focus: #1d4ed8;
-  --mat: #17594a;
-  --mat-deep: #124639;
-  --mat-line: rgb(255 255 255 / 0.13);
-  --mat-ink: #f4f8f1;
-  --sheet-shadow: rgb(10 40 32 / 0.45);
+  --mat: #1f3d47; /* the desk top */
+  --mat-deep: #17303a;
+  --mat-line: rgb(255 255 255 / 0.07);
+  --mat-ink: #f2f6f3;
+  --sheet-shadow: rgb(8 24 30 / 0.45);
+  --manila: #e8cf97; /* the folder; always light, so it carries its own ink */
+  --manila-deep: #b89a55;
+  --manila-ink: #241c0c;
+  --thread: #b3261e;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,10 +37,12 @@
     --mark-yes: #8fdcc0;
     --mark-no: #ffa79c;
     --focus: #8ab4ff;
-    --mat: #0c3e32;
-    --mat-deep: #09332a;
-    --mat-line: rgb(255 255 255 / 0.1);
+    --mat: #16343e;
+    --mat-deep: #0f272f;
+    --mat-line: rgb(255 255 255 / 0.06);
     --sheet-shadow: rgb(0 0 0 / 0.5);
+    --manila: #dcc38b;
+    --thread: #ff8f84;
   }
 }
 

@@ -7,7 +7,7 @@ import { nextMission, nodeState, stageDone } from "@/lib/journey-nav";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 import { Eyelet } from "./path/eyelet";
-import { useProgress } from "./path/path-map";
+import { useProgress } from "@/lib/session/use-progress";
 import type { PathEntry } from "./mission-runner";
 
 /** The debrief's way on: this stage's stretch of the route, the next stop, and the way back to the map. */

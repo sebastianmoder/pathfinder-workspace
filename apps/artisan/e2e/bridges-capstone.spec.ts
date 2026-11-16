@@ -61,9 +61,9 @@ test("C01 runs through all four chapters, and the last one ends the journey", as
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   // The map shows the capstone's chapters and marks it done only now.
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Mission map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Town map", exact: true }).click();
   await page.getByRole("button", { name: /The ARTISAN Commission.*Finished/ }).click();
-  const card = page.getByRole("complementary", { name: "Selected mission" });
+  const card = page.getByRole("complementary", { name: "Selected case" });
   await expect(card.locator(".card-part[data-state=done]")).toHaveCount(4);
 });
 

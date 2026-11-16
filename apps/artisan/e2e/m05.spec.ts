@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { answerMap, check, choose, completeM05, cont, markAndCheck, pickAndImprove, recordJudgment, revise, showPassage, writeNote } from "./helpers";
+import { answerMap, check, choose, completeM05, cont, markAndCheck, pickAndImprove, recordJudgment, restartCase, revise, showPassage, writeNote } from "./helpers";
 
 const axe = async (page: Page) => expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
@@ -88,7 +88,7 @@ test("the advocate opposes whichever position the learner took, and the replies 
   await expect(page.getByText(/Questions left/)).toHaveCount(0);
   await axe(page);
 
-  await page.goto("/missions/m05-argument");
+  await restartCase(page);
   await cont(page);
   await recordJudgment(page, /Adopt the tutor as proposed/, "Fairly");
   await answerMap(page);
@@ -147,7 +147,7 @@ test("the map and dialogue work by keyboard, and focus follows them", async ({ p
   await expect(page.getByRole("heading", { name: "Back each reason" })).toBeFocused();
   await expect(page.getByText("Question 2 of 8")).toBeVisible();
 
-  await page.goto("/missions/m05-argument");
+  await restartCase(page);
   await cont(page);
   await recordJudgment(page, /Try it/, "Fairly");
   await answerMap(page);

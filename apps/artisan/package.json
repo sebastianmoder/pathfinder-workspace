@@ -12,7 +12,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "art:sync": "node scripts/art-sync.mjs"
   },
   "dependencies": {
     "next": "16.4.5",

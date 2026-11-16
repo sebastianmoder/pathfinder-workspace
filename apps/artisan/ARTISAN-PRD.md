@@ -372,7 +372,9 @@ A later live AI version may respond more freely, but must preserve the same miss
 
 Use the craft metaphor through mission names, tools, and visible work. The interface should remain understandable without game terminology.
 
-**Journey map:** Show the journey as one route: a sheet per stage, bridge challenges on the seams between stages, and the capstone at the end, whose seal fills one notch per finished stage. Mark each stop as finished, under way, next, or not started, by shape as well as colour. Selecting a stop shows what the mission is and practises, and the one action that opens it. Completion is kept on this device only, and the learner can clear it. It is not a credential or a learner record.
+**Story:** The cases are told as one story, "The Riverside File". A scripted scene plays before a case's brief and after its last task, chapters follow the four stages, and what the player decided in earlier cases chooses between lines in later scenes. Each finished case adds a clue to the file. The story wraps missions and never changes their tasks, answers or feedback. It carries no points, scores, badges or locked cases: consequences are told, not counted. Scenes are labelled as scripted and fictional, can be skipped at any point, and can be turned off in the notebook.
+
+**Town map:** Show Riverside with every case pinned where it happens, and a list of the cases by chapter. Mark each case as finished, under way, next, or not started, by shape as well as colour. Selecting a case shows what it is and practises, and the one action that opens it. A second view shows the Riverside file: the clues from finished cases, along one thread, with the ties between them. The game is kept on this device only, and the player can clear it. It is not a credential or a learner record.
 
 **Skill recognition:** Mission debriefs can recognize specific demonstrated actions, such as tracing a claim to evidence or identifying an unsupported assumption. These are formative acknowledgments, not credentials.
 
@@ -429,22 +431,21 @@ The pilot is ready when:
 
 ### Product decision
 
-The browser remembers a learner's path, on this device only, under one key (`artisan_progress`). It holds three things: which missions are finished, the furthest step reached in an unfinished mission, and which kinds of activity are familiar (so their instructions can fold). It never holds a choice, a confidence rating, a note or any written text, and nothing is sent anywhere. Mission passwords and the intake questions were retired; their old pages redirect to the first mission and to the map.
+The browser keeps the whole game, on this device only, under one key (`artisan_progress`, version 2): which cases are finished, the work in each case (the step reached, choices, confidence ratings, what activities recorded and any text written), which kinds of activity are familiar, and the story's state (the decisions later scenes come back to, and the scenes already played). Nothing is sent anywhere, and analytics never receives any of it. A version 1 save, which held only finished missions, carries over. Mission passwords and the intake questions were retired; their old pages redirect to the first mission and to the map.
 
 ### Learner experience
 
-**During a visit:** Everything a learner does stays in memory for the tab. Leaving a mission for the map keeps its place, and the map offers Resume.
+**During a visit and after a reload:** A case opens on the step the player left, with everything before it intact, so revisions, branches and epilogues work. Activities that keep their working state in the session also resume part-way through a step; the others restart that one step.
 
-**After a mission:** The debrief shows this stage's stretch of the path with the mission stamped, the next mission and a Start action, and links back to the map, to replay, and to the summary.
+**Carrying on elsewhere:** The notebook exports the game as a save file, and the title screen and notebook load one. A loaded file replaces the game on that device, after confirmation. Files are validated on load, and anything that isn't a save is refused with a reason.
 
-**On a later visit:** The welcome page offers to continue with the next or unfinished mission. The map shows finished stops, and for an unfinished one says how far the learner got and that it starts again from the brief, because its answers weren't kept.
+**Starting over:** A case in progress can be restarted from "About this case". The notebook clears the whole game.
 
 ### State and limitations
 
-- Restoring a step without its answers would break revisions, branches and epilogues, so an unfinished mission restarts from its brief on a new visit.
-- If storage is blocked or cleared, the app works as before; the map just shows no finished missions.
-- The summary page offers "Clear my progress on this device", which empties both the stored path and the tab's work.
-- Progress on one device does not follow the learner to another. Reliable portable progress would need a separate product decision.
+- If storage is blocked or cleared, the app works as before; the map just shows no finished cases.
+- A save file is the only way to move a game between browsers or devices. A short return code that restores finished cases and story decisions (but not half-finished work) is planned.
+- Later cases must still work for someone who skipped earlier ones: every scene and clue has a default that needs no earlier decision.
 
 ## 12. Content and assessment standards
 

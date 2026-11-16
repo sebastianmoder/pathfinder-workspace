@@ -33,8 +33,13 @@ import { ArtefactFrame } from "./artefacts/frames";
 import { Dossier } from "./dossier";
 import { activityKey, ownScreen, phasesOf, PHASES } from "@/lib/phases";
 import { conditionHolds, inputFrom } from "@/lib/epilogue";
-import { stages } from "@/content/journey";
+import { modules, stages } from "@/content/journey";
+import { caseStories, chapters, flags, opening } from "@/content/story";
+import { clueText, deriveFlags, scenesAfter, scenesBefore } from "@/lib/story/story";
 import { NextOnPath } from "./next-on-path";
+import { ScenePlayer } from "./story/scene-player";
+
+const book = { opening, chapters, cases: caseStories };
 
 /** One mission on the path, named so the debrief can point to it without loading its content. */
 export interface PathEntry {
@@ -51,15 +56,30 @@ interface Props {
   path: PathEntry[];
 }
 
-export function MissionRunner({ mission, module: moduleEntry, suggested, path }: Props) {
+/** Waits for the save to be read, so a returning player opens on the step they left and not on the brief. */
+export function MissionRunner(props: Props) {
+  const session = useSession();
+  if (!session.hydrated) {
+    return (
+      <div>
+        <h1 className="text-3xl sm:text-4xl">{props.mission.title}</h1>
+        <p role="status" className="mt-2 text-muted">{t.mission.opening}</p>
+      </div>
+    );
+  }
+  return <LoadedMission {...props} />;
+}
+
+function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props) {
   const session = useSession();
   const helpRef = useRef<HTMLDialogElement>(null);
   const helpTitleId = useId();
   const reminder = mission.steps.find((s) => s.kind === "refresher");
-  const stageIndex = stages.findIndex((s) => s.id === moduleEntry.stage);
-  const stage = stages[stageIndex];
+  const stage = stages.find((s) => s.id === moduleEntry.stage)!;
   const progressNow = session.progress(mission.id);
-  const { stepIndex, answers } = progressNow;
+  const { answers } = progressNow;
+  // A save made before the mission's content changed can point past its last step.
+  const stepIndex = Math.min(progressNow.stepIndex, mission.steps.length - 1);
   const step = mission.steps[stepIndex];
   // A refresher right after the brief shares the brief's screen, so it isn't counted as a step of its own.
   // Steps that branch on earlier work are left out when their condition doesn't hold.
@@ -88,13 +108,54 @@ export function MissionRunner({ mission, module: moduleEntry, suggested, path }:
     while (next < mission.steps.length - 1 && !screens[next]) next++;
     session.goTo(mission.id, next);
     session.markReached(mission.id, screens.slice(0, next + 1).filter(Boolean).length, total);
-    if (mission.steps[next]?.kind === "debrief") { if (!session.isCompleted(mission.id)) track('mission_complete', mission.id); session.complete(mission.id); }
+    if (mission.steps[next]?.kind === "debrief") {
+      if (!session.isCompleted(mission.id)) track('mission_complete', mission.id);
+      session.complete(mission.id);
+      // What the story will remember of this case, read from what the mission already recorded.
+      session.setFlags(deriveFlags(flags, mission.id, input));
+    }
     window.scrollTo({ top: 0 });
   };
 
-  const first = stepIndex === 0;
+  // Story scenes: before the brief, and after the last task. Each plays once, and never when scenes are off.
+  const storyState = { flags: session.flags, completed: session.completedIds };
+  const seenScenes = session.snapshot().story.scenes;
+  const scenes = session.quiet
+    ? []
+    : stepIndex === 0
+      ? scenesBefore(book, moduleEntry, mission.id, seenScenes)
+      : step.kind === "debrief"
+        ? scenesAfter(book, moduleEntry, mission.id, seenScenes, modules, session.completedIds)
+        : [];
+  // When a scene gives way to the case, focus moves to the step so keyboard and screen-reader users land on it.
+  const playing = scenes.length > 0;
+  const wasPlaying = useRef(playing);
+  useEffect(() => {
+    if (wasPlaying.current && !playing) stepRef.current?.focus({ preventScroll: true });
+    wasPlaying.current = playing;
+  }, [playing]);
   const [aboutOpen, setAboutOpen] = useState(false);
   const aboutId = useId();
+  if (playing) {
+    return (
+      <ScenePlayer
+        key={scenes[0].id}
+        scenes={scenes}
+        state={storyState}
+        doneLabel={stepIndex === 0 ? t.story.openCase : t.story.toDebrief}
+        onDone={() => {
+          session.markScenes(scenes.map((s) => s.id));
+          window.scrollTo({ top: 0 });
+        }}
+      />
+    );
+  }
+  const caseStory = caseStories.find((c) => c.moduleId === moduleEntry.id);
+  const filed = caseStory && moduleEntry.missionIds.every(session.isCompleted) ? { title: caseStory.clue.title, text: clueText(caseStory.clue, storyState) } : null;
+  const caseNumber = modules.filter((m) => m.status === "available").findIndex((m) => m.id === moduleEntry.id) + 1;
+  const chapter = chapters.find((c) => c.stage === moduleEntry.stage);
+
+  const first = stepIndex === 0;
   const tools = reminder ? (
     <div className="no-print flex shrink-0 gap-2">
       <button type="button" onClick={() => helpRef.current?.showModal()} className="btn btn-secondary btn-small">
@@ -107,7 +168,7 @@ export function MissionRunner({ mission, module: moduleEntry, suggested, path }:
     <nav aria-label={t.mission.breadcrumb} className="no-print mb-2 text-sm">
       <ol className="crumbs">
         <li><Link href="/map" className="underline underline-offset-4">{t.map.title}</Link></li>
-        <li>{stage.id === "capstone" ? t.map.capstone : t.map.stage(stageIndex + 1, stage.title)}</li>
+        <li>{chapter?.title ?? stage.title}</li>
       </ol>
     </nav>
   );
@@ -134,6 +195,7 @@ export function MissionRunner({ mission, module: moduleEntry, suggested, path }:
         <>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1 basis-64">
+              <p className="case-tab">{t.town.caseNumber(caseNumber)}</p>
               <h1 className="text-3xl sm:text-4xl">{mission.title}</h1>
               <p className="mt-1 max-w-3xl"><span className="font-bold">{t.mission.youWillLearn}</span> {mission.outcome}</p>
             </div>
@@ -145,7 +207,7 @@ export function MissionRunner({ mission, module: moduleEntry, suggested, path }:
       ) : (
         <div className="border-b border-border pb-3">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <h1 className="min-w-0 flex-1 basis-56 text-2xl">{mission.title}</h1>
+            <h1 className="min-w-0 flex-1 basis-56 text-2xl"><span className="case-tab case-tab-inline">{t.town.caseNumber(caseNumber)}</span> {mission.title}</h1>
             {tools}
           </div>
           <div className="mt-2">{progress}</div>
@@ -163,6 +225,20 @@ export function MissionRunner({ mission, module: moduleEntry, suggested, path }:
           <div id={aboutId} hidden={!aboutOpen} className="mt-2 max-w-3xl space-y-2 border-l-4 border-border pl-3 text-sm">
             <p><span className="font-bold">{t.mission.youWillLearn}</span> {mission.outcome}</p>
             <p><strong>{t.mission.fictional}</strong> {mission.scenario}</p>
+            {step.kind !== "debrief" && (
+              <button
+                type="button"
+                className="underline underline-offset-4"
+                onClick={() => {
+                  if (!window.confirm(t.mission.restartConfirm)) return;
+                  session.restart(mission.id);
+                  setAboutOpen(false);
+                  window.scrollTo({ top: 0 });
+                }}
+              >
+                {t.mission.restart}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -184,6 +260,7 @@ export function MissionRunner({ mission, module: moduleEntry, suggested, path }:
                 if (confidence !== undefined) session.setAnswer(mission.id, step.id, { confidence });
               }}
               onContinue={advance}
+              filed={filed}
               nextOnPath={<NextOnPath mission={mission} module={moduleEntry} suggested={suggested} path={path} />}
             />
           </FamiliarContext>
@@ -219,6 +296,7 @@ function StepView({
   answers,
   onAnswer,
   onContinue,
+  filed,
   nextOnPath,
 }: {
   step: Step;
@@ -226,6 +304,8 @@ function StepView({
   answers: ReturnType<ReturnType<typeof useSession>["progress"]>["answers"];
   onAnswer: (choiceId: string, confidence: number | undefined) => void;
   onContinue: () => void;
+  /** What this case put in the Riverside file, once the whole case is finished. */
+  filed: { title: string; text: string } | null;
   nextOnPath: React.ReactNode;
 }) {
   const session = useSession();
@@ -528,6 +608,13 @@ function StepView({
             <h3 className="text-sm font-normal">{t.debrief.takeaway}</h3>
             <p className="mt-1 max-w-3xl font-[family-name:var(--font-zilla)] text-2xl font-semibold leading-tight sm:text-3xl">{step.takeaway}</p>
           </div>
+          {filed && (
+            <section className="filed sheet mt-6" aria-labelledby="filed-title">
+              <p className="filed-stamp" id="filed-title">{t.file.added}</p>
+              <h3 className="mt-1 text-xl font-bold">{filed.title}</h3>
+              <p className="mt-1 max-w-3xl">{filed.text}</p>
+            </section>
+          )}
           <DebriefSkills missionId={mission.id} skills={step.skills} />
           {mission.steps.map((s) =>
             s.kind === "dialogue" ? (

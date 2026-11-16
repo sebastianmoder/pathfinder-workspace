@@ -6,22 +6,29 @@ import type { Mission } from "@/content/types";
 import { summarizeMission, summaryToText, type MissionSummary } from "@/lib/summary";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { flags } from "@/content/story";
+import { modules } from "@/content/journey";
+import { moduleDone } from "@/lib/journey-nav";
+import { ExportSave, LoadSave } from "./save-controls";
 
 interface Props {
   missions: Mission[];
-  /** Every mission on the path, for the count of what this device remembers. */
-  pathIds: string[];
 }
 
-export function SessionSummary({ missions, pathIds }: Props) {
+export function SessionSummary({ missions }: Props) {
   const session = useSession();
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const [cleared, setCleared] = useState(false);
-  const doneOnDevice = pathIds.filter(session.isCompleted).length;
+  const cases = modules.filter((m) => m.status === "available");
+  const doneOnDevice = cases.filter((m) => moduleDone(m, session.completedIds)).length;
 
   const rows = missions.flatMap((m): MissionSummary[] => {
     const row = summarizeMission(m, session.progress(m.id), session.isCompleted(m.id));
     return row ? [row] : [];
+  });
+  const decisions = flags.flatMap((f) => {
+    const value = f.values.find((v) => v.value === session.flags[f.id]);
+    return value ? [{ id: f.id, title: f.title, label: value.label }] : [];
   });
   const confidence = (n: number | null) => (n === null ? "" : ` (${t.mission.confidence[n]})`);
 
@@ -104,9 +111,32 @@ export function SessionSummary({ missions, pathIds }: Props) {
         </div>
       )}
 
+      {decisions.length > 0 && (
+        <section className="mt-8 border-t border-border pt-4">
+          <h2 className="text-2xl">{t.notebook.decisions}</h2>
+          <p className="mt-1 text-sm text-muted">{t.notebook.decisionsHelp}</p>
+          <dl className="mt-3 space-y-2">
+            {decisions.map((d) => (
+              <div key={d.id}><dt className="font-semibold">{d.title}</dt><dd>{d.label}</dd></div>
+            ))}
+          </dl>
+        </section>
+      )}
+
       <section className="no-print mt-8 border-t border-border pt-4">
         <h2 className="text-2xl">{t.summary.device}</h2>
-        <p className="mt-1 text-sm">{t.summary.deviceHelp(doneOnDevice, pathIds.length)}</p>
+        <p className="mt-1 max-w-2xl text-sm">{t.summary.deviceHelp(doneOnDevice, cases.length)}</p>
+        <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-2">
+          <ExportSave />
+          <LoadSave />
+        </div>
+        <label className="mt-2 flex items-start gap-2">
+          <input type="checkbox" className="mt-1.5" checked={session.quiet} onChange={(e) => session.setQuiet(e.target.checked)} />
+          <span>
+            {t.notebook.quiet}
+            <span className="block text-sm text-muted">{t.notebook.quietHelp}</span>
+          </span>
+        </label>
         <button
           type="button"
           className="btn btn-secondary btn-small mt-3"
