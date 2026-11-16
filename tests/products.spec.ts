@@ -72,6 +72,7 @@ for (const [i,app] of ['pathfinder','sage','guard','artisan'].entries()) {
   } else {
     await expect(projectNav).toBeVisible();
     await expect(page.getByRole('link',{name:'Pathfinder',exact:true}).first()).toBeVisible();
+    await expect(page.locator('a.pf-wordmark')).toHaveAttribute('href','/');
   }
   for (const asset of ['/icon.svg','/favicon.ico','/apple-icon.png']) {
     const response = await page.request.get(`http://localhost:${3200+i}${asset}`);
