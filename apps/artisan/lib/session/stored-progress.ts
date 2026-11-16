@@ -32,8 +32,6 @@ export interface StoredStory {
   flags: Record<string, string>;
   /** Scenes already played, so they aren't shown twice. */
   scenes: string[];
-  /** Play cases without story scenes. */
-  quiet: boolean;
 }
 
 export interface StoredProgress {
@@ -47,7 +45,7 @@ export interface StoredProgress {
   story: StoredStory;
 }
 
-export const emptyStory = (): StoredStory => ({ flags: {}, scenes: [], quiet: false });
+export const emptyStory = (): StoredStory => ({ flags: {}, scenes: [] });
 export const emptyProgress = (): StoredProgress => ({ completed: [], reached: {}, seen: [], orderSeed: null, missions: {}, story: emptyStory() });
 
 type Dict = Record<string, unknown>;
@@ -103,7 +101,7 @@ function parseStory(v: unknown): StoredStory {
   if (!isDict(v)) return emptyStory();
   const flags: Record<string, string> = {};
   for (const [id, value] of entries(v.flags)) if (typeof value === "string") flags[id] = value;
-  return { flags, scenes: unique(strings(v.scenes)), quiet: v.quiet === true };
+  return { flags, scenes: unique(strings(v.scenes)) };
 }
 
 function fromData(data: Dict): StoredProgress | null {
@@ -179,7 +177,6 @@ export function mergeProgress(stored: StoredProgress, tab: StoredProgress): Stor
     story: {
       flags: { ...stored.story.flags, ...tab.story.flags },
       scenes: unique([...stored.story.scenes, ...tab.story.scenes]),
-      quiet: stored.story.quiet || tab.story.quiet,
     },
   };
 }

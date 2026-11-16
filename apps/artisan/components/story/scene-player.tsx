@@ -10,7 +10,7 @@ import { SceneImage, Portrait } from "./art";
 /**
  * Story scenes as a running conversation: each line arrives at the bottom and the earlier ones move up, so
  * the whole exchange stays on the page to scroll back through. The player moves it on themselves (there is
- * no timing to keep up with), answers in their own bubble when asked, and can skip to the case at any point.
+ * no timing to keep up with), answers in their own bubble when asked.
  * Scenes are authored and say so. An answer given inside a scene is never scored.
  */
 export function ScenePlayer({ heading, scenes, state, doneLabel, onDone }: { heading: string; scenes: Scene[]; state: StoryState; doneLabel: string; onDone: () => void }) {
@@ -94,14 +94,9 @@ export function ScenePlayer({ heading, scenes, state, doneLabel, onDone }: { hea
               ))}
             </div>
           ) : (
-            <>
-              <button ref={nextRef} type="button" className="btn btn-on-mat" onClick={next}>
-                {atEnd && lastScene ? doneLabel : t.story.next}
-              </button>
-              {!(atEnd && lastScene) && (
-                <button type="button" className="chat-skip" onClick={onDone}>{t.story.skip}</button>
-              )}
-            </>
+            <button ref={nextRef} type="button" className="btn btn-on-mat" onClick={next}>
+              {atEnd && lastScene ? doneLabel : t.story.next}
+            </button>
           )}
         </div>
       </div>

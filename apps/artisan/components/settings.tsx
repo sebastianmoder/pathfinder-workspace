@@ -15,10 +15,11 @@ import { ExportSave, LoadSave } from "./save-controls";
 const book = { opening, chapters, cases: caseStories };
 const shape = codeShape(missions.map((m) => m.id), flags);
 
-/** Everything about the game itself, as opposed to what was learned in it: saving, moving, scenes, starting over. */
+/** Everything about the game itself, as opposed to what was learned in it: saving, moving, starting over. */
 export function Settings() {
   const session = useSession();
   const codeId = useId();
+  const dangerId = useId();
   const [typed, setTyped] = useState("");
   const [codeStatus, setCodeStatus] = useState<"idle" | "used" | "copied" | "malformed" | "mistyped" | "version">("idle");
   const [cleared, setCleared] = useState(false);
@@ -32,7 +33,7 @@ export function Settings() {
     if (!result.ok) return setCodeStatus(result.reason);
     if (hasGame && !window.confirm(t.settings.codeConfirm)) return;
     const { completed, flags: storyFlags } = result.content;
-    session.load({ ...emptyProgress(), completed, story: { flags: storyFlags, scenes: scenesPlayedBy(book, modules, completed), quiet: session.quiet } });
+    session.load({ ...emptyProgress(), completed, story: { flags: storyFlags, scenes: scenesPlayedBy(book, modules, completed) } });
     setTyped("");
     setCodeStatus("used");
   }
@@ -89,31 +90,27 @@ export function Settings() {
         <p role="status" className="mt-2 min-h-5 text-sm">{codeStatus !== "idle" && t.settings.codeStatus[codeStatus]}</p>
       </section>
 
-      <section className="settings-part">
-        <h2 className="text-2xl">{t.settings.storyTitle}</h2>
-        <label className="mt-2 flex items-start gap-2">
-          <input type="checkbox" className="mt-1.5" checked={session.quiet} onChange={(e) => session.setQuiet(e.target.checked)} />
-          <span>
-            {t.settings.quiet}
-            <span className="block text-sm text-muted">{t.settings.quietHelp}</span>
-          </span>
-        </label>
-      </section>
-
-      <section className="settings-part">
-        <h2 className="text-2xl">{t.settings.clearTitle}</h2>
-        <p className="mt-1 max-w-2xl">{t.settings.clearHelp}</p>
-        <button
-          type="button"
-          className="btn btn-secondary btn-small mt-3"
-          onClick={() => {
-            if (!window.confirm(t.summary.resetConfirm)) return;
-            session.resetProgress();
-            setCleared(true);
-          }}
-        >
-          {t.summary.reset}
-        </button>
+      <section className="settings-part" aria-labelledby={dangerId}>
+        <h2 id={dangerId} className="text-2xl">{t.settings.dangerTitle}</h2>
+        <div className="danger-zone mt-3">
+          <div className="danger-row">
+            <div className="max-w-xl">
+              <h3 className="font-bold">{t.settings.clearTitle}</h3>
+              <p className="mt-1 text-sm">{t.settings.clearHelp}</p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-danger btn-small shrink-0"
+              onClick={() => {
+                if (!window.confirm(t.summary.resetConfirm)) return;
+                session.resetProgress();
+                setCleared(true);
+              }}
+            >
+              {t.summary.reset}
+            </button>
+          </div>
+        </div>
         <p role="status" className="mt-2 min-h-5 text-sm">{cleared && t.summary.resetDone}</p>
       </section>
     </div>

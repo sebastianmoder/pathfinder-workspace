@@ -120,12 +120,11 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
     window.scrollTo({ top: 0 });
   };
 
-  // Story scenes: before the brief, and after the last task. Each plays once, and never when scenes are off.
+  // Story scenes: before the brief, and after the last task. Each plays once.
   const storyState = { flags: session.flags, completed: session.completedIds };
   const seenScenes = session.snapshot().story.scenes;
-  const scenes = session.quiet
-    ? []
-    : stepIndex === 0
+  const scenes =
+    stepIndex === 0
       ? scenesBefore(book, moduleEntry, mission.id, seenScenes)
       : step.kind === "debrief"
         ? scenesAfter(book, moduleEntry, mission.id, seenScenes, modules, session.completedIds)
@@ -155,7 +154,7 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
     );
   }
   // The story's own activity, between a mission's opening scene and its brief.
-  const interlude = !session.quiet && stepIndex === 0 ? interludeOf(book, moduleEntry, mission.id) : null;
+  const interlude = stepIndex === 0 ? interludeOf(book, moduleEntry, mission.id) : null;
   if (interlude && !session.sceneSeen(`${interlude}:${mission.id}`)) {
     return (
       <SavedScope value={{ missionId: mission.id, scope: interlude }}>

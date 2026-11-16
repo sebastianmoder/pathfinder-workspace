@@ -2,11 +2,21 @@ import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { completeM01, cont, matchPairs, rankInto } from "./helpers";
 
-// The other specs play with story scenes off. These start as a new player does, with nothing saved.
+// The other specs start as a player who has seen every scene. These start as a new player does, with nothing saved.
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const next = (page: Page) => page.getByRole("button", { name: "Next", exact: true }).click();
 const scene = (page: Page) => page.getByRole("region", { name: "Story scene" });
+/** Plays the scene through to its last button, answering anything asked with the first option. */
+async function playScene(page: Page, done: string) {
+  const finish = page.getByRole("button", { name: done });
+  while (!(await finish.count())) {
+    const answers = page.getByRole("group", { name: "Your answer" }).getByRole("button");
+    if (await answers.count()) await answers.first().click();
+    else await next(page);
+  }
+  await finish.click();
+}
 const axe = async (page: Page) => expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
 test("a new game opens on a conversation that asks for a judgment before explaining anything", async ({ page }) => {
@@ -43,23 +53,24 @@ test("a new game opens on a conversation that asks for a judgment before explain
   await expect(scene(page)).toHaveCount(0);
 });
 
-test("a scene can be skipped at any point, and scenes can be switched off", async ({ page }) => {
+test("a scene is played through to the case, with no way around it, and starting over sits in the danger zone", async ({ page }) => {
   await page.goto("/missions/m03-briefing");
   await expect(scene(page)).toBeVisible();
-  await page.getByRole("button", { name: "Skip scene" }).click();
+  await expect(page.getByRole("button", { name: /skip/i })).toHaveCount(0);
+  await playScene(page, "Open the case");
   await expect(page.getByText(/^Step 1 of/)).toBeVisible();
 
   await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Settings" }).click();
-  await page.getByLabel(/Play cases without story scenes/).check();
-  await page.goto("/missions/m04-evidence");
-  await expect(page.getByText(/^Step 1 of/)).toBeVisible();
-  await expect(scene(page)).toHaveCount(0);
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  const danger = page.getByRole("region", { name: "Danger zone" });
+  await expect(danger.getByRole("button", { name: /start over|clear|erase/i })).toBeVisible();
+  await axe(page);
 });
 
 test("what the player decided comes back in later scenes, and the notebook keeps what the case taught", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/missions/m01-foundations");
-  await page.getByRole("button", { name: "Skip scene" }).click();
+  await playScene(page, "Open the case");
   await completeM01(page, false); // opens by being ready to use Sam's answer as it stands
   // After the last task, the closing scene answers to that first move.
   await expect(scene(page).getByText(/You were going to let me print it/)).toBeVisible();
@@ -114,7 +125,7 @@ test("the list of cases is in order, and choosing one never hides the list", asy
 
 test("before the review meeting, the trail is laid out and then the case opens", async ({ page }) => {
   await page.goto("/missions/c01-review");
-  await page.getByRole("button", { name: "Skip scene" }).click();
+  await playScene(page, "Open the case");
   await expect(page.getByRole("heading", { name: "Trace it back" })).toBeVisible();
   await axe(page);
   await rankInto(page, [/Northbrook evaluation/, /vendor's case/, /vendor's brochure/, /council chamber/]);
@@ -137,7 +148,7 @@ test("before the review meeting, the trail is laid out and then the case opens",
 
 test("a save file carries the game to another browser, and a return code carries the story", async ({ page, browser }) => {
   await page.goto("/missions/m05-argument");
-  await page.getByRole("button", { name: "Skip scene" }).click();
+  await playScene(page, "Open the case");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page.getByText(/^Step 2 of/)).toBeVisible();
   await page.goto("/settings");

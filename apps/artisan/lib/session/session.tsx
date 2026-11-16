@@ -82,9 +82,6 @@ interface SessionApi {
   setFlags(patch: Record<string, string>): void;
   sceneSeen(sceneId: string): boolean;
   markScenes(sceneIds: string[]): void;
-  /** Cases are played without story scenes. */
-  quiet: boolean;
-  setQuiet(quiet: boolean): void;
   /** The whole game as it stands, for a save file. */
   snapshot(): StoredProgress;
   /** Replaces the game with a loaded save. */
@@ -196,8 +193,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           const fresh = ids.filter((id) => !s.story.scenes.includes(id));
           return fresh.length === 0 ? s : { ...s, story: { ...s.story, scenes: [...s.story.scenes, ...fresh] } };
         }),
-      quiet: state.story.quiet,
-      setQuiet: (quiet) => setState((s) => (s.story.quiet === quiet ? s : { ...s, story: { ...s.story, quiet } })),
       snapshot: () => save,
       load: (loaded) => setState({ ...blank(), ...loaded, orderSeed: loaded.orderSeed ?? newSeed() }),
     }),

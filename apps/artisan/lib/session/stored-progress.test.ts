@@ -15,7 +15,7 @@ const sample = (): StoredProgress => ({
       facts: { "desk/roles": ["bursary:human"] },
     },
   },
-  story: { flags: { firstAnswer: "checked" }, scenes: ["prologue"], quiet: false },
+  story: { flags: { firstAnswer: "checked" }, scenes: ["prologue"] },
 });
 
 describe("stored progress", () => {
@@ -53,7 +53,7 @@ describe("stored progress", () => {
         bad: { stepIndex: -1 },
         worse: "x",
       },
-      story: { flags: { a: "x", b: 2 }, scenes: ["s", "s", 3], quiet: "yes" },
+      story: { flags: { a: "x", b: 2 }, scenes: ["s", "s", 3], quiet: true },
     });
     expect(parseProgress(raw)).toEqual({
       completed: ["m01"],
@@ -69,7 +69,7 @@ describe("stored progress", () => {
           evidence: { ok: { right: true, firstTry: false, assisted: false, skipped: false } },
         },
       },
-      story: { flags: { a: "x" }, scenes: ["s"], quiet: false },
+      story: { flags: { a: "x" }, scenes: ["s"] },
     });
   });
 
@@ -89,7 +89,7 @@ describe("stored progress", () => {
       reached: { "m02-delegation": [6, 11], y: [1, 4] },
       seen: ["match"],
       missions: { "m02-delegation": { stepIndex: 5, answers: {}, stepState: {}, evidence: {}, facts: {} } },
-      story: { flags: { faq: "checked" }, scenes: ["m01-open"], quiet: false },
+      story: { flags: { faq: "checked" }, scenes: ["m01-open"] },
     };
     const merged = mergeProgress(stored, tab);
     expect(merged.completed).toEqual(["m01-foundations", "m03-briefing"]);
@@ -97,7 +97,7 @@ describe("stored progress", () => {
     expect(merged.seen).toEqual(["sort", "match"]);
     expect(merged.orderSeed).toBe(12345);
     expect(merged.missions["m02-delegation"].stepIndex).toBe(5);
-    expect(merged.story).toEqual({ flags: { firstAnswer: "checked", faq: "checked" }, scenes: ["prologue", "m01-open"], quiet: false });
+    expect(merged.story).toEqual({ flags: { firstAnswer: "checked", faq: "checked" }, scenes: ["prologue", "m01-open"] });
   });
 });
 

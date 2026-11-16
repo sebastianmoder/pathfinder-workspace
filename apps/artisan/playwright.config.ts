@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { scenesPlayed } from "./e2e/played";
 
 // Another port can be given when 3100 is taken: E2E_PORT=3111 pnpm test:e2e
 const port = process.env.E2E_PORT ?? "3100";
@@ -15,8 +16,8 @@ export default defineConfig({
   use: {
     baseURL: base,
     reducedMotion: "reduce",
-    // Specs play the cases with story scenes off (a setting in the notebook); story.spec.ts turns them back on.
-    storageState: { cookies: [], origins: [{ origin: base, localStorage: [{ name: "artisan_progress", value: '{"v":2,"story":{"quiet":true}}' }] }] },
+    // Specs start as a returning player who has already seen every story scene; story.spec.ts starts fresh.
+    storageState: { cookies: [], origins: [{ origin: base, localStorage: [{ name: "artisan_progress", value: scenesPlayed }] }] },
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
