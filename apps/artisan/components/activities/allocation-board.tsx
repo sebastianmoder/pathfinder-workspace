@@ -1,10 +1,11 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { AllocationSpec } from "@/content/types";
 import { coverage, planResult, spent } from "@/lib/allocation";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, useReveal } from "../step-ui";
 
 /**
@@ -26,8 +27,8 @@ export function AllocationBoard({
   onFact?: (name: string, values: string[]) => void;
 }) {
   const uid = useId();
-  const [chosen, setChosen] = useState<string[]>([]);
-  const [checked, setChecked] = useState<string[] | null>(null);
+  const [chosen, setChosen] = useSaved<string[]>("chosen", []);
+  const [checked, setChecked] = useSaved<string[] | null>("checked", null);
   const total = spent(spec, chosen);
   const over = total > spec.budget.amount;
   const money = (n: number) => `${spec.budget.unit}${n.toLocaleString("en-GB")}`;
@@ -35,7 +36,7 @@ export function AllocationBoard({
   const result = isCurrent ? planResult(spec, checked) : null;
   const cov = isCurrent ? coverage(spec, checked) : null;
   const stakeholders = [...new Set(spec.concerns.map((c) => c.stakeholder))];
-  const [checks, setChecks] = useState(0);
+  const [checks, setChecks] = useSaved("checks", 0);
   const mapRef = useReveal<HTMLElement>(checks);
   const optionLabel = (id: string) => spec.options.find((o) => o.id === id)?.label ?? id;
 

@@ -39,6 +39,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/summary" className="underline-offset-4 hover:underline">
                   {t.nav.summary}
                 </Link>
+                <Link href="/settings" className="underline-offset-4 hover:underline">
+                  {t.nav.settings}
+                </Link>
               </nav>
             </div>
           </header>

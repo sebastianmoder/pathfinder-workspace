@@ -42,7 +42,7 @@ test("M06 teach-back completes, and the map marks the module done only when both
   await expect(shown.getByText("Finding out what someone thinks before explaining")).toBeVisible();
   await expect(shown.getByText("Handing the next step back to the learner")).toBeVisible();
   await expect(page.getByText(/PRIVATE-/)).toHaveCount(0);
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Town map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Cases", exact: true }).click();
   const gym = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "The Thinking Gym" }) });
   await expect(gym.getByText("Completed this visit")).toHaveCount(0);
 });

@@ -1,14 +1,15 @@
 import Image from "next/image";
 import type { CastId, PlaceId } from "@/content/story/types";
 import { castArt, placeArt, titleArt, type ArtSlot } from "@/content/story/art";
-import { cast, places } from "@/content/story";
+import { cast } from "@/content/story";
 import { initialsOf, toneOf } from "@/components/artefacts/cast-badge";
 import { ART_FILES } from "./art-files";
 
 /**
- * A story picture, or its placeholder while the image hasn't been supplied. Placeholders are in-world: a
- * location slip for a place, a staff card for a person. They say what they stand for, so nothing is missing
- * for someone playing without the art.
+ * The story's pictures. Each shows only once its image has been supplied (see ART-BRIEF.md): a place is then
+ * shown at the start of its scene, like a photo sent into the conversation, and a person's portrait becomes
+ * their avatar. Without the image, a place is given in words and a person by their initials, so nothing is
+ * missing for someone playing without the art.
  */
 function Supplied({ slot, sizes, className, priority }: { slot: ArtSlot; sizes: string; className: string; priority?: boolean }) {
   const file = ART_FILES[slot.id];
@@ -16,30 +17,20 @@ function Supplied({ slot, sizes, className, priority }: { slot: ArtSlot; sizes: 
   return <Image src={file} alt={slot.alt} sizes={sizes} placeholder="blur" priority={priority} className={className} />;
 }
 
-export function Backdrop({ place }: { place: PlaceId }) {
-  const slot = placeArt[place];
-  return (
-    <div className="backdrop" data-place={place}>
-      {ART_FILES[slot.id] ? (
-        <Supplied slot={slot} sizes="(max-width: 64rem) 100vw, 64rem" className="backdrop-image" />
-      ) : (
-        <div className="backdrop-slip" role="img" aria-label={slot.alt}>
-          <span>{places[place].name}</span>
-        </div>
-      )}
-    </div>
-  );
+export function SceneImage({ place }: { place: PlaceId }) {
+  return <Supplied slot={placeArt[place]} sizes="(max-width: 40rem) 100vw, 40rem" className="chat-image" />;
 }
 
-export function Portrait({ who, size = "lg" }: { who: CastId; size?: "sm" | "lg" }) {
+/** A round avatar. Decorative: the name is always written beside it. */
+export function Portrait({ who }: { who: CastId }) {
   const slot = castArt[who];
   const member = cast[who];
   return (
-    <span className="portrait" data-size={size}>
+    <span className="portrait" aria-hidden="true">
       {ART_FILES[slot.id] ? (
-        <Supplied slot={slot} sizes={size === "lg" ? "10rem" : "3rem"} className="portrait-image" />
+        <Image src={ART_FILES[slot.id]} alt="" sizes="3rem" className="portrait-image" />
       ) : (
-        <span className={`portrait-card ${toneOf(member.name)}`} aria-hidden="true">{initialsOf(member.name)}</span>
+        <span className={`portrait-card ${toneOf(member.name)}`}>{initialsOf(member.name)}</span>
       )}
     </span>
   );

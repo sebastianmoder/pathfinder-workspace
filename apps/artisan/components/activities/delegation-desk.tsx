@@ -5,6 +5,7 @@ import { DELEGATION_ROLES, type DelegationRole, type DelegationSpec, type Delega
 import { carryNotes, delegationResults, isSound, wavesOf } from "@/lib/delegation";
 import type { EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar } from "../step-ui";
 import { CastBadge } from "../artefacts/cast-badge";
 
@@ -34,13 +35,13 @@ export function DelegationDesk({
 }) {
   const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
   const guided = spec.support !== "independent";
-  const [assigned, setAssigned] = useState<Record<string, DelegationRole>>({});
-  const [hinted, setHinted] = useState<string[]>([]);
+  const [assigned, setAssigned] = useSaved<Record<string, DelegationRole>>("assigned", {});
+  const [hinted, setHinted] = useSaved<string[]>("hinted", []);
   const waves = wavesOf(spec);
-  const [waveIndex, setWaveIndex] = useState(0);
+  const [waveIndex, setWaveIndex] = useSaved("waveIndex", 0);
   // Assignments as they were when each batch was sent.
-  const [sent, setSent] = useState<Record<string, DelegationRole>>({});
-  const [showing, setShowing] = useState(false);
+  const [sent, setSent] = useSaved<Record<string, DelegationRole>>("sent", {});
+  const [showing, setShowing] = useSaved("showing", false);
   const laterRef = useRef<HTMLHeadingElement>(null);
   const inboxRef = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);

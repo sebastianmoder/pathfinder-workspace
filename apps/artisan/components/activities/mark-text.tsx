@@ -1,9 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { MarkOptions, MarkParagraph } from "@/content/types";
 import { gradeMarks, segmentsOf } from "@/lib/mark";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { MarkShell } from "../artefacts/frames";
 import { ActionBar, useReveal } from "../step-ui";
 
@@ -29,13 +30,13 @@ export function MarkText({
   continueLabel?: string;
 }) {
   const segments = segmentsOf(paragraphs);
-  const [marked, setMarked] = useState<string[]>([]);
-  const [checked, setChecked] = useState<string[] | null>(null);
-  const [revealed, setRevealed] = useState(false);
+  const [marked, setMarked] = useSaved<string[]>("marked", []);
+  const [checked, setChecked] = useSaved<string[] | null>("checked", null);
+  const [revealed, setRevealed] = useSaved("revealed", false);
   const result = checked ? gradeMarks(segments, checked) : null;
   const flowTitleId = useId();
   const redact = mode === "redact";
-  const [checks, setChecks] = useState(0);
+  const [checks, setChecks] = useSaved("checks", 0);
   const resultRef = useReveal<HTMLDivElement>(checks);
   const toggle = (id: string) => setMarked((m) => (m.includes(id) ? m.filter((x) => x !== id) : [...m, id]));
 

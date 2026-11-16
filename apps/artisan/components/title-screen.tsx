@@ -26,10 +26,11 @@ export function TitleScreen() {
     <div className="title-screen mat full-bleed">
       <div className="title-inner">
         <div className="folder">
-          <p className="folder-tab">{t.appName}</p>
+          <p className="folder-tab">{t.title.tab}</p>
           <div className="folder-body">
-            <h1 className="title-name">{t.title.name}</h1>
-            <p className="mt-4 max-w-md text-lg">{t.title.pitch}</p>
+            <h1 className="title-name">{t.appName}</h1>
+            <p className="title-lead">{t.title.lead}</p>
+            <p className="mt-3 max-w-md">{t.title.pitch}</p>
             <p className="mt-2 max-w-md text-sm">{t.title.time}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href={`/missions/${target}`} prefetch={true} className="btn btn-primary">

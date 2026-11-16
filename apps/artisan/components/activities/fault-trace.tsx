@@ -1,9 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { Step } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, StepIntro, useReveal } from "../step-ui";
 
 type FaultStep = Extract<Step, { kind: "faultTrace" }>;
@@ -19,9 +20,9 @@ export function FaultTrace({
   onContinue: () => void;
 }) {
   const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
-  const [picked, setPicked] = useState<Record<string, string>>({});
-  const [checked, setChecked] = useState<Record<string, string>>({});
-  const [revealed, setRevealed] = useState<string[]>([]);
+  const [picked, setPicked] = useSaved<Record<string, string>>("picked", {});
+  const [checked, setChecked] = useSaved<Record<string, string>>("checked", {});
+  const [revealed, setRevealed] = useSaved<string[]>("revealed", []);
   const label = (id: string) => step.stages.find((s) => s.id === id)?.label;
 
   const allPicked = step.cases.every((c) => picked[c.id]);

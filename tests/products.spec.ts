@@ -68,7 +68,7 @@ for (const [i,app] of ['pathfinder','sage','guard','artisan'].entries()) {
   if (app === 'artisan') {
     await expect(projectNav).toHaveCount(0);
     await expect(page.getByRole('link',{name:'ARTISAN',exact:true})).toBeVisible();
-    await expect(page.getByRole('link',{name:'Town map',exact:true})).toBeVisible();
+    await expect(page.getByRole('link',{name:'Cases',exact:true})).toBeVisible();
   } else {
     await expect(projectNav).toBeVisible();
     await expect(page.getByRole('link',{name:'Pathfinder',exact:true}).first()).toBeVisible();

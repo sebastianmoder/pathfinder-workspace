@@ -3,63 +3,67 @@ export const en = {
   appName: "ARTISAN",
   promise: "Learn to think better with AI.",
   skipToContent: "Skip to main content",
-  nav: { label: "Main", map: "Town map", summary: "Notebook" },
+  nav: { label: "Main", map: "Cases", summary: "Notebook", settings: "Settings" },
 
   title: {
-    name: "The Riverside File",
-    pitch: "A small town has just been handed an AI tool. Spend a year checking what it tells people, and find out where the rest is coming from.",
-    time: "Seventeen cases of about 8 to 15 minutes each. There is no account: your game is saved on this device, and you can export it as a file.",
+    tab: "Riverside",
+    lead: "A story game about thinking with AI.",
+    pitch: "You are the new researcher in a small town that has just been handed an AI tool. Over one year and seventeen cases, check what it tells people, and work out where the claims that keep arriving come from.",
+    time: "Each case takes about 8 to 15 minutes. There is no account: your game is saved on this device, and you can take it elsewhere with a save file or a return code.",
     newGame: "New game",
     resume: (title: string) => `Continue: ${title}`,
-    map: "Open the town map",
+    map: "See all cases",
   },
 
   story: {
     label: "Story scene",
+    conversation: "The scene so far",
     note: "A scripted scene. The people and places are fictional.",
     narration: "Narration",
+    you: "You",
     next: "Next",
     skip: "Skip scene",
-    earlier: "Earlier in this scene",
     yourAnswer: "Your answer",
     openCase: "Open the case",
     toDebrief: "Go to the debrief",
+    intro: "Before the first case",
   },
 
-  town: {
-    views: "What to look at",
-    viewMap: "Town map",
-    viewFile: "The Riverside file",
+  cases: {
     caseNumber: (n: number) => `Case ${n}`,
-    commons: "Riverside Learning Commons",
-    river: "The river",
-    away: "To Kelmere",
-    spots: {
-      frontDesk: "Front desk",
-      office: "Office",
-      homework: "Homework Club room",
-      board: "Board room",
-      studio: "Studio",
-      backOffice: "Back office",
-      gazette: "Riverside Gazette",
-      townHall: "Town hall",
+  },
+
+  /** The trail: what each finished case found, and how the findings connect. The story's through-line. */
+  trail: {
+    label: "What this case adds to the trail",
+    ties: "How it ties to earlier cases",
+    added: "Added to your notebook",
+  },
+
+  settings: {
+    title: "Settings",
+    progress: (done: number, total: number) => `You've finished ${done} of ${total} cases.`,
+    saveTitle: "Save file",
+    saveHelp: "Your game, including what you chose and wrote, is saved in this browser and sent nowhere. A save file holds all of it: load it in another browser or on another device to carry on exactly where you left off.",
+    codeTitle: "Return code",
+    codeHelp: "A short code you can write down. It restores the cases you've finished and what the story remembers, on any device. It doesn't carry the work inside a case you were part-way through; use a save file for that.",
+    codeYours: "Your code:",
+    codeCopy: "Copy",
+    codeEnter: "Enter a return code",
+    codeUse: "Use this code",
+    codeConfirm: "Use this code? It replaces the game on this device.",
+    codeStatus: {
+      used: "Code accepted. Your finished cases are restored.",
+      copied: "Code copied.",
+      malformed: "That isn't a return code. A code has 12 letters and digits.",
+      mistyped: "That code has a mistake in it. Check each character and try again.",
+      version: "That code comes from a newer version of ARTISAN than this one.",
     },
-  },
-
-  file: {
-    count: (found: number, total: number) => (found === 0 ? "Nothing is in the file yet. Finishing a case adds to it." : `${found} of ${total} in the file so far.`),
-    from: (n: number, title: string) => `From case ${n}, ${title}`,
-    missing: (n: number, title: string) => `Case ${n}, ${title}: nothing filed yet`,
-    ties: "Ties to",
-    added: "Added to the Riverside file",
-    more: "The cases after chapter 1 don't add to the file yet. Their part of the story is still being written.",
-  },
-
-  notebook: {
-    decisions: "What the story remembers",
-    decisionsHelp: "Decisions from finished cases that later scenes come back to. None of them is a score.",
+    storyTitle: "Story scenes",
     quiet: "Play cases without story scenes",
-    quietHelp: "Each case opens straight on its brief. The file still fills up.",
+    quietHelp: "Each case opens straight on its brief. Your notebook still fills up.",
+    clearTitle: "Start over",
+    clearHelp: "Erases the game on this device: finished cases, work in progress and the story. A save file or return code you already have still works.",
   },
 
   save: {
@@ -77,8 +81,8 @@ export const en = {
   },
 
   map: {
-    title: "Town map",
-    intro: "Riverside, and the seventeen cases of your year there. Take them in order to follow the story, or open any case you like.",
+    title: "Cases",
+    intro: "The seventeen cases of your year in Riverside, in order. Take them in order to follow the story, or open any case you like.",
     stage: (n: number, title: string) => `Stage ${n}: ${title}`,
     stageShort: (n: number) => `Stage ${n}`,
     capstone: "Capstone",
@@ -95,7 +99,7 @@ export const en = {
     resumeTag: "Resume",
     seals: (n: number) => (n === 4 ? "All four stages finished" : `${n} of 4 stages finished`),
     sealLabel: (stage: number, done: boolean) => `Stage ${stage} ${done ? "finished" : "not finished"}`,
-    deviceNote: "Your game is saved on this device only. You can export it, or clear it, in the notebook.",
+    deviceNote: "Your game is saved on this device only. You can move it, or clear it, in the settings.",
     planned: "Planned",
   },
 
@@ -494,21 +498,18 @@ export const en = {
   },
   summary: {
     title: "Notebook",
-    contains: "Your first and final judgments, and the takeaways and feedback from the cases you've worked on. Your written answers and private notes are left out.",
+    contains: "The key learning from each case you've finished, what the case added to the trail the story follows, and your own judgments with the feedback on them. Your written answers and private notes are left out.",
     temporary: "It is a note to yourself, not a credential or a record of proficiency. Copy or print it if you want to keep it apart from the game.",
-    empty: "You haven't opened a case yet, so there is nothing to note.",
-    openMap: "Open the town map",
+    empty: "Nothing here yet. Finishing a case adds its key learning.",
+    openMap: "See all cases",
     notFinished: "Not finished yet.",
     before: "At the start",
     after: "After investigating",
-    takeaway: "Takeaway",
+    takeaway: "Key learning",
     shown: "What you showed",
     selfAssessed: "Your own assessment, not checked",
     review: "Worth another look",
     calibration: "First read against the evidence",
-    device: "Your save",
-    deviceHelp: (done: number, total: number) =>
-      `You've finished ${done} of ${total} cases. The game, including what you chose and wrote, is saved in this browser and sent nowhere. A save file lets you carry on in another browser or on another device, exactly where you left off.`,
     reset: "Clear my progress on this device",
     resetConfirm: "Clear everything? The game on this device is erased, story and all. A save file you exported earlier is not affected.",
     resetDone: "Progress cleared.",
@@ -902,15 +903,15 @@ export const en = {
     next: "Your next case",
     start: (title: string) => `Start ${title}`,
     replay: "Replay this case",
-    backToMap: "Back to the town map",
+    backToMap: "Back to all cases",
     stageDone: (n: number, title: string) => `Stage ${n} finished: ${title}.`,
-    pathDone: "You've finished every case. Replay any of them from the map.",
+    pathDone: "You've finished every case. Replay any of them from the list of cases.",
     endReached: "You've reached the end of the path.",
     stillOpen: "Not finished yet on this device:",
     summary: "Open your notebook",
   },
 
-  notFound: { title: "We couldn't find that page", map: "Go to the town map" },
+  notFound: { title: "We couldn't find that page", map: "See all cases" },
 } as const;
 
 export const t = en;

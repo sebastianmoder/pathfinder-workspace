@@ -5,6 +5,7 @@ import type { GymProblem } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { isRight, solveResult } from "@/lib/gym";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, useReveal } from "../step-ui";
 
 /**
@@ -25,11 +26,11 @@ export function HelpGym({
   onContinue: () => void;
 }) {
   const uid = useId();
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useSaved("index", 0);
   const [selected, setSelected] = useState<string | null>(null);
-  const [checked, setChecked] = useState<string | null>(null);
-  const [attempts, setAttempts] = useState(0);
-  const [helpsUsed, setHelpsUsed] = useState<string[]>([]);
+  const [checked, setChecked] = useSaved<string | null>("checked", null);
+  const [attempts, setAttempts] = useSaved("attempts", 0);
+  const [helpsUsed, setHelpsUsed] = useSaved<string[]>("helpsUsed", []);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
 

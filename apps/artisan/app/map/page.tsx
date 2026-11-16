@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { missions } from "@/content/missions";
-import { TownViews } from "@/components/town/town-views";
+import { CaseList } from "@/components/cases/case-list";
 import type { MissionInfoMap } from "@/components/path/mission-card";
 import { ownScreen } from "@/lib/phases";
 import { t } from "@/lib/i18n/en";
@@ -8,7 +8,7 @@ import { t } from "@/lib/i18n/en";
 export const metadata: Metadata = { title: t.map.title };
 
 export default function MapPage() {
-  // What each case card says, worked out here so the map doesn't load every mission's content.
+  // What each case card says, worked out here so the list doesn't load every mission's content.
   const info: MissionInfoMap = Object.fromEntries(
     missions.map((m) => {
       const debrief = m.steps.find((s) => s.kind === "debrief");
@@ -20,7 +20,9 @@ export default function MapPage() {
     <div>
       <h1 className="text-4xl">{t.map.title}</h1>
       <p className="mt-2 max-w-2xl">{t.map.intro}</p>
-      <TownViews info={info} />
+      <div className="mt-6">
+        <CaseList info={info} />
+      </div>
     </div>
   );
 }

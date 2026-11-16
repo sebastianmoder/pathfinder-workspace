@@ -6,6 +6,7 @@ import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { moveTo, rankSound, rankVerdict, startingOrder, type RankVerdict } from "@/lib/rank";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { useHintLadder } from "../hint-ladder";
 import { ActionBar, useReveal } from "../step-ui";
 
@@ -30,11 +31,11 @@ export function RankList({
   const uid = useId();
   const { orderSeed } = useSession();
   const initial = useMemo(() => startingOrder(spec, orderSeed, stepId), [spec, orderSeed, stepId]);
-  const [moved, setMoved] = useState<string[] | null>(null);
+  const [moved, setMoved] = useSaved<string[] | null>("moved", null);
   const order = moved ?? initial;
   const [selected, setSelected] = useState<string | null>(null);
-  const [verdict, setVerdict] = useState<RankVerdict | null>(null);
-  const [checks, setChecks] = useState(0);
+  const [verdict, setVerdict] = useSaved<RankVerdict | null>("verdict", null);
+  const [checks, setChecks] = useSaved("checks", 0);
   const [announcement, setAnnouncement] = useState("");
   const [drag, setDrag] = useState<{ id: string; startY: number; dy: number } | null>(null);
   const listRef = useRef<HTMLOListElement>(null);

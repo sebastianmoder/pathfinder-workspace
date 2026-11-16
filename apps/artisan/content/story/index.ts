@@ -1,20 +1,19 @@
 import type { CaseStory, Chapter, Scene } from "./types";
 import { prologue } from "../en/story/prologue";
 import { chapter1, chapter1Cases } from "../en/story/chapter-1";
+import { chapter2, chapter2Cases } from "../en/story/chapter-2";
+import { chapter3, chapter3Cases } from "../en/story/chapter-3";
+import { chapter4, chapter4Cases } from "../en/story/chapter-4";
+import { capstone, capstoneCases } from "../en/story/capstone";
 
 export { flags } from "./flags";
 export { cast, places } from "../en/story/cast";
+export { trace } from "../en/story/trace";
 
 /** The scene every new game starts with. */
 export const opening: Scene = prologue;
 
-/** Chapters follow the journey's stages. Those without scenes yet still give the stage its story title. */
-export const chapters: Chapter[] = [
-  chapter1,
-  { stage: 2, title: "Chapter 2: The figure with no source" },
-  { stage: 3, title: "Chapter 3: It spreads" },
-  { stage: 4, title: "Chapter 4: The vote" },
-  { stage: "capstone", title: "The Commission" },
-];
+/** Chapters follow the journey's stages. */
+export const chapters: Chapter[] = [chapter1, chapter2, chapter3, chapter4, capstone];
 
-export const caseStories: CaseStory[] = [...chapter1Cases];
+export const caseStories: CaseStory[] = [...chapter1Cases, ...chapter2Cases, ...chapter3Cases, ...chapter4Cases, ...capstoneCases];

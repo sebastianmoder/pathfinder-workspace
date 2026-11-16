@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { ChartLabSpec, ChartView } from "@/content/types";
 import { barsFor, baselineOf, goalMet, measureOf, niceMax, percentChange, valuesOf, type Bar } from "@/lib/chart";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, useReveal } from "../step-ui";
 import { SlideBody, Specimen } from "../artefacts/frames";
 
@@ -28,10 +29,10 @@ export function ChartLab({
   onContinue: () => void;
 }) {
   const uid = useId();
-  const [view, setView] = useState<ChartView>(spec.start);
-  const [taskIndex, setTaskIndex] = useState(0);
-  const [result, setResult] = useState<"met" | "notYet" | null>(null);
-  const [usedSolution, setUsedSolution] = useState<string[]>([]);
+  const [view, setView] = useSaved<ChartView>("view", spec.start);
+  const [taskIndex, setTaskIndex] = useSaved("taskIndex", 0);
+  const [result, setResult] = useSaved<"met" | "notYet" | null>("result", null);
+  const [usedSolution, setUsedSolution] = useSaved<string[]>("usedSolution", []);
   const taskRef = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
 
@@ -44,7 +45,7 @@ export function ChartLab({
   }, [taskIndex]);
 
   const task = spec.tasks[taskIndex];
-  const [checks, setChecks] = useState(0);
+  const [checks, setChecks] = useSaved("checks", 0);
   const resultRef = useReveal<HTMLDivElement>(result ? checks : null);
   const bars = barsFor(spec, view);
   const measure = measureOf(spec, view);

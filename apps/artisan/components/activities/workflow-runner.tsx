@@ -5,6 +5,7 @@ import type { WorkflowSpec } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { runAll, type Arrangement, type TestResult, costOf } from "@/lib/workflow";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, useReveal } from "../step-ui";
 
 /**
@@ -27,16 +28,16 @@ export function WorkflowRunner({
 }) {
   const uid = useId();
   const guided = spec.support !== "independent";
-  const [arrangement, setArrangement] = useState<Arrangement>(spec.start);
-  const [results, setResults] = useState<TestResult[] | null>(null);
-  const [ranWith, setRanWith] = useState<Arrangement | null>(null);
-  const [runCount, setRunCount] = useState(0);
-  const [firstFailures, setFirstFailures] = useState<TestResult[]>([]);
-  const [diagnosis, setDiagnosis] = useState<Record<string, string>>({});
-  const [diagnosed, setDiagnosed] = useState(false);
+  const [arrangement, setArrangement] = useSaved<Arrangement>("arrangement", spec.start);
+  const [results, setResults] = useSaved<TestResult[] | null>("results", null);
+  const [ranWith, setRanWith] = useSaved<Arrangement | null>("ranWith", null);
+  const [runCount, setRunCount] = useSaved("runCount", 0);
+  const [firstFailures, setFirstFailures] = useSaved<TestResult[]>("firstFailures", []);
+  const [diagnosis, setDiagnosis] = useSaved<Record<string, string>>("diagnosis", {});
+  const [diagnosed, setDiagnosed] = useSaved("diagnosed", false);
   const [selected, setSelected] = useState<string | null>(null);
-  const [usedSolution, setUsedSolution] = useState(false);
-  const [recordedFix, setRecordedFix] = useState(false);
+  const [usedSolution, setUsedSolution] = useSaved("usedSolution", false);
+  const [recordedFix, setRecordedFix] = useSaved("recordedFix", false);
   const resultsRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {

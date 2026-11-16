@@ -4,6 +4,7 @@ import { useId, useState, useSyncExternalStore, type DragEvent } from "react";
 import type { Step } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { useHintLadder } from "../hint-ladder";
 import { ActionBar, HowTo, useReveal } from "../step-ui";
 
@@ -35,10 +36,10 @@ export function SortActivity({
   onContinue: () => void;
 }) {
   const uid = useId(); // unique across hidden kept-alive pages, which stay in the DOM
-  const [placed, setPlaced] = useState<Record<string, string>>({});
+  const [placed, setPlaced] = useSaved<Record<string, string>>("placed", {});
   const [selected, setSelected] = useState<string | null>(step.display === "toggles" ? null : step.items[0]?.id ?? null);
   const [announcement, setAnnouncement] = useState("");
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useSaved("checked", false);
   const ladder = useHintLadder(step.hints ?? []);
   const canDrag = useFinePointer() && step.display !== "toggles";
   const [dragging, setDragging] = useState<string | null>(null);
@@ -46,7 +47,7 @@ export function SortActivity({
 
   const allPlaced = step.items.every((i) => placed[i.id]);
   const allRight = step.items.every((i) => placed[i.id] === i.categoryId);
-  const [checks, setChecks] = useState(0);
+  const [checks, setChecks] = useSaved("checks", 0);
   const boardRef = useReveal<HTMLDivElement>(checks);
   const left = step.items.filter((i) => !placed[i.id]);
   const label = (id: string) => step.items.find((i) => i.id === id)?.label ?? "";

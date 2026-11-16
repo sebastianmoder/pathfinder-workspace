@@ -2,13 +2,13 @@ import type { EpilogueCondition, MissionId } from "../types";
 import type { StageId } from "@/lib/journey-nav";
 
 /**
- * The story that runs through the cases ("The Riverside File"). It wraps missions and never changes them: a
+ * The story that runs through the cases: a year in Riverside. It wraps missions and never changes them: a
  * scene plays before a case's brief and after its last task, and what the player decided in earlier cases
  * chooses between lines. Everything here is authored and fictional; nothing is generated.
  */
 
-export type CastId = "joanna" | "sam" | "priya";
-export type PlaceId = "street" | "frontDesk" | "office" | "homeworkRoom";
+export type CastId = "joanna" | "sam" | "priya" | "dev" | "nadia" | "rafael" | "leo" | "rosa" | "kwame" | "fatima" | "hughes" | "okoro";
+export type PlaceId = "street" | "frontDesk" | "office" | "homeworkRoom" | "boardRoom" | "studio" | "gazette" | "townHall";
 
 export interface CastMember {
   id: CastId;
@@ -52,7 +52,7 @@ export interface Scene {
   beats: Beat[];
 }
 
-/** Something that goes into the Riverside file when a case is finished. */
+/** What a finished case adds to the trail: something found, and what it ties to. */
 export interface Clue {
   title: string;
   /** What the card says: the first text whose condition holds. The last has no condition. */
@@ -69,6 +69,8 @@ export interface CaseStory {
   /** Scenes after a mission's last task, before its debrief. */
   close: Record<MissionId, Scene>;
   clue: Clue;
+  /** An activity between a mission's opening scene and its brief. */
+  interlude?: Record<MissionId, "trace">;
 }
 
 export interface Chapter {
@@ -83,8 +85,6 @@ export interface Chapter {
 export interface FlagDef {
   id: string;
   missionId: MissionId;
-  /** What was decided, for the notebook. */
-  title: string;
   /** The first value whose condition holds for what the player did. The last has no condition. */
-  values: { value: string; label: string; when?: EpilogueCondition }[];
+  values: { value: string; when?: EpilogueCondition }[];
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import type { ModuleEntry } from "@/content/types";
 import { modules, stages } from "@/content/journey";
-import { entryMission, type NodeState, type Progress } from "@/lib/journey-nav";
+import { caseNumber, entryMission, type NodeState, type Progress } from "@/lib/journey-nav";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
 
@@ -17,14 +16,13 @@ export interface MissionInfo {
 export type MissionInfoMap = Record<string, MissionInfo>;
 
 /**
- * The selected stop: what the mission is, what it practises, and the one action that opens it. Beside the map on
- * wide screens; on narrow ones it rides along the bottom of the window, with its details folded.
+ * The selected case: what it is, what it practises, and the one action that opens it. Beside the list on wide
+ * screens; on narrow ones it sits directly under the chosen row.
  */
 export function MissionCard({ id, module: m, info, progress, state }: { id: string; module: ModuleEntry; info: MissionInfoMap; progress: Progress; state: NodeState }) {
   const session = useSession();
-  const [open, setOpen] = useState(false);
   const stage = stages.find((s) => s.id === m.stage)!;
-  const caseNumber = modules.filter((x) => x.status === "available").findIndex((x) => x.id === m.id) + 1;
+  const number = caseNumber(modules, m.id);
   const target = entryMission(m, progress);
   const parts = m.missionIds.length > 1 ? m.missionIds : [];
   const steps = m.missionIds.reduce((n, mid) => n + (info[mid]?.steps ?? 0), 0);
@@ -36,13 +34,13 @@ export function MissionCard({ id, module: m, info, progress, state }: { id: stri
     session.isCompleted(mid) ? "done" : progress.inProgress(mid) ? "active" : session.reached(mid) ? "reached" : "open";
 
   return (
-    <aside id={id} aria-label={t.card.label} className="mission-card sheet lg:col-start-2 lg:row-start-1" data-state={state}>
+    <aside id={id} aria-label={t.card.label} className="mission-card sheet" data-state={state}>
       <p className="text-sm text-muted">
-        {t.town.caseNumber(caseNumber)}
+        {t.cases.caseNumber(number)}
         {m.bridge ? `, ${t.map.bridge.toLowerCase()}` : stage.id === "capstone" ? `, ${t.map.capstone.toLowerCase()}` : ""}
       </p>
       <h2 className="mt-0.5 text-2xl" aria-live="polite">{m.title}</h2>
-      <div className={`${open ? "block" : "hidden"} lg:block`} id={`${id}-details`}>
+      <div>
         <p className="mt-2">{m.summary}</p>
         {skills.length > 0 && (
           <>
@@ -76,7 +74,7 @@ export function MissionCard({ id, module: m, info, progress, state }: { id: stri
           </ol>
         </>
       ) : (
-        <p className="mt-3 hidden text-sm text-muted lg:block">{t.card.steps(steps)}</p>
+        <p className="mt-3 text-sm text-muted">{t.card.steps(steps)}</p>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <Link
@@ -88,15 +86,6 @@ export function MissionCard({ id, module: m, info, progress, state }: { id: stri
         >
           {action}
         </Link>
-        <button
-          type="button"
-          className="text-sm underline underline-offset-4 lg:hidden"
-          aria-expanded={open}
-          aria-controls={`${id}-details`}
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? t.card.hideDetails : t.card.details}
-        </button>
       </div>
     </aside>
   );

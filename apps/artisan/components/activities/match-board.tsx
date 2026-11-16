@@ -7,6 +7,7 @@ import { keepRight, matchResults, pair, unpair, type Pairs } from "@/lib/match";
 import { seededShuffle } from "@/lib/shuffle";
 import { useSession } from "@/lib/session/session";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { useHintLadder } from "../hint-ladder";
 import { ActionBar, useReveal } from "../step-ui";
 
@@ -40,10 +41,10 @@ export function MatchBoard({
   const uid = useId();
   const { orderSeed } = useSession();
   const right = useMemo(() => seededShuffle(spec.right, orderSeed, `${stepId}-right`), [spec.right, orderSeed, stepId]);
-  const [pairs, setPairs] = useState<Pairs>({});
+  const [pairs, setPairs] = useSaved<Pairs>("pairs", {});
   const [selected, setSelected] = useState<string | null>(spec.left[0]?.id ?? null);
-  const [checked, setChecked] = useState<Record<string, boolean> | null>(null);
-  const [checks, setChecks] = useState(0);
+  const [checked, setChecked] = useSaved<Record<string, boolean> | null>("checked", null);
+  const [checks, setChecks] = useSaved("checks", 0);
   const [announcement, setAnnouncement] = useState("");
   const ladder = useHintLadder(hints);
   const revealRef = useReveal<HTMLDivElement>(checks);

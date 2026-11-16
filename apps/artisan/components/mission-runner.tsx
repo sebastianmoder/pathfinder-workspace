@@ -35,7 +35,10 @@ import { activityKey, ownScreen, phasesOf, PHASES } from "@/lib/phases";
 import { conditionHolds, inputFrom } from "@/lib/epilogue";
 import { modules, stages } from "@/content/journey";
 import { caseStories, chapters, flags, opening } from "@/content/story";
-import { clueText, deriveFlags, scenesAfter, scenesBefore } from "@/lib/story/story";
+import { clueText, deriveFlags, interludeOf, scenesAfter, scenesBefore } from "@/lib/story/story";
+import { caseNumber as numberOf } from "@/lib/journey-nav";
+import { TraceBack } from "./story/trace-back";
+import { SavedScope } from "./saved-state";
 import { NextOnPath } from "./next-on-path";
 import { ScenePlayer } from "./story/scene-player";
 
@@ -140,6 +143,7 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
     return (
       <ScenePlayer
         key={scenes[0].id}
+        heading={mission.title}
         scenes={scenes}
         state={storyState}
         doneLabel={stepIndex === 0 ? t.story.openCase : t.story.toDebrief}
@@ -150,9 +154,23 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
       />
     );
   }
+  // The story's own activity, between a mission's opening scene and its brief.
+  const interlude = !session.quiet && stepIndex === 0 ? interludeOf(book, moduleEntry, mission.id) : null;
+  if (interlude && !session.sceneSeen(`${interlude}:${mission.id}`)) {
+    return (
+      <SavedScope value={{ missionId: mission.id, scope: interlude }}>
+        <TraceBack
+          onDone={() => {
+            session.markScenes([`${interlude}:${mission.id}`]);
+            window.scrollTo({ top: 0 });
+          }}
+        />
+      </SavedScope>
+    );
+  }
   const caseStory = caseStories.find((c) => c.moduleId === moduleEntry.id);
   const filed = caseStory && moduleEntry.missionIds.every(session.isCompleted) ? { title: caseStory.clue.title, text: clueText(caseStory.clue, storyState) } : null;
-  const caseNumber = modules.filter((m) => m.status === "available").findIndex((m) => m.id === moduleEntry.id) + 1;
+  const caseNumber = numberOf(modules, moduleEntry.id);
   const chapter = chapters.find((c) => c.stage === moduleEntry.stage);
 
   const first = stepIndex === 0;
@@ -195,7 +213,7 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
         <>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1 basis-64">
-              <p className="case-tab">{t.town.caseNumber(caseNumber)}</p>
+              <p className="case-tab">{t.cases.caseNumber(caseNumber)}</p>
               <h1 className="text-3xl sm:text-4xl">{mission.title}</h1>
               <p className="mt-1 max-w-3xl"><span className="font-bold">{t.mission.youWillLearn}</span> {mission.outcome}</p>
             </div>
@@ -207,7 +225,7 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
       ) : (
         <div className="border-b border-border pb-3">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <h1 className="min-w-0 flex-1 basis-56 text-2xl"><span className="case-tab case-tab-inline">{t.town.caseNumber(caseNumber)}</span> {mission.title}</h1>
+            <h1 className="min-w-0 flex-1 basis-56 text-2xl"><span className="case-tab case-tab-inline">{t.cases.caseNumber(caseNumber)}</span> {mission.title}</h1>
             {tools}
           </div>
           <div className="mt-2">{progress}</div>
@@ -251,6 +269,7 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
       <div className="mt-6">
         <section key={step.id} ref={stepRef} tabIndex={-1} aria-label={t.mission.step(shownIndex, total)} className="mt-4 outline-offset-8">
           <FamiliarContext value={session.hasSeen(activityKey(step))}>
+            <SavedScope value={{ missionId: mission.id, scope: step.id }}>
             <StepView
               step={step}
               mission={mission}
@@ -263,6 +282,7 @@ function LoadedMission({ mission, module: moduleEntry, suggested, path }: Props)
               filed={filed}
               nextOnPath={<NextOnPath mission={mission} module={moduleEntry} suggested={suggested} path={path} />}
             />
+            </SavedScope>
           </FamiliarContext>
         </section>
       </div>
@@ -610,8 +630,9 @@ function StepView({
           </div>
           {filed && (
             <section className="filed sheet mt-6" aria-labelledby="filed-title">
-              <p className="filed-stamp" id="filed-title">{t.file.added}</p>
-              <h3 className="mt-1 text-xl font-bold">{filed.title}</h3>
+              <p className="filed-stamp">{t.trail.added}</p>
+              <h3 className="mt-2 text-sm font-normal" id="filed-title">{t.trail.label}</h3>
+              <p className="text-xl font-bold">{filed.title}</p>
               <p className="mt-1 max-w-3xl">{filed.text}</p>
             </section>
           )}

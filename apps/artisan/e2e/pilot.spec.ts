@@ -8,7 +8,7 @@ import {
   completeM08, completeM09, completeM10, completeM11, completeM12, completeM13, completeT01, cont, openFromMap,
 } from "./helpers";
 
-const ROUTES = ["/", "/map", "/summary", ...missions.map((m) => `/missions/${m.id}`)];
+const ROUTES = ["/", "/map", "/summary", "/settings", ...missions.map((m) => `/missions/${m.id}`)];
 
 test("criterion 1: a new learner completes the whole journey, from the welcome page to the capstone, with no account", async ({ page, context }) => {
   test.setTimeout(300_000);
@@ -67,7 +67,9 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
   await page.getByRole("link", { name: "Open your notebook" }).click();
   await expect(page.getByText(/Use it\. It is specific.*\(Very\)/)).toBeVisible();
   await expect(page.getByText(/Whether the café's own records say the same thing\. \(Somewhat\)/)).toBeVisible();
-  await expect(page.getByText(/finished 17 of 17 cases/)).toBeVisible();
+  // The key learning of each case leads its entry, and the last case's place on the trail is there too.
+  await expect(page.getByText("Fluent is not the same as correct. Treat specific claims as things to check against a source.")).toBeVisible();
+  await expect(page.locator(".trail").getByText("Where it all came from")).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   // What it says it contains is what it contains: no written answers on the page or when copied.
@@ -90,7 +92,7 @@ test("criterion 1: a new learner completes the whole journey, from the welcome p
   await page.emulateMedia({ media: "screen" });
 
   // The map shows every case finished.
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Town map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Cases", exact: true }).click();
   await expect(page.locator(".case-row[data-state=done]")).toHaveCount(modules.filter((m) => m.status === "available").length);
 });
 
@@ -99,7 +101,7 @@ test("this device keeps the whole game, so a new visit carries on where the last
   await page.goto("/");
   await page.getByRole("link", { name: "New game" }).click();
   await completeM01(page);
-  await page.getByRole("link", { name: "Back to the town map" }).click();
+  await page.getByRole("link", { name: "Back to all cases" }).click();
   await expect(page.getByRole("button", { name: /Inside the Machine.*Finished/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /The Delegation Desk.*Next/ })).toBeVisible();
 
@@ -128,11 +130,12 @@ test("this device keeps the whole game, so a new visit carries on where the last
   await expect(page.getByRole("link", { name: /^Continue: / })).toBeVisible();
 
   // Clearing it empties the map.
-  await page.goto("/summary");
+  await page.goto("/settings");
+  await expect(page.getByText("You've finished 1 of 17 cases.")).toBeVisible();
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Clear my progress on this device" }).click();
   await expect(page.getByText("Progress cleared.")).toBeVisible();
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Town map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Cases", exact: true }).click();
   await expect(page.locator(".case-row[data-state=done]")).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("artisan_progress"))).not.toContain("m01-foundations");
 });
@@ -153,7 +156,7 @@ test("leaving a mission by the breadcrumb keeps its place, and the map offers to
   await expect(page.getByRole("button", { name: "Pause" })).toHaveCount(0);
   await cont(page);
   await expect(page.getByText(/^Step 2 of/)).toBeVisible();
-  await page.getByRole("navigation", { name: "Where you are" }).getByRole("link", { name: "Town map" }).click();
+  await page.getByRole("navigation", { name: "Where you are" }).getByRole("link", { name: "Cases" }).click();
   await expect(page.getByRole("button", { name: /The Argument Forge.*Resume/ })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("link", { name: "Resume case: The Argument Forge" }).click();
   await expect(page.getByText(/^Step 2 of/)).toBeVisible();
@@ -187,7 +190,7 @@ test("regression: pages kept alive in the background do not interfere with the v
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByLabel(/Use it\. It is specific/).check();
 
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Town map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Cases", exact: true }).click();
   await openFromMap(page, "The Evidence Bureau");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   const answer = page.getByRole("group", { name: /Attendance averaged/ }).getByRole("radio", { name: "Not sure" });
@@ -195,7 +198,7 @@ test("regression: pages kept alive in the background do not interfere with the v
   await expect(answer).toBeChecked();
 
   // Back in M01, the earlier selection is intact, and ids in the document are unique.
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Town map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Cases", exact: true }).click();
   await openFromMap(page, "Inside the Machine");
   await expect(page.getByLabel(/Use it\. It is specific/)).toBeChecked();
   const duplicates = await page.evaluate(() => {

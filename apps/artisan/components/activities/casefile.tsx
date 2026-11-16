@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { Artefact, CaseLead, CasefileSpec, CaseStatus } from "@/content/types";
 import { canFollow, clockState, expectedStatus, latestMessage, timelineFor } from "@/lib/casefile";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, useReveal } from "../step-ui";
 import { ArtefactFrame } from "../artefacts/frames";
 
@@ -29,10 +30,10 @@ export function Casefile({
   onFact?: (name: string, values: string[]) => void;
 }) {
   const uid = useId();
-  const [followed, setFollowed] = useState<string[]>([]);
-  const [phase, setPhase] = useState<"investigate" | "judge">("investigate");
-  const [answers, setAnswers] = useState<Record<string, CaseStatus>>({});
-  const [checked, setChecked] = useState<Record<string, CaseStatus> | null>(null);
+  const [followed, setFollowed] = useSaved<string[]>("followed", []);
+  const [phase, setPhase] = useSaved<"investigate" | "judge">("phase", "investigate");
+  const [answers, setAnswers] = useSaved<Record<string, CaseStatus>>("answers", {});
+  const [checked, setChecked] = useSaved<Record<string, CaseStatus> | null>("checked", null);
   const judgeRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {

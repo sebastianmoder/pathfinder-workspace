@@ -1,6 +1,5 @@
 /*
- * The game's own screens: the title, story scenes, the town map, the Riverside file and what a case adds to
- * it. Tokens and the shared controls live in globals.css. Motion here only ever answers something the player
+ * The game's own screens: the title, story scenes, the list of cases, the notebook and the settings. Tokens and the shared controls live in globals.css. Motion here only ever answers something the player
  * did, and is switched off under reduced motion by the rule at the end of globals.css.
  */
 
@@ -61,6 +60,13 @@
   font-size: clamp(2.75rem, 11vw, 4.75rem);
   line-height: 0.95;
 }
+.title-lead {
+  margin-top: 0.75rem;
+  font-family: var(--font-zilla), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
 .title-art {
   display: block;
   width: 100%;
@@ -68,97 +74,137 @@
   box-shadow: 6px 6px 0 var(--sheet-shadow);
 }
 
-/* ---------- Story scenes ---------- */
-.scene-stage {
+/* ---------- Story scenes: a running conversation ---------- */
+.chat-stage {
   background: var(--mat-deep);
   color: var(--mat-ink);
-  padding: 1rem 0 2.5rem;
 }
-.scene-frame {
-  max-width: 56rem;
+/* Tall enough that the first line sits just above the controls; each new line then pushes the earlier ones up. */
+.chat {
+  display: flex;
+  flex-direction: column;
+  max-width: 40rem;
+  min-height: calc(100dvh - 3.5rem);
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 1rem 1rem 0;
 }
-.scene-set {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  background-color: var(--mat);
-  background-image: repeating-linear-gradient(135deg, var(--mat-line) 0 1px, transparent 1px 0.75rem);
+.chat-head {
+  border-bottom: 1px solid var(--mat-line);
+  padding-bottom: 0.6rem;
 }
-@media (min-width: 640px) {
-  .scene-set {
-    aspect-ratio: 16 / 9;
-  }
+.chat-title {
+  font-size: 1.5rem;
 }
-.backdrop {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+.chat-note {
+  font-size: 0.8125rem;
+  opacity: 0.85;
 }
-.backdrop-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.chat-log {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1rem 0;
 }
-/* No picture yet: the place is given on a slip from the file. */
-.backdrop-slip {
-  max-width: 70%;
-  padding: 0.6rem 1rem;
-  rotate: -2deg;
-  background: var(--manila);
-  color: var(--manila-ink);
+.chat-scene + .chat-scene {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--mat-line);
+  padding-top: 1.5rem;
+}
+/* Where and when, like the date line in a chat. */
+.chat-where {
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+.chat-chapter {
+  margin-bottom: 0.6rem;
   font-family: var(--font-zilla), Georgia, serif;
-  font-size: clamp(1.125rem, 4vw, 1.75rem);
+  font-size: clamp(1.5rem, 6vw, 2rem);
   font-weight: 600;
   line-height: 1.15;
-  text-align: center;
-  box-shadow: 3px 3px 0 var(--sheet-shadow);
+  text-wrap: balance;
 }
-.scene-where {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  max-width: calc(100% - 1.5rem);
-  padding: 0.3rem 0.6rem;
-  background: var(--surface);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  line-height: 1.3;
-}
-.scene-place {
+.chat-place {
   display: block;
   font-weight: 700;
 }
-.scene-when {
+.chat-when {
   display: block;
-  color: var(--muted);
+  opacity: 0.85;
 }
-.scene-title {
-  position: absolute;
-  right: 0.75rem;
-  bottom: 2rem;
-  max-width: 62%;
-  padding: 0.4rem 0.8rem;
+.chat-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.75rem;
+  border: 4px solid var(--surface);
+}
+.chat-line {
+  margin-top: 0.35rem;
+}
+.chat-them {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  justify-items: start;
+}
+.chat-them[data-starts] {
+  margin-top: 0.9rem;
+}
+.chat-bubble {
+  max-width: 34rem;
+  padding: 0.5rem 0.8rem 0.55rem;
+  border-radius: 0.25rem 1rem 1rem 1rem;
+  background: var(--surface);
+  color: var(--foreground);
+  line-height: 1.45;
+}
+.chat-them:not([data-starts]) .chat-bubble {
+  border-top-left-radius: 1rem;
+}
+.chat-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.chat-role {
+  color: var(--muted);
+  font-weight: 400;
+}
+.chat-text {
+  display: block;
+}
+/* The player's own answer: on the right, in highlighter. */
+.chat-you {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
+}
+.chat-you .chat-bubble {
+  border-radius: 1rem 0.25rem 1rem 1rem;
   background: var(--highlighter);
   color: var(--highlighter-ink);
-  font-size: clamp(1.25rem, 4.5vw, 2.25rem);
-  text-align: right;
+  font-weight: 700;
+}
+/* Narration: no bubble, set in the slab, across the middle of the conversation. */
+.chat-narration {
+  margin: 0.9rem auto 0;
+  max-width: 32rem;
+  text-align: center;
+  font-family: var(--font-zilla), Georgia, serif;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.45;
+  text-wrap: pretty;
 }
 .portrait {
   display: block;
+  width: 2.5rem;
+  height: 2.5rem;
   overflow: hidden;
-  background: var(--surface);
-}
-.portrait[data-size="lg"] {
-  position: absolute;
-  left: 1rem;
-  bottom: 0;
-  width: clamp(5.5rem, 22%, 10rem);
-  aspect-ratio: 4 / 5;
-  border: 3px solid var(--surface);
-  border-bottom: 0;
+  border-radius: 999px;
 }
 .portrait-image {
   width: 100%;
@@ -170,265 +216,87 @@
   place-items: center;
   width: 100%;
   height: 100%;
-  font-family: var(--font-zilla), Georgia, serif;
-  font-size: clamp(1.75rem, 7vw, 3rem);
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .portrait[data-size="lg"] {
-    animation: scene-in 0.18s ease-out;
-  }
-  .scene-line {
-    animation: scene-in 0.16s ease-out;
+  .chat-scene:last-of-type > .chat-line:last-child {
+    animation: chat-in 0.18s ease-out;
   }
 }
-@keyframes scene-in {
+@keyframes chat-in {
   from {
     opacity: 0;
-    translate: 0 0.25rem;
+    translate: 0 0.4rem;
   }
 }
-
-/* What is said, on a slip of paper under the picture. Speech carries the speaker's name on a folder tab;
-   narration has none and is set in the slab, like something typed into the file. */
-.scene-slip {
-  position: relative;
-  margin-top: 1.75rem;
-  padding: 1.1rem 1.1rem 0.9rem;
-  background: var(--surface);
-  color: var(--foreground);
-  box-shadow: 3px 3px 0 var(--sheet-shadow);
-}
-.scene-speaker {
-  position: absolute;
-  left: 1rem;
-  bottom: 100%;
-  padding: 0.2rem 0.75rem 0.1rem;
-  border-radius: 0.375rem 0.375rem 0 0;
-  background: var(--manila);
-  color: var(--manila-ink);
-  font-weight: 700;
-  line-height: 1.3;
-}
-.scene-role {
-  font-weight: 400;
-}
-.scene-line {
-  min-height: 4.65em;
-  max-width: 44rem;
-  font-size: 1.1875rem;
-  line-height: 1.55;
-}
-.scene-slip[data-voice="narration"] .scene-line {
-  font-family: var(--font-zilla), Georgia, serif;
-  font-weight: 600;
-  line-height: 1.5;
-}
-.scene-actions,
-.scene-options {
+/* The controls stay at the foot of the window, where the next line will appear. */
+.chat-bar,
+.chat-options {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1.25rem;
-  margin-top: 0.9rem;
 }
-.scene-skip {
+.chat-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 0 -1rem;
+  border-top: 1px solid var(--mat-line);
+  background: var(--mat-deep);
+  padding: 0.75rem 1rem 1rem;
+}
+.chat-skip {
   font-size: 0.9375rem;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.scene-log {
-  margin-top: 0.9rem;
-  border-top: 1px solid var(--border);
-  padding-top: 0.6rem;
-  font-size: 0.9375rem;
-}
-.scene-log summary {
-  cursor: pointer;
-  color: var(--muted);
-}
-.scene-log ol {
-  margin-top: 0.4rem;
-}
-.scene-log li + li {
-  margin-top: 0.35rem;
-}
-.scene-note {
-  margin-top: 0.6rem;
-  color: var(--muted);
-  font-size: 0.8125rem;
-}
 
-/* ---------- Town map ---------- */
-.view-tabs {
-  display: inline-flex;
-  border: 2px solid var(--foreground);
+/* ---------- Cases: the ordered list, and the chosen case beside or under it ---------- */
+.cases {
+  display: grid;
+  gap: 2rem;
 }
-.view-tabs button {
-  padding: 0.4rem 0.9rem;
-}
-.view-tabs button[aria-pressed="true"] {
-  background: var(--foreground);
-  color: var(--background);
-  font-weight: 700;
-}
-.view-tabs button:focus-visible {
-  outline-offset: -5px;
-  outline-color: var(--highlighter);
-  box-shadow: inset 0 0 0 2px var(--focus);
-}
-
-.town-map {
-  position: relative;
-  width: 100%;
-  max-width: 26rem;
-  margin: 0 auto;
-  background: var(--surface);
-  box-shadow: 3px 3px 0 var(--sheet-shadow);
-  border: 1px solid var(--border);
+.case-aside {
+  display: none;
 }
 @media (min-width: 1024px) {
-  .town-map {
+  .cases {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    align-items: start;
+  }
+  .case-aside {
+    display: block;
     position: sticky;
     top: 1.5rem;
   }
-}
-.town-drawing {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.town-river {
-  fill: color-mix(in srgb, var(--mat) 28%, var(--surface));
-}
-.town-road {
-  fill: none;
-  stroke: color-mix(in srgb, var(--border) 55%, var(--surface));
-  stroke-width: 3;
-}
-.town-bridge {
-  fill: none;
-  stroke: var(--foreground);
-  stroke-width: 0.5;
-}
-.town-commons {
-  fill: none;
-  stroke: var(--foreground);
-  stroke-width: 1.1;
-}
-.town-room {
-  fill: var(--background);
-  stroke: var(--foreground);
-  stroke-width: 0.35;
-}
-.town-room[data-current] {
-  fill: color-mix(in srgb, var(--highlighter) 38%, var(--surface));
-}
-.town-door {
-  stroke: var(--surface);
-  stroke-width: 1.6;
-}
-.town-label,
-.town-name,
-.town-water,
-.town-away {
-  position: absolute;
-  pointer-events: none;
-  line-height: 1.15;
-}
-.town-label {
-  padding: 0.3rem 0.4rem 0;
-  font-size: 0.8125rem;
-  font-weight: 700;
-}
-.town-name {
-  left: 6%;
-  translate: 0 -50%;
-  font-family: var(--font-zilla), Georgia, serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-.town-water,
-.town-away {
-  translate: 0 -50%;
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-.town-water {
-  left: 8%;
-}
-.town-away {
-  left: 76%;
-}
-.town-pin {
-  position: absolute;
-  translate: -50% -50%;
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 2px solid var(--foreground);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-.town-pin[data-state="done"] {
-  background: var(--foreground);
-  color: var(--background);
-}
-.town-pin[data-state="active"],
-.town-pin[data-state="reached"] {
-  background: linear-gradient(to top, var(--highlighter) 50%, var(--surface) 50%);
-  color: var(--highlighter-ink);
-}
-.town-pin[data-state="next"] {
-  background: var(--highlighter);
-  color: var(--highlighter-ink);
-}
-.town-pin[data-selected] {
-  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--thread);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .town-pin[data-arrive] {
-    animation: pin-stamp 0.5s ease-out;
+  .case-inline {
+    display: none;
   }
 }
-@keyframes pin-stamp {
-  0% {
-    scale: 1.9;
-    opacity: 0.2;
-  }
-  60% {
-    scale: 0.92;
-    opacity: 1;
-  }
+.mission-card {
+  border-top: 4px solid var(--foreground);
+  padding: 1rem 1.1rem 1.15rem;
 }
-
-.case-list {
-  margin-top: 1.5rem;
+.mission-card[data-state="next"] {
+  border-top-color: var(--highlighter);
 }
-@media (min-width: 1024px) {
-  .case-list {
-    margin-top: 0;
-  }
+.case-inline {
+  margin: 0.25rem 0 1rem;
 }
 .case-list section + section {
-  margin-top: 1.25rem;
+  margin-top: 1.75rem;
 }
 .case-list-chapter {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
 }
 .case-list-question {
   color: var(--muted);
   font-size: 0.9375rem;
 }
 .case-list ol {
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   border-top: 1px solid var(--border);
 }
 .case-row {
@@ -438,7 +306,7 @@
   width: 100%;
   border-bottom: 1px solid var(--border);
   border-left: 4px solid transparent;
-  padding: 0.5rem 0.5rem 0.5rem 0.4rem;
+  padding: 0.6rem 0.5rem 0.6rem 0.4rem;
   text-align: left;
   cursor: pointer;
 }
@@ -454,12 +322,17 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border: 1.5px solid currentColor;
   border-radius: 999px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 700;
+}
+.case-row[data-state="done"] .case-row-number {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
 }
 .case-row-title {
   flex: 1;
@@ -474,96 +347,72 @@
   font-weight: 400;
 }
 
-/* ---------- The Riverside file: cards pinned along one thread ---------- */
-.case-file {
-  padding: 1.25rem 1rem 1.5rem;
+/* ---------- Notebook: one entry per case, its key learning first ---------- */
+.note {
+  border-top: 2px solid var(--foreground);
+  padding-top: 0.9rem;
 }
-@media (min-width: 640px) {
-  .case-file {
-    padding: 2rem;
-  }
-}
-.thread {
-  position: relative;
-  margin-top: 1rem;
-  padding-left: 2rem;
-}
-.thread::before {
-  content: "";
-  position: absolute;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  left: 0.6rem;
-  width: 2px;
-  background: var(--thread);
-}
-.thread-item {
-  position: relative;
-  max-width: 38rem;
-}
-.thread-item + .thread-item {
-  margin-top: 1.1rem;
-}
-/* The pin: solid where a card hangs, a ring where one is still to come. */
-.thread-item::before {
-  content: "";
-  position: absolute;
-  top: 0.9rem;
-  left: -1.8rem;
-  width: 0.85rem;
-  height: 0.85rem;
-  border: 2px solid var(--manila);
-  border-radius: 999px;
+.learning {
+  margin-top: 0.75rem;
   background: var(--mat);
-}
-.thread-item[data-found="true"]::before {
-  background: var(--manila);
-}
-.clue {
+  color: var(--mat-ink);
   padding: 0.9rem 1.1rem 1rem;
 }
-@media (min-width: 640px) {
-  .thread-item[data-tilt="0"] .clue {
-    rotate: -0.5deg;
-  }
-  .thread-item[data-tilt="1"] .clue {
-    rotate: 0.4deg;
-  }
+.learning-label {
+  font-size: 0.875rem;
+  font-weight: 400;
 }
-.clue-title {
+.learning-text {
+  margin-top: 0.15rem;
   font-family: var(--font-zilla), Georgia, serif;
-  font-size: 1.375rem;
+  font-size: 1.3125rem;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.3;
+  text-wrap: pretty;
 }
-.clue-from {
-  margin-top: 0.5rem;
+.trail {
+  margin-top: 1rem;
+  border-left: 4px solid var(--thread);
+  padding-left: 0.9rem;
+}
+.trail-label {
   color: var(--muted);
   font-size: 0.875rem;
+  font-weight: 400;
 }
-.clue-ties {
-  margin-top: 0.6rem;
+.trail-ties {
+  margin-top: 0.5rem;
   font-size: 0.9375rem;
 }
-.clue-ties li {
-  border-left: 3px solid var(--thread);
-  padding-left: 0.6rem;
+.trail-ties li {
+  position: relative;
+  padding-left: 1rem;
 }
-.clue-ties li + li {
-  margin-top: 0.4rem;
+.trail-ties li::before {
+  content: "";
+  position: absolute;
+  top: 0.7em;
+  left: 0;
+  width: 0.6rem;
+  border-top: 2px solid var(--thread);
 }
-.clue-missing {
-  border: 1px dashed color-mix(in srgb, var(--mat-ink) 45%, transparent);
-  padding: 0.55rem 0.8rem;
-  font-size: 0.9375rem;
-}
-.case-file-more {
-  margin-top: 1.25rem;
-  max-width: 38rem;
-  font-size: 0.9375rem;
+.trail-ties li + li {
+  margin-top: 0.3rem;
 }
 
-/* In a debrief: what this case put in the file. */
+/* ---------- Settings ---------- */
+.settings-part {
+  margin-top: 2rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+.return-code {
+  font-family: var(--font-atkinson-mono), ui-monospace, monospace;
+  font-size: 1.125rem;
+  letter-spacing: 0.06em;
+}
+
+/* In a debrief: what this case adds to the trail, as it will appear in the notebook. */
 .filed {
   max-width: 44rem;
   border-left: 6px solid var(--thread);

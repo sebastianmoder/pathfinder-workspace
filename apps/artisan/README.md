@@ -1,8 +1,8 @@
 # ARTISAN
 
-An interactive story game for learning to think better with AI: "The Riverside File". See `ARTISAN-PRD.md` for the product scope.
+An interactive story game for learning to think better with AI, set over one year in the fictional town of Riverside. See `ARTISAN-PRD.md` for the product scope.
 
-There are no accounts or database. Every route is prerendered. The browser keeps the whole game under one key, `artisan_progress` in `localStorage` (`lib/session/stored-progress.ts`): finished cases, the work in each, and the story's state. Nothing is sent anywhere. A reload returns to the step the player was on, and a save file exported from the notebook carries the game to another browser. `/start` and `/continue` are retired and redirect (see `next.config.ts`).
+There are no accounts or database. Every route is prerendered. The browser keeps the whole game under one key, `artisan_progress` in `localStorage` (`lib/session/stored-progress.ts`): finished cases, the work in each, and the story's state. Nothing is sent anywhere. A reload returns to the step the player was on, and a save file or a 12-character return code from the settings page carries the game to another browser. `/start` and `/continue` are retired and redirect (see `next.config.ts`).
 
 ## Running it
 
@@ -21,12 +21,15 @@ pnpm lint
 | `content/en/missions/` | Mission content, answer keys and review metadata |
 | `content/journey.ts` | Stages and modules, with `available` or `planned` status; `bridge: true` puts a module on the seam between stages |
 | `content/en/story/`, `content/story/` | The story around the missions: scenes, chapters, clues, the decisions later scenes come back to (`flags.ts`), and the list of pictures (`art.ts`). It wraps missions and never edits them. `lib/story/story.ts` holds its logic |
-| `components/story/` | The scene player and the picture slots. `assets/story/` holds supplied images; `pnpm art:sync` switches them on (see `ART-BRIEF.md`) |
-| `components/town/`, `components/path/` | The town map, the Riverside file, the case card and the state glyphs. `lib/journey-nav.ts` holds the map's logic |
+| `components/story/` | The scene player (a running conversation), the "Trace it back" activity and the picture slots. `assets/story/` holds supplied images; `pnpm art:sync` switches them on. `ART-BRIEF.md` is written from `content/story/art.ts` by `pnpm art:brief` |
+| `components/saved-state.tsx` | `useSaved`: `useState` for an activity's working state, kept in the save so a reload resumes inside a step |
+| `lib/session/return-code.ts` | The return code. The order of missions and of `content/story/flags.ts` is part of it: add at the end, never reorder |
+| `components/cases/`, `components/path/` | The ordered list of cases, the case card and the state glyphs. `lib/journey-nav.ts` holds the logic |
+| `components/session-summary.tsx`, `components/settings.tsx` | The notebook (key learnings and the trail) and the settings page |
 | `lib/i18n/en.ts` | All interface wording |
 | `components/activities/` | The reusable interaction patterns (see below) |
 | `lib/evidence.ts` | What the learner did this visit, which the debrief reads. Each debrief skill in the content names the items that show it |
-| `app/globals.css`, `app/game.css` | Design tokens and shared classes (`.mat`, `.sheet`, `.claim`, `.btn`, `.ruler`); the title, scene, map and file screens |
+| `app/globals.css`, `app/game.css` | Design tokens and shared classes (`.mat`, `.sheet`, `.claim`, `.btn`, `.ruler`); the title, scene, case list, notebook and settings screens |
 
 ## Curriculum
 

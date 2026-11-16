@@ -123,7 +123,7 @@ test("selections survive switching views, and the audit survives leaving the pag
   await firstRead(page, "Not sure");
 
   await auditClaim(page, /Attendance averaged/, { passage: "attendance-avg", calc: "31", status: "Supported", action: "Retain" });
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Town map", exact: true }).click();
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Cases", exact: true }).click();
   await openFromMap(page, "The Evidence Bureau");
   await expect(page.getByText("Claims checked: 1 of 7")).toBeAttached();
   if (narrow(page)) await page.getByRole("button", { name: "Briefing", exact: true }).click();

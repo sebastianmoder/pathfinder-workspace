@@ -77,3 +77,8 @@ export function nextMission(modules: readonly ModuleEntry[], currentId: string, 
   if (suggested && path.includes(suggested) && !done(suggested)) return suggested;
   return path.find((id) => !done(id)) ?? null;
 }
+
+/** A case's number on the path, from 1. */
+export function caseNumber(modules: readonly ModuleEntry[], moduleId: string) {
+  return available(modules).findIndex((m) => m.id === moduleId) + 1;
+}

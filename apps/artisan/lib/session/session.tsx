@@ -58,6 +58,8 @@ interface SessionApi {
   recordAttempt(missionId: string, stepId: string, choiceId: string): void;
   goTo(missionId: string, stepIndex: number): void;
   setStepState(missionId: string, stepId: string, value: unknown): void;
+  /** Changes one piece of step state from its current value. Stable, so it can be a dependency. */
+  updateStepState(missionId: string, key: string, fn: (previous: unknown) => unknown): void;
   recordEvidence(missionId: string, item: string, result: EvidenceResult): void;
   setFact(missionId: string, key: string, values: string[]): void;
   /** Fixes the order of answer options for this visit. Never rendered itself. */
@@ -114,11 +116,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const orderSeed = state.orderSeed ?? 0;
 
   const update = useCallback((missionId: string, fn: (p: MissionProgress) => MissionProgress) => {
-    setState((s) => ({
-      ...s,
-      missions: { ...s.missions, [missionId]: fn(s.missions[missionId] ?? empty) },
-    }));
+    setState((s) => {
+      const current = s.missions[missionId] ?? empty;
+      const next = fn(current);
+      return next === current ? s : { ...s, missions: { ...s.missions, [missionId]: next } };
+    });
   }, []);
+
+  const updateStepState = useCallback(
+    (id: string, key: string, fn: (previous: unknown) => unknown) =>
+      update(id, (p) => {
+        const next = fn(p.stepState[key]);
+        return Object.is(next, p.stepState[key]) ? p : { ...p, stepState: { ...p.stepState, [key]: next } };
+      }),
+    [update],
+  );
 
   const api = useMemo<SessionApi>(
     () => ({
@@ -144,6 +156,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       goTo: (id, stepIndex) => update(id, (p) => ({ ...p, stepIndex })),
       setStepState: (id, stepId, value) =>
         update(id, (p) => ({ ...p, stepState: { ...p.stepState, [stepId]: value } })),
+      updateStepState,
       recordEvidence: (id, item, result) =>
         update(id, (p) => ({ ...p, evidence: { ...p.evidence, [item]: mergeEvidence(p.evidence[item], result) } })),
       setFact: (id, key, values) => update(id, (p) => ({ ...p, facts: { ...p.facts, [key]: values } })),
@@ -188,7 +201,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       snapshot: () => save,
       load: (loaded) => setState({ ...blank(), ...loaded, orderSeed: loaded.orderSeed ?? newSeed() }),
     }),
-    [state, update, orderSeed, hydrated, save],
+    [state, update, updateStepState, orderSeed, hydrated, save],
   );
 
   return <SessionContext value={api}>{children}</SessionContext>;

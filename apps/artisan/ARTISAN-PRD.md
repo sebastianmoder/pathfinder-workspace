@@ -372,9 +372,15 @@ A later live AI version may respond more freely, but must preserve the same miss
 
 Use the craft metaphor through mission names, tools, and visible work. The interface should remain understandable without game terminology.
 
-**Story:** The cases are told as one story, "The Riverside File". A scripted scene plays before a case's brief and after its last task, chapters follow the four stages, and what the player decided in earlier cases chooses between lines in later scenes. Each finished case adds a clue to the file. The story wraps missions and never changes their tasks, answers or feedback. It carries no points, scores, badges or locked cases: consequences are told, not counted. Scenes are labelled as scripted and fictional, can be skipped at any point, and can be turned off in the notebook.
+**Story:** The cases are told as one story, a year in the town of Riverside. A scripted scene plays before a case's brief and after its last task, chapters follow the four stages, and what the player decided in earlier cases chooses between lines in later scenes. The through-line is a question, where the confident claims that keep reaching Riverside come from; its answer is that nobody invented them: each was true of another place, group or time and lost that on the way. The story wraps missions and never changes their tasks, answers or feedback. It carries no points, scores, badges or locked cases: consequences are told, not counted.
 
-**Town map:** Show Riverside with every case pinned where it happens, and a list of the cases by chapter. Mark each case as finished, under way, next, or not started, by shape as well as colour. Selecting a case shows what it is and practises, and the one action that opens it. A second view shows the Riverside file: the clues from finished cases, along one thread, with the ties between them. The game is kept on this device only, and the player can clear it. It is not a credential or a learner record.
+**Scenes:** A scene is shown as a running conversation. Each line arrives at the foot of the page and earlier lines move up, where they stay to be scrolled back through; the player moves it on, and answers in their own bubble when a character asks something. Scenes are labelled as scripted and fictional, can be skipped at any point, and can be turned off in the settings. One story activity, "Trace it back", sits before the capstone's last chapter and reuses the ranking and matching patterns; it is checked, credits nothing and never blocks the case.
+
+**Cases:** Show every case as one ordered list, by chapter. Mark each as finished, under way, next, or not started, by shape as well as colour. Choosing a case shows what it is and practises, and the one action that opens it: beside the list on a wide screen, directly under the chosen row on a narrow one, so nothing covers the list. No case is locked.
+
+**Notebook:** For each case worked on, show its key learning first, then what the case added to the trail the story follows and how that ties to earlier cases, then the player's first and final judgments and the feedback on them. It can be copied or printed, leaves out written answers, and is a note to oneself, not a credential or a learner record.
+
+**Settings:** Saving, moving the game, story scenes and starting over live on their own page, linked in the navigation.
 
 **Skill recognition:** Mission debriefs can recognize specific demonstrated actions, such as tracing a claim to evidence or identifying an unsupported assumption. These are formative acknowledgments, not credentials.
 
@@ -435,16 +441,16 @@ The browser keeps the whole game, on this device only, under one key (`artisan_p
 
 ### Learner experience
 
-**During a visit and after a reload:** A case opens on the step the player left, with everything before it intact, so revisions, branches and epilogues work. Activities that keep their working state in the session also resume part-way through a step; the others restart that one step.
+**During a visit and after a reload:** A case opens on the step the player left, with everything before it intact, so revisions, branches and epilogues work. Activities keep their working state in the save, so they resume part-way through a step. A single question that was selected but not yet checked starts again.
 
-**Carrying on elsewhere:** The notebook exports the game as a save file, and the title screen and notebook load one. A loaded file replaces the game on that device, after confirmation. Files are validated on load, and anything that isn't a save is refused with a reason.
+**Carrying on elsewhere:** The settings page exports the game as a save file, and the title screen and the settings page load one. A loaded file replaces the game on that device, after confirmation. Files are validated on load, and anything that isn't a save is refused with a reason. The settings page also shows a return code of 12 characters, which restores finished cases and the story's decisions on any device, but not the work inside a case in progress.
 
-**Starting over:** A case in progress can be restarted from "About this case". The notebook clears the whole game.
+**Starting over:** A case in progress can be restarted from "About this case". The settings page clears the whole game.
 
 ### State and limitations
 
 - If storage is blocked or cleared, the app works as before; the map just shows no finished cases.
-- A save file is the only way to move a game between browsers or devices. A short return code that restores finished cases and story decisions (but not half-finished work) is planned.
+- The position of each mission and decision in a return code is fixed. New ones are added at the end of their lists, never reordered, so codes already given out keep their meaning.
 - Later cases must still work for someone who skipped earlier ones: every scene and clue has a default that needs no earlier decision.
 
 ## 12. Content and assessment standards

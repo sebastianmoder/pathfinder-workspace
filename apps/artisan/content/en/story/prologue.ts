@@ -8,7 +8,7 @@ export const prologue: Scene = {
   id: "prologue",
   place: "street",
   when: "Monday, 8:40",
-  title: "The Riverside File",
+  title: "A year in Riverside",
   beats: [
     { text: "The Riverside Learning Commons is an old school building two streets from the river. The sign by the door lists Homework Club, English classes, a digital drop-in and a repair café." },
     { text: "It is your first day as its researcher." },

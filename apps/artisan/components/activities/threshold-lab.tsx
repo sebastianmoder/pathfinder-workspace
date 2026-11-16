@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { ThresholdLabSpec, ThresholdView } from "@/content/types";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { missedGap, outcomes, thresholdGoalMet, totalSelected, withinCapacity } from "@/lib/threshold";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, useReveal } from "../step-ui";
 import { CastBadge } from "../artefacts/cast-badge";
 
@@ -24,11 +25,11 @@ export function ThresholdLab({
   onContinue: () => void;
 }) {
   const uid = useId();
-  const [view, setView] = useState<ThresholdView>(spec.start);
-  const [taskIndex, setTaskIndex] = useState(0);
-  const [result, setResult] = useState<"met" | "notYet" | null>(null);
-  const [usedSolution, setUsedSolution] = useState<string[]>([]);
-  const [checkRun, setCheckRun] = useState(false);
+  const [view, setView] = useSaved<ThresholdView>("view", spec.start);
+  const [taskIndex, setTaskIndex] = useSaved("taskIndex", 0);
+  const [result, setResult] = useSaved<"met" | "notYet" | null>("result", null);
+  const [usedSolution, setUsedSolution] = useSaved<string[]>("usedSolution", []);
+  const [checkRun, setCheckRun] = useSaved("checkRun", false);
   const locked = (versionId: string) => !!spec.check && spec.check.unlocks === versionId && !checkRun;
   const taskRef = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
@@ -42,7 +43,7 @@ export function ThresholdLab({
   }, [taskIndex]);
 
   const task = spec.tasks[taskIndex];
-  const [checks, setChecks] = useState(0);
+  const [checks, setChecks] = useSaved("checks", 0);
   const resultRef = useReveal<HTMLDivElement>(result ? checks : null);
   const o = outcomes(spec, view);
   const selected = totalSelected(o);

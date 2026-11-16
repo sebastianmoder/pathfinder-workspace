@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { ComposeSpec } from "@/content/types";
 import {
   allMet,
@@ -16,6 +16,7 @@ import {
 } from "@/lib/compose";
 import { itemKey, type EvidenceResult } from "@/lib/evidence";
 import { t } from "@/lib/i18n/en";
+import { useSaved } from "../saved-state";
 import { ActionBar, useReveal } from "../step-ui";
 import { ComposeOutput } from "../artefacts/frames";
 
@@ -36,14 +37,14 @@ export function ComposeStudio({
 }) {
   const uid = useId();
   const guided = spec.support !== "independent";
-  const [roundIndex, setRoundIndex] = useState(0);
-  const [choices, setChoices] = useState<Choices>(spec.start);
-  const [versions, setVersions] = useState<Version[]>([]);
-  const [currentId, setCurrentId] = useState<number | null>(null);
-  const [ticks, setTicks] = useState<string[]>([]);
-  const [checkedFor, setCheckedFor] = useState<{ version: number; ticks: string[] } | null>(null);
-  const [usedSolution, setUsedSolution] = useState<string[]>([]);
-  const [goalRecorded, setGoalRecorded] = useState<string[]>([]);
+  const [roundIndex, setRoundIndex] = useSaved("roundIndex", 0);
+  const [choices, setChoices] = useSaved<Choices>("choices", spec.start);
+  const [versions, setVersions] = useSaved<Version[]>("versions", []);
+  const [currentId, setCurrentId] = useSaved<number | null>("currentId", null);
+  const [ticks, setTicks] = useSaved<string[]>("ticks", []);
+  const [checkedFor, setCheckedFor] = useSaved<{ version: number; ticks: string[] } | null>("checkedFor", null);
+  const [usedSolution, setUsedSolution] = useSaved<string[]>("usedSolution", []);
+  const [goalRecorded, setGoalRecorded] = useSaved<string[]>("goalRecorded", []);
   const roundRef = useRef<HTMLHeadingElement>(null);
   const firstRound = useRef(true);
 

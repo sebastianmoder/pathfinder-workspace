@@ -16,6 +16,9 @@ export function holds(c: StoryCondition | undefined, state: StoryState): boolean
   return true;
 }
 
+/** A line as it appears in the conversation: someone's, the narration's, or the player's own answer. */
+export type SaidLine = Line & { you?: boolean };
+
 export interface Asked {
   id: string;
   options: { id: string; label: string }[];
@@ -23,10 +26,10 @@ export interface Asked {
 
 /**
  * The lines of a scene for this player, up to the first question they haven't answered. `asking` is that
- * question; once it is answered (in `picks`), its reply and the lines after it follow.
+ * question; once it is answered (in `picks`), the player's answer, its reply and the lines after it follow.
  */
-export function unfold(scene: Scene, state: StoryState, picks: Record<string, string>): { lines: Line[]; asking: Asked | null } {
-  const lines: Line[] = [];
+export function unfold(scene: Scene, state: StoryState, picks: Record<string, string>): { lines: SaidLine[]; asking: Asked | null } {
+  const lines: SaidLine[] = [];
   for (const beat of scene.beats) {
     if ("either" in beat) {
       const alternative = beat.either.find((a) => holds(a.when, state)) ?? beat.either[beat.either.length - 1];
@@ -35,7 +38,7 @@ export function unfold(scene: Scene, state: StoryState, picks: Record<string, st
       lines.push(beat.ask);
       const picked = beat.options.find((o) => o.id === picks[beat.id]);
       if (!picked) return { lines, asking: { id: beat.id, options: beat.options.map(({ id, label }) => ({ id, label })) } };
-      lines.push(...picked.reply);
+      lines.push({ you: true, text: picked.label }, ...picked.reply);
     } else if (holds(beat.when, state)) {
       lines.push({ who: beat.who, text: beat.text });
     }
@@ -70,6 +73,11 @@ export function scenesAfter(book: StoryBook, m: ModuleEntry, missionId: string, 
   const finished = [...completed, missionId];
   const closer = stageDone(modules, m.stage, finished) ? chapterOf(book, m)?.closer : undefined;
   return [own, closer].filter(unseen(seen));
+}
+
+/** The activity, if any, that comes between a mission's opening scene and its brief. */
+export function interludeOf(book: StoryBook, m: ModuleEntry, missionId: string) {
+  return caseOf(book, m.id)?.interlude?.[missionId] ?? null;
 }
 
 /** The values a finished mission gives the story's flags. */
@@ -123,4 +131,32 @@ export function allLines(beat: Beat): Line[] {
   if ("either" in beat) return beat.either.flatMap((a) => a.lines);
   if ("ask" in beat) return [beat.ask, ...beat.options.flatMap((o) => o.reply)];
   return [beat];
+}
+
+/** The lists that fix the meaning of a return code: missions and flags, each in its declared order. */
+export function codeShape(missionIds: readonly string[], defs: readonly FlagDef[]) {
+  return { missions: missionIds, flags: defs.map((d) => ({ id: d.id, values: d.values.map((v) => v.value) })) };
+}
+
+/**
+ * The scenes someone with these finished missions has been through, so that a game restored from a return
+ * code doesn't replay them.
+ */
+export function scenesPlayedBy(book: StoryBook, modules: readonly ModuleEntry[], completed: readonly string[]): string[] {
+  if (completed.length === 0) return [];
+  const ids = [book.opening.id];
+  for (const m of modules) {
+    const done = m.missionIds.filter((id) => completed.includes(id));
+    if (done.length === 0) continue;
+    const chapter = chapterOf(book, m);
+    if (chapter?.opener) ids.push(chapter.opener.id);
+    if (chapter?.closer && stageDone(modules, m.stage, completed)) ids.push(chapter.closer.id);
+    const story = caseOf(book, m.id);
+    for (const id of done) {
+      if (story?.open[id]) ids.push(story.open[id].id);
+      if (story?.close[id]) ids.push(story.close[id].id);
+      if (story?.interlude?.[id]) ids.push(`${story.interlude[id]}:${id}`);
+    }
+  }
+  return [...new Set(ids)];
 }

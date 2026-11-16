@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "next typegen && tsc --noEmit",
-    "art:sync": "node scripts/art-sync.mjs"
+    "art:sync": "node scripts/art-sync.mjs",
+    "art:brief": "node --experimental-strip-types --no-warnings scripts/art-brief.mjs"
   },
   "dependencies": {
     "next": "16.4.5",

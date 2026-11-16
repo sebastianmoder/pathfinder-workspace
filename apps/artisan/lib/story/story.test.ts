@@ -34,13 +34,14 @@ describe("story engine", () => {
     expect(first.lines.map((l) => l.text)).toEqual(["one", "default", "well?"]);
     expect(first.asking?.options.map((o) => o.label)).toEqual(["Yes", "No"]);
     const then = unfold(scene, none, { q: "y" });
-    expect(then.lines.map((l) => l.text)).toEqual(["one", "default", "well?", "yes then", "after"]);
+    expect(then.lines.map((l) => l.text)).toEqual(["one", "default", "well?", "Yes", "yes then", "after"]);
+    expect(then.lines[3].you).toBe(true);
     expect(then.asking).toBeNull();
   });
 
   it("chooses lines by what the player decided and finished", () => {
     const lines = unfold(scene, { flags: { f: "a" }, completed: ["m1"] }, { q: "n" }).lines.map((l) => l.text);
-    expect(lines).toEqual(["one", "only after m1", "was a", "well?", "after"]);
+    expect(lines).toEqual(["one", "only after m1", "was a", "well?", "No", "after"]);
     expect(holds({ flag: { id: "f", is: ["a"] }, done: ["m1"] }, { flags: { f: "a" }, completed: [] })).toBe(false);
   });
 
@@ -69,7 +70,7 @@ describe("story engine", () => {
     expect(deriveFlags(flags, "m01-foundations", { ...blank, choices: { initial: "a" } })).toEqual({ firstAnswer: "used" });
     expect(deriveFlags(flags, "m01-foundations", blank)).toEqual({ firstAnswer: "checked" });
     expect(deriveFlags(flags, "b01-faq", { ...blank, facts: { "roles/roles": ["themes:assisted", "answers:automated"] } })).toEqual({ faq: "unchecked" });
-    expect(deriveFlags(flags, "m05-argument", blank)).toEqual({});
+    expect(deriveFlags(flags, "m03-briefing", blank)).toEqual({});
   });
 
   it("files a clue when its case is finished, and ties it only to clues already there", () => {
