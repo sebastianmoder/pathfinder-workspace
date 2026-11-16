@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { getStore } from '@netlify/blobs';
-import type { ChatErrorInfo } from './types';
+import type { ChatErrorInfo, GenerationPhase } from './types';
 
 export const JOB_DEADLINE_MS = 5 * 60_000;
 export const JOB_RETENTION_MS = 60 * 60_000;
@@ -14,6 +14,7 @@ export interface ChatJob {
   updatedAt: number;
   expiresAt: number;
   status: 'queued' | 'running' | 'complete' | 'error';
+  phase?: GenerationPhase;
   content: string;
   generationId?: string;
   finishReason?: string;

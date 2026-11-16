@@ -49,6 +49,7 @@ export async function submitChatJob(request: Request) {
     updatedAt: startedAt,
     expiresAt: startedAt + JOB_RETENTION_MS,
     status: 'queued',
+    phase: 'waiting',
     content: '',
   };
   const store = chatJobStore();

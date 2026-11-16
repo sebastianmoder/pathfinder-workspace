@@ -104,7 +104,11 @@ export interface ChatMessage {
   failure?: ChatErrorInfo;
   job?: ChatJobReference;
   animated?: boolean;
+  /** Progress of an in-flight response: waiting for the model, reasoning, or writing text. */
+  phase?: GenerationPhase;
 }
+
+export type GenerationPhase = 'waiting' | 'reasoning' | 'writing';
 
 export interface ChatJobReference {
   id: string;
@@ -143,6 +147,9 @@ export type ChatStreamEvent =
       type: 'start';
       requestId: string;
       startedAt: number;
+    }
+  | {
+      type: 'reasoning';
     }
   | {
       type: 'content';

@@ -471,7 +471,7 @@ The split-panel layout is designed for desktop/laptop screens (1024px+). On tabl
 | Framework | Next.js (App Router) with TypeScript | SSR for landing page SEO, client-side rendering for lab interactivity. Consistent with existing project infrastructure. |
 | Styling | Tailwind CSS | Utility-first approach for rapid UI development. Consistent with existing GUARD codebase. |
 | State Management | Zustand | Lightweight, minimal boilerplate. Well-suited for managing lab state, iteration progress, and chat history. |
-| LLM Integration | OpenAI SDK pointed at OpenRouter (server-side route handler) | Default access uses a configured OpenRouter key and MiniMax M3. BYOK users can provide their own OpenRouter key and select curated or custom OpenRouter model endpoints. Streaming responses via server-sent events. |
+| LLM Integration | OpenAI SDK pointed at OpenRouter (server-side route handler) | Default access uses a configured OpenRouter key and Claude Haiku 5.5 at medium reasoning effort. BYOK users can provide their own OpenRouter key and select curated or custom OpenRouter model endpoints. Streaming responses via server-sent events. |
 | File Parsing | Next.js route handler with document parsing libraries | Supports uploaded context documents for document-driven labs. |
 | Authentication | None in V1 | Guest mode is the only mode. Full lab functionality works without login. |
 | Hosting | Netlify | Consistent with existing deployment pipeline. |

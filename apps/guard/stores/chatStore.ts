@@ -2,10 +2,8 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { ChatErrorInfo, ChatJobReference, ChatMessage } from '@/lib/types';
-import { DEFAULT_MODEL, DEFAULT_BYOK_MODEL } from '@/lib/constants';
-
-const LEGACY_DEFAULT_MODEL = 'arcee-ai/trinity-large-preview:free';
+import type { ChatErrorInfo, ChatJobReference, ChatMessage, GenerationPhase } from '@/lib/types';
+import { DEFAULT_MODEL, DEFAULT_BYOK_MODEL, PREVIOUS_DEFAULT_MODELS } from '@/lib/constants';
 
 interface ChatStore {
   messages: ChatMessage[];
@@ -19,7 +17,8 @@ interface ChatStore {
   restartStreaming: (messageId: string) => void;
   appendStreamChunk: (messageId: string, chunk: string) => void;
   setActiveJob: (messageId: string, job: ChatJobReference) => void;
-  setJobContent: (messageId: string, content: string) => void;
+  setJobContent: (messageId: string, content: string, phase?: GenerationPhase) => void;
+  setPhase: (messageId: string, phase: GenerationPhase) => void;
   finishStreaming: (messageId: string) => void;
   failStreaming: (messageId: string, error: ChatErrorInfo) => void;
   acceptPartialMessage: (messageId: string) => void;
@@ -53,6 +52,7 @@ function normalizeRestoredMessages(messages: ChatMessage[]): ChatMessage[] {
       ...message,
       isStreaming: false,
       status: 'incomplete',
+      phase: undefined,
       failure: message.failure ?? {
         code: 'connection_interrupted',
         message: 'The response was interrupted when this page was closed or reloaded.',
@@ -101,6 +101,7 @@ export const useChatStore = create<ChatStore>()(
       iterationNumber,
       isStreaming: true,
       status: 'streaming',
+      phase: 'waiting',
       inReplyToMessageId,
     };
     set((state) => ({
@@ -120,6 +121,7 @@ export const useChatStore = create<ChatStore>()(
               content: '',
               isStreaming: true,
               status: 'streaming',
+              phase: 'waiting',
               failure: undefined,
               job: undefined,
               animated: false,
@@ -135,7 +137,7 @@ export const useChatStore = create<ChatStore>()(
   appendStreamChunk: (messageId, chunk) => {
     set((state) => ({
       messages: state.messages.map((m) =>
-        m.id === messageId ? { ...m, content: m.content + chunk } : m
+        m.id === messageId ? { ...m, content: m.content + chunk, phase: 'writing' } : m
       ),
     }));
   },
@@ -146,10 +148,20 @@ export const useChatStore = create<ChatStore>()(
     }));
   },
 
-  setJobContent: (messageId, content) => {
+  setJobContent: (messageId, content, phase) => {
     set((state) => ({
       messages: state.messages.map((m) =>
-        m.id === messageId && content.length >= m.content.length ? { ...m, content } : m
+        m.id === messageId && content.length >= m.content.length
+          ? { ...m, content, phase: content ? 'writing' : phase ?? m.phase }
+          : m
+      ),
+    }));
+  },
+
+  setPhase: (messageId, phase) => {
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === messageId && m.phase !== 'writing' ? { ...m, phase } : m
       ),
     }));
   },
@@ -162,6 +174,7 @@ export const useChatStore = create<ChatStore>()(
               ...m,
               isStreaming: false,
               status: 'complete',
+              phase: undefined,
               failure: undefined,
               job: undefined,
             }
@@ -179,6 +192,7 @@ export const useChatStore = create<ChatStore>()(
               ...m,
               isStreaming: false,
               status: 'incomplete',
+              phase: undefined,
               failure: error,
               job: undefined,
             }
@@ -197,6 +211,7 @@ export const useChatStore = create<ChatStore>()(
               ...m,
               isStreaming: false,
               status: 'complete',
+              phase: undefined,
               failure: undefined,
               job: undefined,
             }
@@ -246,7 +261,7 @@ export const useChatStore = create<ChatStore>()(
         const persisted = (persistedState ?? {}) as Partial<ChatStore>;
         const restored = normalizeRestoredMessages(persisted.messages ?? currentState.messages);
         const shouldUpgradeLegacyDefault =
-          !persisted.byokKey && persisted.model === LEGACY_DEFAULT_MODEL;
+          !persisted.byokKey && PREVIOUS_DEFAULT_MODELS.includes(persisted.model ?? '');
 
         return {
           ...currentState,

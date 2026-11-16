@@ -2,31 +2,13 @@ import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 import { DEFAULT_MODEL } from '@/lib/constants';
 import { submitChatJob } from '@/lib/submitChatJob';
+import { chunkHasReasoning, chunkText, openRouterStreamParams, type OpenRouterStreamChunk } from '@/lib/openrouterStream';
 import type { ChatErrorCode, ChatErrorInfo, ChatStreamEvent } from '@/lib/types';
 
 export const maxDuration = 60;
 
 const STREAM_DEADLINE_MS = 55_000;
 const HEARTBEAT_INTERVAL_MS = 10_000;
-
-type OpenRouterError = {
-  code?: number | string;
-  message?: string;
-  metadata?: {
-    error_type?: string;
-  };
-};
-
-type StreamChunk = {
-  error?: OpenRouterError | string;
-  id?: string;
-  choices?: Array<{
-    delta?: {
-      content?: string | Array<{ type?: string; text?: string }>;
-    };
-    finish_reason?: string | null;
-  }>;
-};
 
 type FailureContext = {
   requestId: string;
@@ -249,11 +231,7 @@ export async function POST(request: Request) {
     });
 
     const stream = await openai.chat.completions.create(
-      {
-        model,
-        messages,
-        stream: true,
-      },
+      openRouterStreamParams(model, messages),
       { signal: upstreamController.signal, maxRetries: 0 }
     );
 
@@ -285,9 +263,10 @@ export async function POST(request: Request) {
 
         try {
           let finishReason: string | null = null;
+          let reasoningAnnounced = false;
 
           for await (const chunk of stream) {
-            const streamChunk = chunk as StreamChunk;
+            const streamChunk = chunk as OpenRouterStreamChunk;
             generationId = streamChunk.id ?? generationId;
             const upstreamError = streamChunk.error;
 
@@ -316,20 +295,15 @@ export async function POST(request: Request) {
               finishReason = choice.finish_reason;
             }
 
-            const deltaContent = choice?.delta?.content;
-            const content =
-              typeof deltaContent === 'string'
-                ? deltaContent
-                : Array.isArray(deltaContent)
-                  ? deltaContent
-                      .filter((part) => part.type === 'text' && typeof part.text === 'string')
-                      .map((part) => part.text)
-                      .join('')
-                  : '';
+            const content = chunkText(streamChunk);
 
             if (content) {
               hasPartialResponse = true;
               enqueueEvent({ type: 'content', content, generationId });
+            } else if (!reasoningAnnounced && !hasPartialResponse && chunkHasReasoning(streamChunk)) {
+              // Announce the reasoning phase once; the reasoning text itself is not forwarded.
+              reasoningAnnounced = true;
+              enqueueEvent({ type: 'reasoning' });
             }
           }
 

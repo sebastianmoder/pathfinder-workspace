@@ -3,7 +3,7 @@
 import { useCallback, useEffect } from 'react';
 import { useChatStore } from '@/stores/chatStore';
 import { useLabSessionStore } from '@/stores/labSessionStore';
-import type { ChatErrorCode, ChatErrorInfo, ChatJobReference, ChatMessage } from '@/lib/types';
+import type { ChatErrorCode, ChatErrorInfo, ChatJobReference, ChatMessage, GenerationPhase } from '@/lib/types';
 
 const AUTO_RETRY_CODES = new Set<ChatErrorCode>([
   'connection_interrupted',
@@ -93,6 +93,7 @@ type JobSnapshot = {
   requestId: string;
   startedAt: number;
   status: 'queued' | 'running' | 'complete' | 'error';
+  phase?: GenerationPhase;
   content: string;
   generationId?: string;
   finishReason?: string;
@@ -125,7 +126,9 @@ async function pollChatJob(assistantId: string, job: ChatJobReference) {
       if (Date.now() - job.startedAt > JOB_STALE_AFTER_MS) {
         throw new ChatStreamFailure({
           code: 'hosting_timeout',
-          message: 'Generation did not finish within the five minute limit. The partial response has been preserved.',
+          message: current.content.length > 0
+            ? 'Generation did not finish within the five minute limit. The partial response has been preserved.'
+            : 'The model did not start its answer within the five minute limit. Please try again.',
           retryable: true,
           requestId: job.requestId,
           elapsedMs: Date.now() - job.startedAt,
@@ -147,7 +150,7 @@ async function pollChatJob(assistantId: string, job: ChatJobReference) {
           throw new Error('Invalid job status');
         }
         failures = 0;
-        useChatStore.getState().setJobContent(assistantId, snapshot.content);
+        useChatStore.getState().setJobContent(assistantId, snapshot.content, snapshot.phase);
 
         if (snapshot.status === 'error') {
           throw new ChatStreamFailure(snapshot.error ?? jobConnectionError(job, snapshot.content.length > 0));
@@ -198,6 +201,7 @@ export function useChat() {
   const restartStreaming = useChatStore((s) => s.restartStreaming);
   const appendStreamChunk = useChatStore((s) => s.appendStreamChunk);
   const setActiveJob = useChatStore((s) => s.setActiveJob);
+  const setPhase = useChatStore((s) => s.setPhase);
   const finishStreaming = useChatStore((s) => s.finishStreaming);
   const failStreaming = useChatStore((s) => s.failStreaming);
   const acceptPartialMessage = useChatStore((s) => s.acceptPartialMessage);
@@ -330,6 +334,11 @@ export function useChat() {
 
             if (parsed.type === 'start') {
               if (typeof parsed.requestId === 'string') requestId = parsed.requestId;
+              return;
+            }
+
+            if (parsed.type === 'reasoning') {
+              setPhase(assistantId, 'reasoning');
               return;
             }
 
@@ -471,6 +480,7 @@ export function useChat() {
       byokKey,
       appendStreamChunk,
       setActiveJob,
+      setPhase,
       finishStreaming,
       failStreaming,
       restartStreaming,

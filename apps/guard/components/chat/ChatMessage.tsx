@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { CopyButton } from './CopyButton';
 import { MarkdownContent } from './MarkdownContent';
+import { StreamingIndicator } from './StreamingIndicator';
 import type { ChatMessage as ChatMessageType } from '@/lib/types';
 
 function ProgressiveMarkdown({ content, isStreaming }: { content: string; isStreaming: boolean }) {
-  const [visibleContent, setVisibleContent] = useState(content);
+  // Mounted mid-stream (the first text just arrived), so reveal it from the start.
+  const [visibleContent, setVisibleContent] = useState(isStreaming ? '' : content);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -80,11 +82,13 @@ export function ChatMessage({ message, onRetry, onKeepPartial }: ChatMessageProp
         >
           {isUser
             ? <div className="whitespace-pre-wrap">{message.content}</div>
-            : animateContent
-              ? <ProgressiveMarkdown key={message.timestamp} content={message.content} isStreaming={isStreaming} />
-              : <MarkdownContent content={message.content} />
+            : isStreaming && !message.content
+              ? <StreamingIndicator phase={message.phase} startedAt={message.timestamp} />
+              : animateContent
+                ? <ProgressiveMarkdown key={message.timestamp} content={message.content} isStreaming={isStreaming} />
+                : <MarkdownContent content={message.content} />
           }
-          {isStreaming && !animateContent && (
+          {isStreaming && !animateContent && message.content && (
             <span className="inline-block w-1.5 h-4 bg-guard-blue-400 animate-pulse ml-0.5 align-middle" />
           )}
         </div>

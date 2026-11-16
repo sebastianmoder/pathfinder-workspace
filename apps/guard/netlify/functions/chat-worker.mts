@@ -2,18 +2,10 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import OpenAI from 'openai';
 import type { Config } from '@netlify/functions';
 import { chatJobInputStore, chatJobStore, JOB_DEADLINE_MS, type ChatJob, type ChatJobInput, type ChatJobSubmission } from '../../lib/chatJobs';
+import { chunkHasReasoning, chunkText, openRouterStreamParams, type OpenRouterStreamChunk } from '../../lib/openrouterStream';
 import type { ChatErrorCode, ChatErrorInfo } from '../../lib/types';
 
 export const config: Config = { background: true };
-
-type StreamChunk = {
-  error?: { code?: string | number; message?: string } | string;
-  id?: string;
-  choices?: Array<{
-    delta?: { content?: string | Array<{ type?: string; text?: string }> };
-    finish_reason?: string | null;
-  }>;
-};
 
 function signed(payload: string, signature: string | null, secret: string) {
   if (!signature || !/^[0-9a-f]{64}$/.test(signature)) return false;
@@ -34,7 +26,9 @@ function classify(error: unknown, job: ChatJob, deadlineReached: boolean): ChatE
 
   if (deadlineReached) {
     code = 'hosting_timeout';
-    userMessage = 'Generation exceeded the five minute limit. The partial response has been preserved.';
+    userMessage = job.content.length > 0
+      ? 'Generation exceeded the five minute limit. The partial response has been preserved.'
+      : 'The model did not start its answer within the five minute limit. Please try again.';
   } else if (status === 429 || fingerprint.includes('rate_limit')) {
     code = 'rate_limited';
     userMessage = 'The model provider is receiving too many requests. Please wait a moment and try again.';
@@ -92,6 +86,27 @@ export default async function handler(request: Request) {
   if (!job || job.status === 'complete' || job.status === 'error' || job.expiresAt <= Date.now()) {
     return new Response(null, { status: 204 });
   }
+  if (job.status === 'running') {
+    // Netlify re-invokes a background function after it fails. Restarting here would
+    // append a second generation to the saved partial text, so end the job instead.
+    job.status = 'error';
+    job.updatedAt = Date.now();
+    job.error = {
+      code: 'connection_interrupted',
+      message: job.content.length > 0
+        ? 'The server stopped before the response finished. The partial response has been preserved.'
+        : 'The server stopped before the model returned a response. Please try again.',
+      retryable: true,
+      requestId: job.requestId,
+      generationId: job.generationId,
+      elapsedMs: Date.now() - job.startedAt,
+      hasPartialResponse: job.content.length > 0,
+    };
+    await store.setJSON(job.id, job).catch(() => undefined);
+    await chatJobInputStore().delete(job.id).catch(() => undefined);
+    console.error({ event: 'chat_job_error', jobId: job.id, requestId: job.requestId, errorType: job.error.code, reason: 'reinvoked while running' });
+    return new Response(null, { status: 204 });
+  }
   const inputStore = chatJobInputStore();
   const input = await inputStore.get(job.id, { type: 'json' }) as ChatJobInput | null;
   if (!input || !Array.isArray(input.messages)) {
@@ -119,8 +134,11 @@ export default async function handler(request: Request) {
     const snapshot = { ...job };
     dirty = false;
     lastSavedAt = now;
-    saveQueue = saveQueue.then(() => store.setJSON(job.id, snapshot));
-    return saveQueue;
+    // A failed write must not reject every later write, or the final
+    // complete/error status could never be stored.
+    const write = saveQueue.catch(() => undefined).then(() => store.setJSON(job.id, snapshot));
+    saveQueue = write;
+    return write;
   };
   const interval = setInterval(() => { void save().catch((error) => {
     console.error({ event: 'chat_job_save_error', jobId: job.id, requestId: job.requestId, error });
@@ -132,22 +150,24 @@ export default async function handler(request: Request) {
     await save(true);
     const openai = new OpenAI({ apiKey: submission.apiKey, baseURL: 'https://openrouter.ai/api/v1' });
     const stream = await openai.chat.completions.create(
-      { model: submission.model, messages: input.messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[], stream: true },
+      openRouterStreamParams(submission.model, input.messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[]),
       { signal: upstreamController.signal, maxRetries: 0 }
     );
     let finishReason: string | null = null;
     for await (const chunk of stream) {
-      const item = chunk as StreamChunk;
+      const item = chunk as OpenRouterStreamChunk;
       job.generationId = item.id ?? job.generationId;
       if (item.error) throw item.error;
       const choice = item.choices?.[0];
       if (choice?.finish_reason) finishReason = choice.finish_reason;
-      const delta = choice?.delta?.content;
-      const text = typeof delta === 'string' ? delta
-        : Array.isArray(delta) ? delta.filter((part) => part.type === 'text' && typeof part.text === 'string').map((part) => part.text).join('')
-        : '';
+      const text = chunkText(item);
       if (text) {
         job.content += text;
+        job.phase = 'writing';
+        dirty = true;
+      } else if (job.phase !== 'reasoning' && job.phase !== 'writing' && chunkHasReasoning(item)) {
+        // Only the fact that the model is reasoning is stored, never its reasoning text.
+        job.phase = 'reasoning';
         dirty = true;
       }
     }
@@ -161,13 +181,15 @@ export default async function handler(request: Request) {
   } catch (error) {
     job.error = classify(error, job, deadlineReached);
     job.status = 'error';
-    await save(true);
     console.error({ event: 'chat_job_error', jobId: job.id, requestId: job.requestId, generationId: job.generationId, model: job.model, elapsedMs: job.error.elapsedMs, errorType: job.error.code });
+    await save(true).catch((saveError) => {
+      console.error({ event: 'chat_job_save_error', jobId: job.id, requestId: job.requestId, error: saveError });
+    });
   } finally {
     clearInterval(interval);
     clearTimeout(deadline);
     upstreamController.abort();
-    await saveQueue;
+    await saveQueue.catch(() => undefined);
     await inputStore.delete(job.id).catch((error) => {
       console.error({ event: 'chat_job_input_cleanup_error', jobId: job.id, requestId: job.requestId, error });
     });

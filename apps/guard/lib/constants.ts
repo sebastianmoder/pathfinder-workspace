@@ -18,23 +18,35 @@ export const PHASE_DESCRIPTIONS: Record<Phase, string> = {
 
 export type ModelAvailability = 'Free' | 'Paid';
 
+export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high';
+
 export type ModelOption = {
   id: string;
   name: string;
   provider: string;
   label: string;
   availability: ModelAvailability;
+  /** Sent to OpenRouter as `reasoning.effort`. Omit to use the provider default. */
+  reasoningEffort?: ReasoningEffort;
 };
 
 export const DEFAULT_MODEL_OPTION: ModelOption = {
-  id: 'minimax/minimax-m3',
-  name: 'MiniMax M3',
-  provider: 'MiniMax',
-  label: 'MiniMax M3 (MiniMax)',
+  id: 'anthropic/claude-haiku-5.5',
+  name: 'Claude Haiku 5.5',
+  provider: 'Anthropic',
+  label: 'Claude Haiku 5.5 (Anthropic)',
   availability: 'Free',
+  // Lower to 'low' if time to first token is still too long.
+  reasoningEffort: 'medium',
 };
 
 export const DEFAULT_MODEL = DEFAULT_MODEL_OPTION.id;
+
+/** Earlier built-in defaults; sessions still holding one are moved to DEFAULT_MODEL. */
+export const PREVIOUS_DEFAULT_MODELS = [
+  'arcee-ai/trinity-large-preview:free',
+  'minimax/minimax-m3',
+];
 
 export const BYOK_MODELS: ModelOption[] = [
   DEFAULT_MODEL_OPTION,
@@ -82,5 +94,9 @@ export const BYOK_MODELS: ModelOption[] = [
   },
 ];
 export const DEFAULT_BYOK_MODEL = DEFAULT_MODEL;
+
+export function reasoningEffortFor(model: string): ReasoningEffort | undefined {
+  return BYOK_MODELS.find((option) => option.id === model)?.reasoningEffort;
+}
 
 export const MAX_ITERATIONS = 3;
