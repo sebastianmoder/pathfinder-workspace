@@ -24,7 +24,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.5",
     "pagefind": "^1.6.0",
-    "postcss": "8.5.32",
+    "postcss": "8.5.33",
     "tailwindcss": "^4.3.5"
   },
   "name": "@pathfinder/sage",
