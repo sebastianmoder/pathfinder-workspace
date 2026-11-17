@@ -11,8 +11,9 @@ Before moving a draft into `content/`:
 2. verify factual and product-specific claims against current primary sources;
 3. add the page to the relevant `_meta.js` and section overview;
 4. check internal links and references;
-5. run `pnpm build`; and
+5. run `pnpm --filter @pathfinder/sage build` from the workspace root; and
 6. inspect the rendered page and search/sidebar behaviour locally.
 
-The sitemap configuration excludes the former draft URLs as a defence against
-stale incremental build output.
+The sitemap is generated from the same published content registry as Nextra's
+page routes. Files kept here are outside that registry. See the
+[SAGE README](../README.md) for local setup, content editing and hosting.

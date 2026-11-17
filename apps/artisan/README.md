@@ -1,71 +1,161 @@
-# ARTISAN
+# ARTISAN — AI Readiness Training for Insightful Systematic Adaptation and Navigation
 
-An interactive story game for learning to think better with AI, set over one year in the fictional town of Riverside. See `ARTISAN-PRD.md` for the product scope.
+[Play ARTISAN](https://artisan.ai-pathfinder.eu)
 
-There are no accounts or database. Every route is prerendered. The browser keeps the whole game under one key, `artisan_progress` in `localStorage` (`lib/session/stored-progress.ts`): finished cases, the work in each, and the story's state. Nothing is sent anywhere. A reload returns to the step the player was on, and a save file or a 12-character return code from the settings page carries the game to another browser. `/start` and `/continue` are retired and redirect (see `next.config.ts`).
+ARTISAN is an interactive story game for educators and students learning to think better with AI. Set over one year in the fictional town of Riverside, it asks learners to investigate evidence, test claims, make decisions and explain their reasoning. Decisions in the cases shape what the surrounding story remembers.
 
-## Running it
+It is an output of the Erasmus+ **Pathfinder** project, **Pioneering AI Technology in Higher Education to Facilitate Innovation and Nurture the Development of Entrepreneurial Resources** (project reference [`2023-2-LI01-KA220-HED-000178579`](https://erasmus-plus.ec.europa.eu/projects/search/details/2023-2-LI01-KA220-HED-000178579)).
+
+The game uses authored scenarios, branching dialogue and simulations. It needs no live model, API key, account or database. Learners' answers and game saves stay in their browser unless they export a save themselves.
+
+## The learning journey
+
+The curriculum has four stages, with modules M01–M13, three bridge challenges and a four-part capstone:
+
+| Stage | Focus |
+| --- | --- |
+| **1. Understand and choose** | How AI prediction works, when to delegate and how to write a useful brief |
+| **2. Investigate and think** | Checking evidence, examining arguments, choosing help and interpreting numbers |
+| **3. Create and act responsibly** | Verifying media, examining fairness, setting boundaries and recording creative contributions |
+| **4. Design and participate** | Testing AI workflows and weighing effects on a community |
+| **Capstone** | Scope, investigate, test and defend a proposal for a town's AI information service |
+
+The bridge challenges B01, T01 and B03 ask learners to apply earlier skills to a new case without hints. M06 has two missions; C01 has four independently restartable chapters. Debriefs explain the learning and lead to the next mission, or the next unfinished case. See the [product requirements](ARTISAN-PRD.md) for the educational design.
+
+## Progress, saves and return codes
+
+The browser stores the game under **`artisan_progress` in `localStorage`**: completed cases, work within each case and story state. Reloading resumes the current step. Progress belongs to the browser, device and site origin; there is no server-side learner record or automatic cross-device sync. Clearing site data removes the local save. If browser storage is blocked or full, the game can still run but progress may not be remembered.
+
+Settings provides two ways to move between browsers or devices:
+
+- **Save file:** carries the complete saved game, including choices, written work and progress inside a case.
+- **Return code:** carries completed cases and story decisions. It does **not** restore work inside a partially completed case.
+
+On shared computers, learners can export their save and clear the local game in Settings. Hosting ARTISAN does not provide a teacher dashboard, central gradebook or learning-management-system integration.
+
+## Run locally
+
+Clone or download the **whole monorepo**, including shared packages. Use Node.js **22.22.0** from the root `.nvmrc` and pnpm **10.30.3**. Run all commands from the **workspace root**, two directories above `apps/artisan`, where `pnpm-workspace.yaml` lives.
+
+With nvm and Corepack available:
 
 ```bash
-pnpm install
-pnpm dev          # http://localhost:3000 (pnpm dev:artisan from the workspace root uses port 3003)
-pnpm test         # unit and content rules
-pnpm test:e2e     # builds, then runs Playwright at desktop and 375px widths (E2E_PORT=3111 if 3100 is taken)
-pnpm lint
+nvm install
+nvm use
+corepack enable pnpm
+pnpm install --frozen-lockfile
+pnpm dev:artisan
 ```
 
-## Where things live
+Open [http://localhost:3003](http://localhost:3003). No environment variables are required.
 
-| Path | What it holds |
+## How it works
+
+ARTISAN uses Next.js 16's App Router, React 19, TypeScript and Tailwind CSS. Routes are prerendered; client-side components run the activities and manage game state. Mission content, interaction logic and story content are separate so an educational revision can be reviewed without changing the whole application.
+
+| Path, relative to this app | Purpose |
 | --- | --- |
 | `content/en/missions/` | Mission content, answer keys and review metadata |
-| `content/journey.ts` | Stages and modules, with `available` or `planned` status; `bridge: true` puts a module on the seam between stages |
-| `content/en/story/`, `content/story/` | The story around the missions: scenes, chapters, clues, the decisions later scenes come back to (`flags.ts`), and the list of pictures (`art.ts`). It wraps missions and never edits them. `lib/story/story.ts` holds its logic |
-| `components/story/` | The scene player (a running conversation), the "Trace it back" activity and the picture slots. `assets/story/` holds supplied images; `pnpm art:sync` switches them on. `ART-BRIEF.md` is written from `content/story/art.ts` by `pnpm art:brief` |
-| `components/saved-state.tsx` | `useSaved`: `useState` for an activity's working state, kept in the save so a reload resumes inside a step |
-| `lib/session/return-code.ts` | The return code. The order of missions and of `content/story/flags.ts` is part of it: add at the end, never reorder |
-| `components/cases/`, `components/path/` | The ordered list of cases, the case card and the state glyphs. `lib/journey-nav.ts` holds the logic |
-| `components/session-summary.tsx`, `components/settings.tsx` | The notebook (key learnings and the trail) and the settings page |
-| `lib/i18n/en.ts` | All interface wording |
-| `components/activities/` | The reusable interaction patterns (see below) |
-| `lib/evidence.ts` | What the learner did this visit, which the debrief reads. Each debrief skill in the content names the items that show it |
-| `app/globals.css`, `app/game.css` | Design tokens and shared classes (`.mat`, `.sheet`, `.claim`, `.btn`, `.ruler`); the title, scene, case list, notebook and settings screens |
+| `content/missions.ts`, `content/journey.ts` | Mission registry, stage order, module availability and bridge placement |
+| `content/types.ts` | Types for missions and activity steps |
+| `content/en/story/`, `content/story/` | Scenes, chapters, clues, remembered decisions in `flags.ts` and artwork registry in `art.ts` |
+| `components/mission-runner.tsx`, `components/activities/` | Mission flow and reusable activities |
+| `components/story/`, `lib/story/story.ts` | Scene player, “Trace it back” activity and story logic |
+| `lib/` | Activity logic, journey navigation and evidence used by debriefs |
+| `lib/session/` | Browser persistence, save format and return-code encoding |
+| `components/saved-state.tsx` | Activity state that survives a reload through `useSaved` |
+| `components/cases/`, `components/path/` | Case list, cards and progress indicators |
+| `components/session-summary.tsx`, `components/settings.tsx` | Notebook, save transfer and reset controls |
+| `lib/i18n/en.ts` | Interface wording |
+| `assets/story/`, `assets/scenes/` | Story and activity images |
+| `app/globals.css`, `app/game.css` | Design tokens and shared game styles |
+| `e2e/` | Browser journey and accessibility checks |
 
-## Curriculum
+Shared fonts, project branding, product URLs and the funding footer live in `packages/brand/` at the workspace root; shared Next.js settings live in `packages/config/`.
 
-All of the PRD's journey is available: stages 1–4 (M01–M13), a bridge challenge at the end of stages 1–3 (B01, T01, B03), and the C01 capstone in four chapters. The guided order follows the curriculum, and each debrief's `nextMissionId` points at the next mission. A module can hold several missions (M06, C01); the map card lists them as parts. A debrief points to its `nextMissionId`, or to the first unfinished mission on the path if that one is done.
+The main routes are `/` (title screen), `/map` (cases), `/missions/[missionId]` (a mission), `/summary` (notebook) and `/settings` (save and reset controls). Old `/start` and `/continue` links redirect permanently to the first mission and case map respectively.
 
-## Interaction patterns
+## Contribute missions and activities
 
-Each pattern is a step kind in `content/types.ts`, with its pure logic in `lib/` (unit-tested) and its component in `components/activities/`. Most can also be used as an unaided `transfer` step.
+Useful contributions include clearer scenarios, stronger evidence, better feedback, accessible interactions and fixes to save handling.
 
-| Step kind | Pattern | Used in |
-| --- | --- | --- |
-| `sandbox`, `faultTrace`, `sort` | Toy model, trace a failure, select-and-place sorting | M01, and sorting throughout |
-| `claimAudit` | Claim highlighter, source drawer, repairs, calculations | M04, M07, T01, C01 |
-| `dialogue`, `argumentMap` | Scripted branching conversation, argument map | M05, M06 (teach-back) |
-| `delegation` | Task inbox with later consequences and “what if” replay | M02, B01, C01 |
-| `compose` | Workspace with authored outputs, comparison, checklist, version tree, contribution record | M03, M11, B01 |
-| `gym` | Attempt, choose a kind of help, try again | M06 |
-| `chartLab` | Linked chart and table with adjustable measure, axis and range | M07, C01 |
-| `casefile` | Leads under time pressure, timeline, known/uncertain/contradicted | M08, M13, B03 |
-| `thresholdLab` | Screening threshold, outcomes by group, score versions | M09 |
-| `mark` | Mark text; `mode: "redact"` shows what each party receives | M10, B03, C01 |
-| `workflow` | Assemble steps, run tests, diagnose, fix | M12, C01 |
-| `allocation` | Spend a budget on conditions; stakeholder coverage map | M13, C01 |
-| `match` | Pin cards to partners one to one, with threads between pairs | M08, M11 |
-| `rank` | Order cards between two ends; only the ends are judged | M07, B01 |
+To add a module:
 
-Initial judgments that are in-scenario first moves are shown as a hand of move cards (`ChoiceQuestion` `variant="move"`); a position that the revision re-asks as it was keeps the plain list.
+1. Write missions in `apps/artisan/content/en/missions/` and register them in `content/missions.ts`.
+2. Add or update the module in `content/journey.ts`, mark it `available` when ready, and set the preceding debrief's `nextMissionId`.
+3. Add story scenes and artwork references where appropriate.
+4. Record `reviewedOn` and `reviewedBy` in mission `meta` after content review.
+5. Run the content and unit checks, then play the changed path through its debrief.
 
-`content/missions.test.ts` checks each pattern's content: that every task can be completed, that worked solutions work, and that the data tells the story the mission tells (for example, that no threshold on M09's original score closes the gap).
+Step kinds are defined in `content/types.ts`, with interaction logic in `lib/` and components in `components/activities/`. Many also work as unaided `transfer` steps.
 
-## Adding a module
+| Step kinds | Interaction |
+| --- | --- |
+| `sandbox`, `faultTrace`, `sort` | Toy prediction model, failure tracing and sorting |
+| `claimAudit` | Claims, sources, repairs and calculations |
+| `dialogue`, `argumentMap` | Branching conversation and argument mapping |
+| `delegation` | Task allocation with consequences and replay |
+| `compose` | Authored outputs, comparisons, revisions and contribution records |
+| `gym` | Attempt, choose help and try again |
+| `chartLab` | Linked charts and tables with adjustable measures, axes and ranges |
+| `casefile` | Leads, timelines and uncertain or contradictory evidence |
+| `thresholdLab` | Screening thresholds and outcomes across groups |
+| `mark` | Text marking and redaction |
+| `workflow` | Assemble, test, diagnose and repair a process |
+| `allocation` | Budget decisions and stakeholder coverage |
+| `match`, `rank` | Pairing and ordering activities |
 
-1. Write the mission in `content/en/missions/` and register it in `content/missions.ts`.
-2. Set the module to `available` in `content/journey.ts`, and point the previous debrief's `nextMissionId` at it.
-3. Record `reviewedOn` and `reviewedBy` in its `meta` once the content has been reviewed.
+`content/missions.test.ts` checks mission structure, task completion, worked solutions and whether activity data supports the intended lesson.
 
-`content/missions.test.ts` enforces the PRD's mission structure, so run `pnpm test` to catch missing parts.
+Preserve the `artisan_progress` storage key and saved-game compatibility. Return codes depend on the declared order of missions, story flags and their values; append new entries rather than reordering existing ones, and review the return-code tests when extending them. Use React's `useId` for form names and element IDs: Next.js can keep visited pages mounted but hidden, so content IDs can collide.
 
-Next keeps recently visited pages alive but hidden, so radio `name`s and element `id`s must come from `useId`, not from content ids.
+For artwork maintenance, run these from the workspace root:
+
+```bash
+pnpm --filter @pathfinder/artisan art:sync
+pnpm --filter @pathfinder/artisan art:brief
+```
+
+`art:sync` updates the enabled image list from supplied assets. `art:brief` regenerates [ART-BRIEF.md](ART-BRIEF.md) from the artwork registry.
+
+## Verify changes
+
+Run from the workspace root:
+
+```bash
+pnpm --filter @pathfinder/artisan test
+pnpm --filter @pathfinder/artisan lint
+pnpm --filter @pathfinder/artisan typecheck
+pnpm --filter @pathfinder/artisan build
+pnpm exec playwright install chromium
+pnpm --filter @pathfinder/artisan test:e2e
+```
+
+The browser suite starts a production build on port 3100 and runs at desktop and 375-pixel mobile widths. Use `E2E_PORT=3111 pnpm --filter @pathfinder/artisan test:e2e` if that port is occupied. For shared changes, run `pnpm check` and `pnpm test:smoke`; smoke tests require all apps' production builds.
+
+Manually check fresh play, resume after reload, save-file export/import, return-code restore and reset when changing progression or persistence. Submit focused pull requests explaining the learner benefit and validation, with screenshots for visual changes.
+
+## Host your own instance
+
+After installing workspace dependencies, build and start ARTISAN as a Node.js service:
+
+```bash
+pnpm --filter @pathfinder/artisan build
+pnpm --filter @pathfinder/artisan start --hostname 127.0.0.1 --port 3003
+```
+
+Keep the process running with a service manager and route an HTTPS hostname to port 3003 through a reverse proxy. Serve at `/` on its own hostname or subdomain; URL subpaths are not configured. Keep workspace dependencies, the app's `.next/` and `public/` directories, and writable runtime caches available. Routes are prerendered, but the repository is configured for a Next.js server rather than static export. See the [Next.js self-hosting guide](https://nextjs.org/docs/app/guides/self-hosting).
+
+Set your ARTISAN and other product URLs in `packages/brand/products.ts` before building. The sitemap and robots file use this registry; `SITE_URL` is not used. No model service or server database is needed. If you later change the site's origin, learners must transfer their browser progress using a save file or return code.
+
+For Netlify, use the workspace root as the base directory, `apps/artisan` as the package directory and this app's `netlify.toml`. Its build command is `pnpm --filter @pathfinder/artisan build` and its publish directory is `apps/artisan/.next`.
+
+After deployment, play a mission, reload it, try both save-transfer methods, and check `/sitemap.xml`, `/robots.txt`, the legacy redirects and the funding footer.
+
+## Reuse and attribution
+
+See the [workspace README](../../README.md) for the wider project and cross-app guidance. There is currently no project-wide licence file; clarify reuse and redistribution terms with the maintainers for an adapted deployment. Preserve the original project attribution and EU funding declaration.
+
+## Funding
+
+Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Education and Culture Executive Agency (EACEA). Neither the European Union nor EACEA can be held responsible for them.

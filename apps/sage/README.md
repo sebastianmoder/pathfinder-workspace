@@ -1,196 +1,106 @@
-# Pathfinder SAGE
+# SAGE — Strategies for AI-Guided Education
 
-Pathfinder SAGE is a documentation site for **Strategies for AI-Guided
-Education**: a practical framework for helping higher education teachers use
-generative AI thoughtfully, responsibly, and effectively.
+[Read SAGE](https://sage.ai-pathfinder.eu)
 
-The site is part of the Erasmus+ Pathfinder project, **Pioneering AI Technology
-in Higher Education to Facilitate Innovation and Nurture the Development of
-Entrepreneurial Resources**. Its purpose is to turn fast-moving AI developments
-into usable teaching guidance: when AI is useful, when it is not, how to prompt
-well, how to adapt teaching tasks, and how to support students in critical,
-ethical AI use.
+SAGE is a practical guide for higher education educators who want to use generative AI thoughtfully. It explains when AI is useful, where its limitations matter, how to write and evaluate prompts, and how to adapt teaching and assessment while keeping human judgement central.
 
-The public site is available at:
+It is one of the outputs of the Erasmus+ **Pathfinder** project, **Pioneering AI Technology in Higher Education to Facilitate Innovation and Nurture the Development of Entrepreneurial Resources** (project reference [`2023-2-LI01-KA220-HED-000178579`](https://erasmus-plus.ec.europa.eu/projects/search/details/2023-2-LI01-KA220-HED-000178579)).
 
-https://sage.ai-pathfinder.eu
+SAGE serves MDX content through Nextra, with a Pagefind index for browser-based search. It is a standalone application in the Pathfinder workspace and uses shared packages for branding and build configuration. Reading and searching require no account, database or model API key.
 
-## Project Status
+## Content
 
-This resource is under active development. Content, structure, examples, and
-recommendations may change as the project evolves and as AI tools, policy, and
-educational practice continue to develop.
+- **Introduction:** the SAGE framework and how to use it.
+- **Basics of Generative AI:** concepts, limitations, AI detection, ethics and deciding whether AI fits a task.
+- **Basics of Prompt Engineering:** practical techniques for communicating with and evaluating AI.
+- **Teachers' Tasks:** course rules, curriculum and lesson design, materials, assessments, rubrics, source-based assistants and a teacher workshop pack.
+- **Teaching and Learning with AI:** a competency pathway and activities for assessment, tutoring, simulations, writing, data analysis, programming and entrepreneurial learning.
 
-## What This Site Contains
+Unfinished material stays in `drafts/` and is not part of the published site. Content evolves with educational practice and AI tools; contributions should help readers make informed choices and review AI outputs critically.
 
-The site is organized as a Nextra documentation site with MDX content. The main
-sections are:
+## Run locally
 
-- **Introduction**: the SAGE framework and its intended role.
-- **Basics of Generative AI**: core concepts, limitations, AI detection, ethics,
-  and guidance on when AI is an appropriate tool.
-- **Basics of Prompt Engineering**: practical prompting techniques for better
-  AI-assisted work.
-- **Teachers' Tasks**: guidance for course and assignment AI rules, curriculum
-  design, lesson planning, course materials, exam questions, rubrics, and
-  related teaching workflows. Includes complete assessment examples, material
-  adaptations, source-based assistants, and a two-hour teacher workshop pack.
-- **Teaching and Learning with AI**: a progressive AI competency pathway plus
-  guidance for assessment, tutoring, simulations, evaluation, and writing
-  instruction, with worked data-analysis, programming, and entrepreneurial
-  learning activities.
-- **Draft sections**: incomplete pages live in `drafts/`, outside Nextra's
-  routable content tree, until they meet the publication checklist.
+Clone or download the **whole monorepo**, including shared packages and workspace patches. Use Node.js **22.22.0** from the root `.nvmrc` and pnpm **10.30.3**. Run all commands from the **workspace root**, two directories above `apps/sage`, where `pnpm-workspace.yaml` lives.
 
-The intention is not to promote AI use for its own sake. The site should help
-educators make informed decisions, keep human expertise central, and treat AI
-outputs as drafts that require review, judgment, and contextual adaptation.
-
-## Technology
-
-This project uses:
-
-- [Next.js](https://nextjs.org/) with the App Router.
-- [Nextra](https://nextra.site/) and `nextra-theme-docs` for documentation
-  routing, layout, sidebars, and MDX rendering.
-- MDX content stored in `content/`.
-- Tailwind CSS and global CSS for styling.
-- Pagefind for static search indexing.
-- Next.js App Router metadata routes for sitemap and `robots.txt` generation.
-
-## Repository Structure
-
-```text
-app/                       Next.js App Router layout and Nextra catch-all route
-components/                Shared React components
-content/                   Published MDX pages and navigation metadata
-drafts/                    Unpublished working content
-public/                    Static assets and Pagefind index
-styles/                    Global CSS and chat component styles
-mdx-components.js          Nextra MDX component wiring
-next.config.mjs            Next.js and Nextra configuration
-netlify.toml               Netlify redirect configuration
-package.json               Scripts, dependencies, and Node engine range
-```
-
-## Requirements
-
-- Node.js `>=22 <25`
-- pnpm
-
-The repository includes an `.nvmrc` file. If you use `nvm`, run:
+With nvm and Corepack available:
 
 ```bash
+nvm install
 nvm use
+corepack enable pnpm
+pnpm install --frozen-lockfile
+pnpm dev:sage
 ```
 
-## Local Development
+Open [http://localhost:3001](http://localhost:3001). No environment variables are required. The development script ensures a Pagefind search index exists; a first start can trigger a production build. Search reflects the last indexed build, so rebuild after content changes when checking search results.
 
-Install dependencies:
+## How it works
+
+SAGE uses Next.js 16's App Router, React 19, Nextra 4 and `nextra-theme-docs`. MDX files combine Markdown with React components. Nextra turns the published content tree into routes and sidebars; `_meta.js` files control navigation order and labels. Pagefind builds a search index from the generated HTML, then searches that index in the browser.
+
+| Path, relative to this app | Purpose |
+| --- | --- |
+| `content/` | Published MDX pages and `_meta.js` navigation metadata |
+| `drafts/` | Unpublished working material and its publication checklist |
+| `app/layout.jsx` | Theme, navbar, sidebar and footer wiring |
+| `app/[[...mdxPath]]/` | Nextra catch-all route |
+| `app/sitemap.js`, `app/robots.js` | Published routes and crawler discovery |
+| `mdx-components.js` | Components available to MDX pages |
+| `components/`, `styles/` | App-specific components and styles |
+| `public/` | Static assets and generated `_pagefind/` search index |
+| `patches/` | Documented Nextra theme compatibility patch |
+| `next.config.mjs`, `netlify.toml` | Framework and Netlify build configuration |
+
+Shared branding, fonts, project navigation, funding footer and product URLs live in `packages/brand/` at the workspace root. Shared Next.js settings live in `packages/config/`. Keep theme configuration in `app/layout.jsx`; this app does not use the older Nextra `pages/` or `theme.config.jsx` structure.
+
+## Contribute content
+
+Content contributions include corrections, worked teaching examples, classroom experience and clearer explanations. Pages and navigation are maintained in MDX and `_meta.js` files independently of application components.
+
+1. Edit or create an `.mdx` page in the relevant section of `apps/sage/content/`.
+2. Update the section's `_meta.js` and overview page when adding a topic or changing navigation.
+3. Check factual and product-specific claims against current primary sources. Give examples enough context for another educator to use them.
+4. Keep incomplete pages in `apps/sage/drafts/`. Hiding a sidebar entry inside `content/` does **not** prevent its route, search indexing or sitemap inclusion.
+5. Build and inspect the changed pages, links, sidebar and search results at desktop and mobile widths.
+
+From the workspace root:
 
 ```bash
-pnpm install
+pnpm --filter @pathfinder/sage build
+pnpm --filter @pathfinder/sage start --port 3001
 ```
 
-Start the development server:
+The build prerenders the published routes, `/sitemap.xml` and `/robots.txt`. Its `postbuild` step generates `public/_pagefind/`. To regenerate only search after a successful build:
 
 ```bash
-pnpm dev
+pnpm --filter @pathfinder/sage run build:search-index
 ```
 
-The local site normally runs at:
+SAGE has no separate lint or unit-test script; the production build is its main content integration check. Shared changes require `pnpm check` followed by `pnpm test:smoke` from the workspace root; smoke tests require all production builds and Playwright Chromium. The [draft checklist](drafts/README.md) and [theme patch notes](patches/README.md) explain their respective maintenance requirements.
 
-```text
-http://localhost:3000
-```
+Keep content revisions separate from structural or dependency changes. Submit a focused pull request describing the reader benefit and validation, with screenshots for layout changes.
 
-The `dev` script ensures that a Pagefind search index exists before starting
-Next.js. If the index is missing, it may trigger a build first.
+## Host your own instance
 
-## Production Build
-
-Build the site:
+SAGE can run on an institutional Node.js server without Netlify. After installing the workspace dependencies:
 
 ```bash
-pnpm build
+pnpm --filter @pathfinder/sage build
+pnpm --filter @pathfinder/sage start --hostname 127.0.0.1 --port 3001
 ```
 
-The Next.js build prerenders `/sitemap.xml` and `/robots.txt` using
-`app/sitemap.js` and `app/robots.js`. The sitemap reads the same published
-content registry as the Nextra catch-all page via `generateStaticParamsFor`.
-New published MDX routes are included automatically; files in `drafts/`,
-navigation metadata and image assets are excluded. Netlify publishes these
-routes from the existing `.next` output.
+Use a service manager to keep the process running and an HTTPS reverse proxy to route your chosen hostname to port 3001. Serve SAGE at `/` on its own hostname or subdomain; hosting under a URL subpath is not configured. Keep workspace dependencies, the app's `.next/` and `public/` directories, and writable runtime caches available. Include `public/_pagefind/` generated by the build or search will fail. Although pages are prerendered, the current configuration uses a Next.js server, not a static export. See the [Next.js self-hosting guide](https://nextjs.org/docs/app/guides/self-hosting).
 
-The `postbuild` script then regenerates the Pagefind search index in
-`public/_pagefind`.
+Before building your instance, update the SAGE URL and any other hosted product URLs in `packages/brand/products.ts`. The sitemap and robots file use that registry even in previews; `SITE_URL` is not used. Review the titles, description and repository reference in `app/layout.jsx`. That layout also loads an external Font Awesome icon script; review this dependency if your installation must operate on a restricted network. Fonts are bundled in the workspace.
 
-Serve the production build locally:
+For Netlify, use the workspace root as the base directory, `apps/sage` as the package directory and this app's `netlify.toml`. The build command is `pnpm --filter @pathfinder/sage build` and the publish directory is `apps/sage/.next`. Review the legacy-host redirect to `sage.ai-pathfinder.eu` for your deployment. Keep the workspace theme patch applied during installation.
 
-```bash
-pnpm start
-```
+After deployment, open several published pages, use search, follow sidebar and product links, and check `/sitemap.xml`, `/robots.txt` and the EU funding footer. Draft pages should remain unavailable.
 
-## Editing Content
+## Reuse and attribution
 
-Most content work happens in `content/`.
+See the [workspace README](../../README.md) for the wider project and contribution checks. There is currently no project-wide licence file; clarify reuse and redistribution terms with the maintainers for an adapted deployment. Preserve the original project attribution and EU funding declaration.
 
-To add or change a page:
+## Funding
 
-1. Edit or create an `.mdx` file in the relevant `content/` section.
-2. Update that section's `_meta.js` file to control sidebar order and labels.
-3. Keep incomplete pages in `drafts/`; a sidebar-hidden page inside `content/`
-   may still be routed, indexed by search, and included in the sitemap.
-4. Run `pnpm build` to catch MDX, routing, and sitemap/search-index issues.
-5. Manually check the affected route in `pnpm dev`.
-
-Shared UI belongs in `components/`. Global styling belongs in `styles/`.
-
-## Useful Scripts
-
-```bash
-pnpm dev                 Start the local development server
-pnpm build               Create a production build and regenerate site outputs
-pnpm start               Serve the production build
-pnpm run build:search-index
-                         Regenerate the Pagefind index from the built site
-```
-
-There are currently no dedicated test or lint scripts. `pnpm build` is the main
-quality gate.
-
-## Configuration Notes
-
-- Sitemap and robots URLs use the canonical production URL from
-  `packages/brand/products.ts`, including in deploy previews. No `SITE_URL`
-  environment variable is needed.
-- Theme, navbar, sidebar behavior, banner text, and footer wiring live
-  in `app/layout.jsx`.
-- The footer includes the Erasmus+ project link and EU funding declaration.
-- `netlify.toml` redirects the older Netlify URL to the canonical domain.
-
-## Contribution Guidelines
-
-Keep changes focused and easy to review:
-
-- Prefer small, content-focused MDX updates.
-- Avoid mixing content rewrites with structural refactors.
-- Keep filenames lowercase and descriptive.
-- Update `_meta.js` whenever navigation order or labels change.
-- Run `pnpm build` before opening a pull request.
-- Include screenshots for visible layout, styling, or theme changes.
-
-Commit messages should be short and action-oriented, for example:
-
-```text
-teaching: add rubric examples
-prompting: revise delimiter guidance
-docs: update local setup notes
-```
-
-## Funding Declaration
-
-Funded by the European Union. Views and opinions expressed are however those of
-the author(s) only and do not necessarily reflect those of the European Union or
-the European Education and Culture Executive Agency (EACEA). Neither the
-European Union nor EACEA can be held responsible for them.
+Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Education and Culture Executive Agency (EACEA). Neither the European Union nor EACEA can be held responsible for them.

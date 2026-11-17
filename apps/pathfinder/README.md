@@ -1,153 +1,95 @@
-# Pathfinder
+# Pathfinder project website
 
-Pathfinder is the public website for the Erasmus+ Pathfinder project:
-**Pioneering AI Technology in Higher Education to Facilitate Innovation and
-Nurture the Development of Entrepreneurial Resources**.
+[Visit Pathfinder](https://ai-pathfinder.eu)
 
-The site explains the project background, introduces the consortium, and points
-educators and students to the project outputs: SAGE, GUARD, and ARTISAN. It is
-built as a lightweight, content-focused Next.js application and published under
-the `ai-pathfinder.eu` domain.
+Pathfinder is the public website for **Pioneering AI Technology in Higher Education to Facilitate Innovation and Nurture the Development of Entrepreneurial Resources**, an Erasmus+ cooperation partnership (project reference [`2023-2-LI01-KA220-HED-000178579`](https://erasmus-plus.ec.europa.eu/projects/search/details/2023-2-LI01-KA220-HED-000178579)).
 
-## Background and Intentions
+The website introduces the project, presents the consortium from Liechtenstein, Finland and Croatia, and helps educators and students find the three learning outputs:
 
-Pathfinder is an Erasmus+ collaboration focused on practical and responsible AI
-adoption in higher education. The project brings together academic, applied
-research, and school-level partners from Liechtenstein, Finland, and Croatia.
+| Output | What visitors can do | Public site |
+| --- | --- | --- |
+| **SAGE** — Strategies for AI-Guided Education | Read practical guidance on teaching with generative AI | [SAGE](https://sage.ai-pathfinder.eu) |
+| **GUARD** — Generative Universal Assistant for Resourceful Development | Work through guided AI labs for teaching tasks | [GUARD](https://guard.ai-pathfinder.eu) |
+| **ARTISAN** — AI Readiness Training for Insightful Systematic Adaptation and Navigation | Build AI literacy through interactive story cases | [ARTISAN](https://artisan.ai-pathfinder.eu) |
 
-Its purpose is to help educators and students understand where AI can support
-teaching, learning, employability, and entrepreneurial innovation while keeping
-responsible use, critical thinking, and digital readiness at the center.
+The website runs as a standalone application. SAGE, GUARD and ARTISAN are separate applications in the same workspace, with their own development servers and deployments. There is no account system, database or model API requirement for this app.
 
-This website has four main responsibilities:
+## Run locally
 
-- Explain the Pathfinder mission and project context.
-- Present the consortium and participating organizations.
-- Publish the status of the project deliverables.
-- Route visitors directly to Pathfinder tools and learning resources.
+Clone or download the **whole monorepo**, including its shared packages. Use Node.js **22.22.0** from the root `.nvmrc` and pnpm **10.30.3**. Run all commands from the **workspace root**, two directories above `apps/pathfinder`, where `pnpm-workspace.yaml` lives.
 
-Project reference:
-[`2023-2-LI01-KA220-HED-000178579`](https://erasmus-plus.ec.europa.eu/projects/search/details/2023-2-LI01-KA220-HED-000178579)
-
-## Project Outputs
-
-| Output  | Full name                                                                 | Audience               | Status       | Location                         |
-| ------- | ------------------------------------------------------------------------- | ---------------------- | ------------ | -------------------------------- |
-| SAGE    | Strategies for AI-Guided Education                                        | Educators              | Live         | <https://sage.ai-pathfinder.eu>  |
-| GUARD   | Generative Universal Assistant for Resourceful Development                | Educators              | Live         | <https://guard.ai-pathfinder.eu> |
-| ARTISAN | AI Readiness Training for Insightful Systematic Adaptation and Navigation | Educators and students | Live         | <https://artisan.ai-pathfinder.eu> |
-
-SAGE provides practical guidance for responsible AI integration in higher
-education. GUARD offers guided AI labs for educators. ARTISAN is an AI
-readiness learning journey for educators and students.
-
-## Tech Stack
-
-- [Next.js](https://nextjs.org/) 16 with the App Router
-- [React](https://react.dev/) 19
-- [TypeScript](https://www.typescriptlang.org/) with strict mode enabled
-- [Tailwind CSS](https://tailwindcss.com/) for layout and project styling
-- [Material UI](https://mui.com/) for existing form controls; shared Pathfinder navigation
-- Next.js App Router metadata routes for sitemap and robots generation
-
-## Getting Started
-
-Use the workspace Node version in `../../.nvmrc` and pnpm. Run installation from the workspace root.
-
-Install dependencies:
+With nvm and Corepack available:
 
 ```bash
-pnpm install
+nvm install
+nvm use
+corepack enable pnpm
+pnpm install --frozen-lockfile
+pnpm dev:pathfinder
 ```
 
-Start the local development server:
+Open [http://localhost:3000](http://localhost:3000). No environment variables are required to view or build the website. Links to the other outputs use the public domains until you change `packages/brand/products.ts`.
+
+## How it works
+
+The app uses Next.js 16's App Router, React 19, TypeScript and Tailwind CSS. Material UI supports the form components. The homepage presents the project mission, output cards and consortium profiles. Navigation and the funding footer use shared Pathfinder components.
+
+| Path, relative to this app | Purpose |
+| --- | --- |
+| `app/page.tsx` | Homepage text, project mission and output cards |
+| `app/layout.tsx` | Root layout and page metadata |
+| `components/Consortium.tsx` | Partner profiles and links |
+| `components/Navigation.tsx`, `components/Footer.tsx` | Wiring for the shared project header and footer |
+| `components/forms/` | Form controls |
+| `public/` | Static images and generated brand assets |
+| `app/sitemap.ts`, `app/robots.ts` | Search-engine discovery routes |
+| `next.config.js` | Shared build configuration and legacy redirects |
+| `netlify.toml` | Netlify build settings and original-domain redirect |
+
+Shared components, fonts, design tokens and product URLs live in `packages/brand/` at the workspace root; shared Next.js settings live in `packages/config/`.
+
+The website has one public content page, `/`, with consortium profiles at `/#consortium`. Old links remain supported:
+
+- `/about` redirects permanently to `/#consortium`.
+- `/sage`, `/guard` and `/artisan` redirect permanently to the respective product URLs in `packages/brand/products.ts`.
+
+## Host your own instance
+
+This app can run on a university server or virtual machine with Node.js; it does not require Netlify. After the root installation above:
 
 ```bash
-pnpm run dev
+pnpm --filter @pathfinder/pathfinder build
+pnpm --filter @pathfinder/pathfinder start --hostname 127.0.0.1 --port 3000
 ```
 
-Open <http://localhost:3000> in a browser.
+Keep the production process running with a service manager and route an HTTPS hostname to port 3000 through your reverse proxy. Serve the app at the root of its hostname; URL subpaths are not configured. Keep the workspace dependencies, app `public/` and `.next/` directories available, with writable runtime caches. `.next/` is build output for the server, not a static website to upload to a file server. See the [Next.js self-hosting guide](https://nextjs.org/docs/app/guides/self-hosting).
 
-Useful local routes:
+Before building an institutional instance:
 
-- `/` - homepage, project objective, deliverables, full consortium profiles and links at `/#consortium`
-- `/about` - permanent redirect to `/#consortium`
-- `/sage` - permanent redirect to <https://sage.ai-pathfinder.eu>
-- `/guard` - permanent redirect to <https://guard.ai-pathfinder.eu>
-- `/artisan` - permanent redirect to <https://artisan.ai-pathfinder.eu>
+1. Set your project and output URLs in `packages/brand/products.ts`. You can host only this app and continue linking to the public learning outputs.
+2. Review `app/layout.tsx`, homepage text and consortium profiles for the context of your instance, retaining the original project and funding attribution. The Open Graph URL in the layout is hardcoded and needs a separate update.
+3. Rebuild after changing URLs. `/sitemap.xml`, `/robots.txt` and product redirects use the shared registry; `SITE_URL` is not used.
 
-The homepage cards and shared product navigation link directly to these product
-sites. Legacy overview URLs are preserved as HTTP 308 redirects in `next.config.js`;
-their destinations come from `packages/brand/products.ts`.
+The sitemap lists only the homepage. After deployment, check the homepage, partner and product links, all four legacy redirects, `/sitemap.xml` and `/robots.txt`.
 
-## Scripts
+For Netlify, use the workspace root as the base directory, `apps/pathfinder` as the package directory and this app's `netlify.toml`. Its build command is `pnpm --filter @pathfinder/pathfinder build` and its publish directory is `apps/pathfinder/.next`. Review the redirect from the original Netlify hostname to `ai-pathfinder.eu` when adapting the configuration.
 
-| Command         | Purpose                                                  |
-| --------------- | -------------------------------------------------------- |
-| `pnpm run dev`   | Start the local development server.                      |
-| `pnpm run lint`  | Run ESLint with Next.js core web vitals rules.           |
-| `pnpm run build` | Create a production build and regenerate sitemap output. |
-| `pnpm run start` | Run the production server after a successful build.      |
+## Contribute
 
-`pnpm run build` prerenders `/sitemap.xml` and `/robots.txt` from the App Router
-metadata routes, ready for Netlify's existing `.next` publish directory.
+Useful contributions include clearer project explanations, updated partner information, accessibility fixes and improvements to how visitors discover the outputs. Edit homepage content in `app/page.tsx`, partner profiles in `components/Consortium.tsx`, and shared navigation or branding in `packages/brand/`. Place static images under `public/` and reference them with root-relative URLs.
 
-## Project Structure
-
-```text
-app/
-  page.tsx          Homepage
-  layout.tsx        Root layout, metadata, navigation, footer
-  sitemap.ts       Sitemap generated during the build
-  robots.ts        Crawler rules and sitemap URL
-
-components/
-  Navigation.tsx    Responsive top navigation
-  Consortium.tsx    Partner profiles and external links on the homepage
-  Footer.tsx        Project footer and EU funding declaration
-  Featurecard.tsx   Deliverable card component
-  forms/            Form-related UI components
-  svg/              Custom SVG/icon components
-
-public/
-  images/           Project, partner, and EU funding images
-
-netlify.toml
-next.config.js     Shared build settings and legacy route redirects
-tailwind.config.ts
-tsconfig.json
-```
-
-## Working on the Site
-
-Most content changes happen in the route files under `app/`. Shared page
-elements live in `components/`. Static assets should be placed under
-`public/images/` and referenced with root-relative paths such as
-`/images/pathfinder.png`.
-
-When adding, renaming, or removing routes, update the navigation if needed and
-update `app/sitemap.ts` and run a production build so the sitemap stays in sync.
-
-Before opening a pull request, verify:
+Run app checks from the workspace root:
 
 ```bash
-pnpm run lint
-pnpm run build
+pnpm --filter @pathfinder/pathfinder lint
+pnpm --filter @pathfinder/pathfinder typecheck
+pnpm --filter @pathfinder/pathfinder build
 ```
 
-For UI changes, manually check `/` and its product links. Verify that `/about`,
-`/guard`, `/artisan`, and `/sage` return permanent redirects to their destinations.
+For UI changes, check the homepage at desktop and mobile widths and use a keyboard to follow navigation and product links. If you add a page, update navigation and `app/sitemap.ts` as appropriate. Preserve the existing redirects. Shared changes require `pnpm check` followed by `pnpm test:smoke`; the latter uses production builds and Playwright Chromium.
 
-## Deployment and SEO
+Submit focused pull requests explaining the user-facing change and validation, with screenshots for visible changes. See the [workspace README](../../README.md) for cross-app development and reuse terms. There is currently no project-wide licence file; clarify reuse terms with the maintainers before redistributing an adapted instance.
 
-The sitemap and robots routes use the canonical production URL from
-`packages/brand/products.ts`, including in deploy previews. The sitemap lists
-only the homepage. The legacy `/about`, `/sage`, `/guard`, and `/artisan` URLs
-redirect permanently and are omitted. No `SITE_URL` environment variable is needed.
+## Funding
 
-`netlify.toml` contains a redirect from the previous Netlify URL to the
-production domain. Keep this redirect in place unless the deployment target
-changes.
-
-The footer includes the required European Union funding declaration. Preserve it
-when changing public-facing layout or footer content.
+Funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Education and Culture Executive Agency (EACEA). Neither the European Union nor EACEA can be held responsible for them.
