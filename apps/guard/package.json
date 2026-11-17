@@ -15,13 +15,13 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@netlify/blobs": "^11.1.7",
+    "@netlify/blobs": "^11.1.9",
     "@netlify/functions": "^6.1.1",
     "clsx": "^2.1.1",
     "diff": "^9.0.0",
     "mammoth": "^1.13.0",
     "next": "16.4.6",
-    "openai": "^7.53.0",
+    "openai": "^7.57.0",
     "pdf-parse": "^2.4.5",
     "react": "19.3.1",
     "react-dom": "19.3.1",
