@@ -17,7 +17,7 @@
     "art:brief": "node --experimental-strip-types --no-warnings scripts/art-brief.mjs"
   },
   "dependencies": {
-    "next": "16.4.5",
+    "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "@pathfinder/brand": "workspace:*",
@@ -32,7 +32,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.2.1",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.4.5",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4",
     "typescript": "~6.0.3",
     "vitest": "^5.1.0",
