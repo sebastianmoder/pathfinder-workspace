@@ -5,8 +5,9 @@ updates:
     schedule:
       interval: weekly
     groups:
-      framework:
-        patterns: ["next", "react", "react-dom", "eslint-config-next", "nextra", "nextra-theme-docs"]
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       # Keep @types/node on the runtime major (.nvmrc / engines). Bump it with Node itself.
       - dependency-name: "@types/node"
