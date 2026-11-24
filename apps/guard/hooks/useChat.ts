@@ -14,7 +14,9 @@ const AUTO_RETRY_CODES = new Set<ChatErrorCode>([
 const HOSTING_TIMEOUT_THRESHOLD_MS = 50_000;
 const AUTO_RETRY_MIN_DELAY_MS = 750;
 const AUTO_RETRY_MAX_DELAY_MS = 1_500;
-const JOB_POLL_INTERVAL_MS = 1_500;
+const JOB_FIRST_POLL_DELAY_MS = 1_00;
+const JOB_SECOND_POLL_DELAY_MS = 1_500;
+const JOB_POLL_INTERVAL_MS = 3_000;
 const JOB_STALE_AFTER_MS = 5 * 60_000 + 45_000;
 const activeJobPolls = new Set<string>();
 
@@ -113,12 +115,19 @@ function jobConnectionError(job: ChatJobReference, hasPartialResponse: boolean):
   };
 }
 
-async function pollChatJob(assistantId: string, job: ChatJobReference) {
+async function pollChatJob(
+  assistantId: string,
+  job: ChatJobReference,
+  { newlySubmitted = false } = {},
+) {
   if (activeJobPolls.has(job.id)) return;
   activeJobPolls.add(job.id);
   let failures = 0;
 
   try {
+    if (newlySubmitted) await delay(JOB_FIRST_POLL_DELAY_MS);
+    let pollIntervalMs = newlySubmitted ? JOB_SECOND_POLL_DELAY_MS : JOB_POLL_INTERVAL_MS;
+
     while (true) {
       const current = useChatStore.getState().messages.find((item) => item.id === assistantId);
       if (!current || current.job?.id !== job.id || messageStatus(current) !== 'streaming') return;
@@ -177,7 +186,8 @@ async function pollChatJob(assistantId: string, job: ChatJobReference) {
         failures += 1;
         if (failures >= 10 && navigator.onLine) throw error;
       }
-      await delay(JOB_POLL_INTERVAL_MS);
+      await delay(pollIntervalMs);
+      pollIntervalMs = JOB_POLL_INTERVAL_MS;
     }
   } catch (error) {
     const current = useChatStore.getState().messages.find((item) => item.id === assistantId);
@@ -293,8 +303,10 @@ export function useChat() {
               requestId: submitted.requestId,
               startedAt: submitted.startedAt,
             };
+            // Register the poll before publishing the job to the recovery effect.
+            const polling = pollChatJob(assistantId, job, { newlySubmitted: true });
             setActiveJob(assistantId, job);
-            await pollChatJob(assistantId, job);
+            await polling;
             return;
           }
 
